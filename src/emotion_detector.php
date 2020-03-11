@@ -1,13 +1,5 @@
 <?php
-//****************** HR-Robot Project ***********************
-//2020/02/17
-//Yurin A.Y.
-//************** exported from PKBD ****************
-// version: 4.2018.0201.6 
-// knowledge base:
-// info:
 
-//****************** classes ***********************
 class brow_1{
  var $brow_width;
  function Init(){
