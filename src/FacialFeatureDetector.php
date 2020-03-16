@@ -176,7 +176,8 @@ class FacialFeatureDetector
                     $maxFrame = $i;
                 }
 
-        return array(0 => $max, 1 => $maxFrame);
+//        return array(0 => $max, 1 => $maxFrame);
+        return $max;
     }
 
     /**
@@ -202,7 +203,8 @@ class FacialFeatureDetector
                     $minFrame = $i;
                 }
 
-        return array(0 => $min, 1 => $minFrame);
+//        return array(0 => $min, 1 => $minFrame);
+        return $min;
     }
 
     /**
@@ -214,63 +216,47 @@ class FacialFeatureDetector
     public function detectEyeFeatures($faceData)
     {
         $faceData["Characteristics"]["eye"]["right_eye_inner"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_eye_inner"], "X"
-        )[0];
+            $faceData["eye"]["right_eye_inner"], "X");
         $faceData["Characteristics"]["eye"]["right_eye_inner"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_eye_inner"], "Y"
-        )[0];
+            $faceData["eye"]["right_eye_inner"], "Y");
         $faceData["Characteristics"]["eye"]["right_eye_inner"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_eye_inner"], "X"
-        )[0];
+            $faceData["eye"]["right_eye_inner"], "X");
         $faceData["Characteristics"]["eye"]["right_eye_inner"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_eye_inner"], "Y"
-        )[0];
+            $faceData["eye"]["right_eye_inner"], "Y");
         // Здесь и далее опрделено экспертно на основе визуального анализа точек (кадры 115 и 119)
         $faceData["Characteristics"]["eye"]["right_eye_inner"]["NatX"] = 422;
         $faceData["Characteristics"]["eye"]["right_eye_inner"]["NatY"] = 250;
 
         $faceData["Characteristics"]["eye"]["right_eye_outer"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_eye_outer"], "X"
-        )[0];
+            $faceData["eye"]["right_eye_outer"], "X");
         $faceData["Characteristics"]["eye"]["right_eye_outer"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_eye_outer"], "Y"
-        )[0];
+            $faceData["eye"]["right_eye_outer"], "Y");
         $faceData["Characteristics"]["eye"]["right_eye_outer"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_eye_outer"], "X"
-        )[0];
+            $faceData["eye"]["right_eye_outer"], "X");
         $faceData["Characteristics"]["eye"]["right_eye_outer"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_eye_outer"], "Y"
-        )[0];
+            $faceData["eye"]["right_eye_outer"], "Y");
         $faceData["Characteristics"]["eye"]["right_eye_outer"]["NatX"] = 538;
         $faceData["Characteristics"]["eye"]["right_eye_outer"]["NatY"] = 250;
 
         $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_upper_eyelid"], "X"
-        )[0];
+            $faceData["eye"]["right_upper_eyelid"], "X");
         $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_upper_eyelid"], "Y"
-        )[0];
+            $faceData["eye"]["right_upper_eyelid"], "Y");
         $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_upper_eyelid"], "X"
-        )[0];
+            $faceData["eye"]["right_upper_eyelid"], "X");
         $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_upper_eyelid"], "Y"
-        )[0];
+            $faceData["eye"]["right_upper_eyelid"], "Y");
         $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["NatX"] = 505;
         $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["NatY"] = 232;
 
         $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_lower_eyelid"], "X"
-        )[0];
+            $faceData["eye"]["right_lower_eyelid"], "X");
         $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_lower_eyelid"], "Y"
-        )[0];
+            $faceData["eye"]["right_lower_eyelid"], "Y");
         $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_lower_eyelid"], "X"
-        )[0];
+            $faceData["eye"]["right_lower_eyelid"], "X");
         $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_lower_eyelid"], "Y"
-        )[0];
+            $faceData["eye"]["right_lower_eyelid"], "Y");
 //        $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MinYFrame"] = $this->faceDataMinForKey(
 //            $faceData["eye"]["right_lower_eyelid"],"Y"
 //        )[1];
@@ -289,7 +275,7 @@ class FacialFeatureDetector
         // right_eye_width - ширина глаз по Y ("+" увеличение ,"-" уменьшение)
 
         // Создание FaceFeature
-        $faceData["eye"]["right_eye_width"] = [];
+//       $faceData["eye"]["right_eye_width"] = [];
 
         // Расчет Width для right_eye_width
         $this->addOneDimDistance($faceData["eye"]["right_eye_width"], "Width",
@@ -298,10 +284,10 @@ class FacialFeatureDetector
 
         // Расчет характерисик для right_eye_width, сохранение характеристик
         $rightEyeWidthNat = $this->getFaceDataAvrForKey($faceData["eye"]["right_eye_width"], "Width");
-        $rightEyeWidthMax = $this->getFaceDataMaxForKey($faceData["eye"]["right_eye_width"], "Width")[0];
-        $rightEyeWidthMin = $this->getFaceDataMinForKey($faceData["eye"]["right_eye_width"], "Width")[0];
+        $rightEyeWidthMax = $this->getFaceDataMaxForKey($faceData["eye"]["right_eye_width"], "Width");
+        $rightEyeWidthMin = $this->getFaceDataMinForKey($faceData["eye"]["right_eye_width"], "Width");
 
-        $faceData["Characteristics"]["eye"]["right_eye_width"] = [];
+ //       $faceData["Characteristics"]["eye"]["right_eye_width"] = [];
         $faceData["Characteristics"]["eye"]["right_eye_width"]["Max"] = $rightEyeWidthMax;
         $faceData["Characteristics"]["eye"]["right_eye_width"]["Min"] = $rightEyeWidthMin;
         $faceData["Characteristics"]["eye"]["right_eye_width"]["Nat"] = $rightEyeWidthNat;
@@ -314,11 +300,9 @@ class FacialFeatureDetector
     }
 
     /**
-     * TODO - НАПИСАТЬ ОПИСАНИЕ МЕТОДА + входные и выходные параметры
-     *
-     * @param $val1 -
-     * @param $val2 -
-     * @return float|int -
+     * @param $val1 - диапазон значений
+     * @param $val2 - текущее значение
+     * @return float|int - интенсивность проявления по относительной шкале от 1 до 5
      */
     public function getForce($val1, $val2)
     {
@@ -326,6 +310,50 @@ class FacialFeatureDetector
         $res = abs(round($val2 / $af));
 
         return $res;
+    }
+
+    /**
+     * конвертация входного файла И в массив АБ
+     * @param $iFile - файл json в формате И
+     * @return array - массив в формате АБ
+     */
+    public function convertIJson($iFile)
+    {
+        $json = file_get_contents($iFile, true);
+        //load input data for I format
+        $iFaceData=json_decode($json, true);
+        $i = 0;
+        foreach ($iFaceData as $k=>$v) {
+        //       for ($i = 0; $i < count($iFaceData); $i++) {
+            if (strpos(Trim($k), 'frame_') !== false){
+
+                //norm points processing
+                foreach ($v['NORM_POINTS'] as $k1=>$v1) {
+//                for ($i1 = 0; $i1 < count($v['NORM_POINTS']); $i1++) {
+//                   $pointName = $k1;
+//                   echo $pointName.'<br>';
+                    $FaceData_['normmask'][$i][$k1]['X'] = $v1[0];
+                    $FaceData_['normmask'][$i][$k1]['Y'] = $v1[1];
+                }
+                //brow points processing
+                foreach ($v['brow'] as $k1=>$v1) {
+                    $FaceData_['brow'][$i][$k1]['X'] = $v1[0];
+                    $FaceData_['brow'][$i][$k1]['Y'] = $v1[1];
+                }
+                //eyebrow points processing
+                foreach ($v['eyebrow'] as $k1=>$v1) {
+                    $FaceData_['eyebrow'][$i][$k1]['X'] = $v1[0];
+                    $FaceData_['eyebrow'][$i][$k1]['Y'] = $v1[1];
+                }
+                //eye points processing
+                foreach ($v['eye'] as $k1=>$v1) {
+                    $FaceData_['eye'][$i][$k1]['X'] = $v1[0];
+                    $FaceData_['eye'][$i][$k1]['Y'] = $v1[1];
+                }
+             ++$i;
+            }
+        }
+        return $FaceData_;
     }
 
     /**
@@ -350,6 +378,7 @@ class FacialFeatureDetector
         // get min and max values
         for ($i = 1; $i < count($sourceFaceData['normmask']); $i++)
             for ($j = 0; $j < count($sourceFaceData['normmask'][$i]); $j++) {
+
                 // min
                 // x
                 // echo $facePoints[$j][0][1].' :: '.$FaceData_['frame_#'.$i]['NORM_POINTS'][$j][0].'<br>';
@@ -360,6 +389,7 @@ class FacialFeatureDetector
                 if (($sourceFaceData['normmask'][$i][$j]['Y'] < $facePoints[$j][1][1]) and
                     ($sourceFaceData['normmask'][$i][$j]['Y'] != 0))
                     $facePoints[$j][1][1] = $sourceFaceData['normmask'][$i][$j]['X'];
+
                 // max
                 // x
                 if ($sourceFaceData['normmask'][$i][$j]['X'] > $facePoints[$j][0][2])
