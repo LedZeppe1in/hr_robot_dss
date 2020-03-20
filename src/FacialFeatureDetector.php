@@ -69,7 +69,7 @@ class FacialFeatureDetector
      */
     public function moveD($facialCharacteristics, $key, $max, $min, $nat)
     {
-        $targetFaceData = $facialCharacteristics;
+//        $targetFaceData = $facialCharacteristics;
         $facialCharacteristicsNumber = count($facialCharacteristics);
 
         if ($facialCharacteristicsNumber <= 0)
@@ -547,13 +547,15 @@ class FacialFeatureDetector
                     $sourceFaceData['brow']['brow_center'][$i]['Y']);
                 $h = round(($h1+$h2)/2); //среднее значение
 
+            $targetFaceData["brow"]["brow_width"][$i]["Force"] = $this->getForce(
+                $scale, abs($h - $natH)
+            );
+
             if ($h > $natH) $targetFaceData["brow"]["brow_width"][$i]["Val"] = '+';
             if ($h < $natH) $targetFaceData["brow"]["brow_width"][$i]["Val"] = '-';
             if ($h == $natH) $targetFaceData["brow"]["brow_width"][$i]["Val"] = 'none';
 
-                $targetFaceData["brow"]["brow_width"][$i]["Force"] = $this->getForce(
-                    $scale, abs($h - $natH)
-                );
+
         }
       return $targetFaceData["brow"];
     }
@@ -733,6 +735,49 @@ class FacialFeatureDetector
         // движение уголков рта NORM_POINTS 48 54
         return $targetFaceData["mouth"];
     }
+
+    /**
+     * Обнаружение трендов (универсальная функция)
+     *
+     * @param $sourceFaceData - входной массив с лицевыми точками (landmarks)
+     * @return array - выходной массив с обработанным массивом
+     */
+    public function detectTrends($sourceFaceData1, $trendLength)
+    {
+        foreach ($sourceFaceData1 as $k=>$v) {
+            foreach ($v as $k1=>$v1) {
+                if(isset($v1[0])) $arrayKeys = array_keys($v1[0]);
+                $currentTrendLength = 0;
+                for ($i = 1; $i < count($v1); $i++) {
+                    if(isset($arrayKeys[1])) {
+                        $val0 = $v1[$i-1][$arrayKeys[1]];
+                        $val1 = $v1[$i][$arrayKeys[1]];
+                    }
+                    if (($v1[$i]["Force"] != 0)//force не рабно нулю
+                        and ($val0 == $val1)) { //значение не меняет направление
+                        $currentTrendLength++;
+                        $v1[$i]["Trend"] = $currentTrendLength;
+                        $v1[$i]["Confidence"] = 1;
+                    } else { //the trend is change direction or force = 0
+//                        if ($currentTrendLength < $trendLength) {
+//                            echo $currentTrendLength . ' ' . $i . '<br>';
+                            //clear features of previouse frames
+                        $v1[$i]["Trend"] = 0;
+                        $v1[$i]["Confidence"] = 0;
+                        for ($i1 = $i; $i1 < ($i - $currentTrendLength); $i1--) {
+                                $v1[$i1]["Confidence"] = 0;
+//                            if (isset($v[$i1][1])) $v[$i1][1] = 'none';
+                            }
+                            $currentTrendLength = 0;
+ //                       }
+                    }
+                }
+             $sourceFaceData1[$k][$k1] = $v1;
+            }
+        }
+        return $sourceFaceData1;
+    }
+
     /**
      * Обнаружение признаков на основе анализа входных данных
      *
@@ -755,6 +800,7 @@ class FacialFeatureDetector
         $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData);
         $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData);
         $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData);
-     return $detectedFeatures;
+        $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
+     return $detectedFeaturesWithTrends;
     }
 }
