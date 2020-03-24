@@ -12,8 +12,8 @@ class FacialFeatureDetector
      */
     public function getForce($val1, $val2)
     {
-        $af = $val1 / 5;
-        $res = abs(round($val2 / $af));
+//        $af = $val1 / (10);
+        $res = abs(round(($val2 / $val1),2));
         return $res;
     }
 
@@ -743,7 +743,7 @@ class FacialFeatureDetector
                 $width2 = $sourceFaceData['normmask'][$i][66]['Y'] - $sourceFaceData['normmask'][$i][62]['Y'];
                 $width3 = $sourceFaceData['normmask'][$i][65]['Y'] - $sourceFaceData['normmask'][$i][63]['Y'];
                 $lengthTest = $sourceFaceData['normmask'][$i][65]['X'] - $sourceFaceData['normmask'][$i][67]['X'];
-!!!
+
                 $force1 = $this->getForce($facePoints[66][1][3], $y);
                 $force2 = $this->getForce($facePoints[62][1][3], $y);
                 $forceAv = round(($force1 + $force2)/2);
