@@ -308,211 +308,177 @@ class FacialFeatureDetector
      * @param $faceData - входной массив с лицевыми точками (landmarks)
      * @return mixed - выходной массив с обработанным массивом для глаза
      */
-    public function detectEyeFeatures($faceData)
+    public function detectEyeFeatures($sourceFaceData)
     {
-       //for the right eye --------------------------------------------------------------------------
-        $faceData["Characteristics"]["eye"]["right_eye_inner"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_eye_inner"], "X");
-        $faceData["Characteristics"]["eye"]["right_eye_inner"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_eye_inner"], "Y");
-        $faceData["Characteristics"]["eye"]["right_eye_inner"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_eye_inner"], "X");
-        $faceData["Characteristics"]["eye"]["right_eye_inner"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_eye_inner"], "Y");
-        // Здесь и далее опрделено экспертно на основе визуального анализа точек (кадры 115 и 119)
-//        $faceData["Characteristics"]["eye"]["right_eye_inner"]["NatX"] = 422;
-//        $faceData["Characteristics"]["eye"]["right_eye_inner"]["NatY"] = 250;
-        if (isset($faceData["eye"]["right_eye_inner"][0])) {
-            $faceData["Characteristics"]["eye"]["right_eye_inner"]["NatX"] = $faceData["eye"]["right_eye_inner"][0]['X'];
-            $faceData["Characteristics"]["eye"]["right_eye_inner"]["NatY"] = $faceData["eye"]["right_eye_inner"][0]['Y'];
+       //Анализируемые точки: левый глаз – 36-41
+       // (верхнее веко – 36-37-38-39, нижнее веко – 39-40-41-36, левый зрачок - ???),
+       // правый глаз – 42-47 (верхнее веко – 42-43-44-45, нижнее веко – 45-46-47-42, правый зрачок - ???).
+
+        //Верхнее веко, движение верхнего века (вверх, вниз)
+        //для левого глаза 37 38
+        //для правого глаза 43 44
+
+        if (isset($sourceFaceData['normmask'][0][37])
+            && isset($sourceFaceData['normmask'][0][41])
+            && isset($sourceFaceData['normmask'][0][43])
+            && isset($sourceFaceData['normmask'][0][47])
+            && isset($sourceFaceData['normmask'][0][39])
+            && isset($sourceFaceData['normmask'][0][42])
+            && isset($sourceFaceData['normmask'][0][36])
+            && isset($sourceFaceData['normmask'][0][45])
+        ) {
+            $yN37 = $sourceFaceData['normmask'][0][37]['Y'];
+            $yN41 = $sourceFaceData['normmask'][0][41]['Y'];
+            $yN43 = $sourceFaceData['normmask'][0][43]['Y'];
+            $yN47 = $sourceFaceData['normmask'][0][47]['Y'];
+            $xN39 = $sourceFaceData['normmask'][0][39]['X'];
+            $xN42 = $sourceFaceData['normmask'][0][42]['X'];
+            $yN39 = $sourceFaceData['normmask'][0][39]['Y'];
+            $yN42 = $sourceFaceData['normmask'][0][42]['Y'];
+            $yN36 = $sourceFaceData['normmask'][0][36]['Y'];
+            $yN45 = $sourceFaceData['normmask'][0][45]['Y'];
         }
 
-        $faceData["Characteristics"]["eye"]["right_eye_outer"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_eye_outer"], "X");
-        $faceData["Characteristics"]["eye"]["right_eye_outer"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_eye_outer"], "Y");
-        $faceData["Characteristics"]["eye"]["right_eye_outer"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_eye_outer"], "X");
-        $faceData["Characteristics"]["eye"]["right_eye_outer"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_eye_outer"], "Y");
-//        $faceData["Characteristics"]["eye"]["right_eye_outer"]["NatX"] = 538;
-//        $faceData["Characteristics"]["eye"]["right_eye_outer"]["NatY"] = 250;
-        if (isset($faceData["eye"]["right_eye_outer"][0])) {
-            $faceData["Characteristics"]["eye"]["right_eye_outer"]["NatX"] = $faceData["eye"]["right_eye_outer"][0]['X'];
-            $faceData["Characteristics"]["eye"]["right_eye_outer"]["NatY"] = $faceData["eye"]["right_eye_outer"][0]['Y'];
+        $maxY37 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 37,"Y");
+        $minY37 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],37, "Y");
+        $scaleY37 = $maxY37 - $minY37;
+        $maxY43 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 43,"Y");
+        $minY43 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],43, "Y");
+        $scaleY43 = $maxY43 - $minY43;
+        $maxY41 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 41,"Y");
+        $minY41 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],41, "Y");
+        $scaleY41 = $maxY41 - $minY41;
+        $maxY47 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 47,"Y");
+        $minY47 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],47, "Y");
+        $scaleY47 = $maxY47 - $minY47;
+        $maxX39 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 39,"X");
+        $minX39 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],39, "X");
+        $scaleX39 = $maxX39 - $minX39;
+        $maxX42 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 42,"X");
+        $minX42 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],42, "X");
+        $scaleX42 = $maxX42 - $minX42;
+        $maxY39 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 39,"Y");
+        $minY39 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],39, "Y");
+        $scaleY39 = $maxY39 - $minY39;
+        $maxY42 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 42,"Y");
+        $minY42 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],42, "Y");
+        $scaleY42 = $maxY42 - $minY42;
+        $maxY36 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 36,"Y");
+        $minY36 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],36, "Y");
+        $scaleY36 = $maxY36 - $minY36;
+        $maxY45 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 45,"Y");
+        $minY45 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],45, "Y");
+        $scaleY45 = $maxY45 - $minY45;
+
+        for ($i = 0; $i < count($sourceFaceData['normmask']); $i++) {
+            //----------------------------------------------------------------------------------------
+            //Верхнее веко, движение верхнего века (вверх, вниз)
+            //left_eye_upper_eyelid_movement
+            $leftEyeUpperEyelidH = $sourceFaceData['normmask'][$i][37]['Y'] - $yN37;
+            $rightEyeUpperEyelidH = $sourceFaceData['normmask'][$i][43]['Y'] - $yN43;
+
+            $targetFaceData["eye"]["left_eye_upper_eyelid_movement"][$i]["force"] = $this->getForce(
+                $scaleY37, abs($leftEyeUpperEyelidH));
+            $targetFaceData["eye"]["right_eye_upper_eyelid_movement"][$i]["force"] = $this->getForce(
+                $scaleY43, abs($rightEyeUpperEyelidH));
+
+            if ($leftEyeUpperEyelidH < 0) $targetFaceData["eye"]["left_eye_upper_eyelid_movement"][$i]["val"] = 'up';
+            if ($leftEyeUpperEyelidH > 0) $targetFaceData["eye"]["left_eye_upper_eyelid_movement"][$i]["val"] = 'down';
+            if ($leftEyeUpperEyelidH == 0) $targetFaceData["eye"]["left_eye_upper_eyelid_movement"][$i]["val"] = 'none';
+            if ($rightEyeUpperEyelidH < 0) $targetFaceData["eye"]["right_eye_upper_eyelid_movement"][$i]["val"] = 'up';
+            if ($rightEyeUpperEyelidH > 0) $targetFaceData["eye"]["right_eye_upper_eyelid_movement"][$i]["val"] = 'down';
+            if ($rightEyeUpperEyelidH == 0) $targetFaceData["eye"]["right_eye_upper_eyelid_movement"][$i]["val"] = 'none';
+            //------------------------------------------------------------------------------------------------
+            //Нижнее веко, движение нижнего века (без движения, вверх, вниз, к центру и вверх)
+            //left_eye_lower_eyelid_movement
+            $leftEyeLowerEyelidH = $sourceFaceData['normmask'][$i][41]['Y'] - $yN41;
+            $rightEyeLowerEyelidH = $sourceFaceData['normmask'][$i][47]['Y'] - $yN47;
+            $leftEyeInnerCorner = $sourceFaceData['normmask'][$i][39]['X'] - $xN39;
+            $rightEyeInnerCorner = $sourceFaceData['normmask'][$i][42]['X'] - $xN42;
+            $leftEyeInnerCornerForce = $this->getForce($scaleX39, abs($leftEyeInnerCorner));
+            $rightEyeInnerCornerForce = $this->getForce($scaleX42, abs($rightEyeInnerCorner));
+
+            $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["force"] = $this->getForce(
+                $scaleY41, abs($leftEyeLowerEyelidH));
+            $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["force"] = $this->getForce(
+                $scaleY47, abs($rightEyeLowerEyelidH));
+
+            if ($leftEyeLowerEyelidH < 0) $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] = 'up';
+            if ($leftEyeLowerEyelidH > 0) $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] = 'down';
+            if ($leftEyeLowerEyelidH == 0) $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] = 'none';
+            if ($leftEyeInnerCorner > 0) {
+                $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] =
+                    trim($targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] . ' to center');
+                $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["force"] =
+                    round((($targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["force"] +
+                            $leftEyeInnerCornerForce) / 2), 2);
+                }
+
+            if ($rightEyeLowerEyelidH < 0) $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] = 'up';
+            if ($rightEyeLowerEyelidH > 0) $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] = 'down';
+            if ($rightEyeLowerEyelidH == 0) $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] = 'none';
+            if ($rightEyeInnerCorner < 0) {
+                $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] =
+                    trim($targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] . ' to center');
+                $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["force"] =
+                    round((($targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["force"] +
+                            $rightEyeInnerCornerForce) / 2), 2);
+            }
+            //------------------------------------------------------------------------------------------------
+            //Нижнее веко, движение нижнего века (без движения, вверх, вниз, к центру и вверх)
+            //Глаза, ширина глаз (увеличение, уменьшение) через движение век
+            if (($targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] == 'down')and
+                ($targetFaceData["eye"]["left_eye_upper_eyelid_movement"][$i]["val"] == 'up')){
+                $targetFaceData["eye"]["left_eye_width"][$i]["force"] =
+                    round((($targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["force"] +
+                            $targetFaceData["eye"]["left_eye_upper_eyelid_movement"][$i]["force"]) / 2), 2);
+                $targetFaceData["eye"]["left_eye_width"][$i]["val"] = '+';
+            } else{
+                $targetFaceData["eye"]["left_eye_width"][$i]["force"] = 0;
+                $targetFaceData["eye"]["left_eye_width"][$i]["val"] = 'none';
+            }
+
+            if (($targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] == 'down')and
+                ($targetFaceData["eye"]["right_eye_upper_eyelid_movement"][$i]["val"] == 'up')){
+                $targetFaceData["eye"]["right_eye_width"][$i]["force"] =
+                    round((($targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["force"] +
+                            $targetFaceData["eye"]["right_eye_upper_eyelid_movement"][$i]["force"]) / 2), 2);
+                $targetFaceData["eye"]["right_eye_width"][$i]["val"] = '+';
+            } else{
+                $targetFaceData["eye"]["right_eye_width"][$i]["force"] = 0;
+                $targetFaceData["eye"]["right_eye_width"][$i]["val"] = 'none';
+            }
+            //------------------------------------------------------------------------------------------------
+            //Внешний уголок глаза, движение внешнего уголка глаза (вверх, вниз)
+            $leftEyeOuterCornerH = $sourceFaceData['normmask'][$i][36]['Y'] - $yN36;
+            $rightEyeOuterCornerH = $sourceFaceData['normmask'][$i][45]['Y'] - $yN45;
+            $targetFaceData["eye"]["left_eye_outer_movement"][$i]["force"] = $this->getForce(
+                $scaleY36, abs($leftEyeOuterCornerH));
+            $targetFaceData["eye"]["right_eye_outer_movement"][$i]["force"] = $this->getForce(
+                $scaleY45, abs($rightEyeOuterCornerH));
+            if ($leftEyeOuterCornerH < 0) $targetFaceData["eye"]["left_eye_outer_movement"][$i]["val"] = 'up';
+            if ($leftEyeOuterCornerH > 0) $targetFaceData["eye"]["left_eye_outer_movement"][$i]["val"] = 'down';
+            if ($leftEyeOuterCornerH == 0) $targetFaceData["eye"]["left_eye_outer_movement"][$i]["val"] = 'none';
+            if ($rightEyeOuterCornerH < 0) $targetFaceData["eye"]["right_eye_outer_movement"][$i]["val"] = 'up';
+            if ($rightEyeOuterCornerH > 0) $targetFaceData["eye"]["right_eye_outer_movement"][$i]["val"] = 'down';
+            if ($rightEyeOuterCornerH == 0) $targetFaceData["eye"]["right_eye_outer_movement"][$i]["val"] = 'none';
+            //------------------------------------------------------------------------------------------------
+            //Внутренний уголок глаза, движение внутреннего уголка глаза (вверх, вниз)
+            $leftEyeInnerCornerH = $sourceFaceData['normmask'][$i][39]['Y'] - $yN39;
+            $rightEyeInnerCornerH = $sourceFaceData['normmask'][$i][42]['Y'] - $yN42;
+            $targetFaceData["eye"]["left_eye_inner_movement"][$i]["force"] = $this->getForce(
+                $scaleY39, abs($leftEyeInnerCornerH));
+            $targetFaceData["eye"]["right_eye_inner_movement"][$i]["force"] = $this->getForce(
+                $scaleY42, abs($rightEyeInnerCornerH));
+            if ($leftEyeInnerCornerH < 0) $targetFaceData["eye"]["left_eye_inner_movement"][$i]["val"] = 'up';
+            if ($leftEyeInnerCornerH > 0) $targetFaceData["eye"]["left_eye_inner_movement"][$i]["val"] = 'down';
+            if ($leftEyeInnerCornerH == 0) $targetFaceData["eye"]["left_eye_inner_movement"][$i]["val"] = 'none';
+            if ($rightEyeInnerCornerH < 0) $targetFaceData["eye"]["right_eye_inner_movement"][$i]["val"] = 'up';
+            if ($rightEyeInnerCornerH > 0) $targetFaceData["eye"]["right_eye_inner_movement"][$i]["val"] = 'down';
+            if ($rightEyeInnerCornerH == 0) $targetFaceData["eye"]["right_eye_inner_movement"][$i]["val"] = 'none';
+            //------------------------------------------------------------------------------------------------
         }
-
-        $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_upper_eyelid"], "X");
-        $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_upper_eyelid"], "Y");
-        $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_upper_eyelid"], "X");
-        $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_upper_eyelid"], "Y");
-//        $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["NatX"] = 505;
-//        $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["NatY"] = 232;
-        if (isset($faceData["eye"]["right_upper_eyelid"][0])) {
-            $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["NatX"] = $faceData["eye"]["right_upper_eyelid"][0]['X'];
-            $faceData["Characteristics"]["eye"]["right_upper_eyelid"]["NatY"] = $faceData["eye"]["right_upper_eyelid"][0]['Y'];
-        }
-
-        $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_lower_eyelid"], "X");
-        $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["right_lower_eyelid"], "Y");
-        $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_lower_eyelid"], "X");
-        $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["right_lower_eyelid"], "Y");
-//        $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MinYFrame"] = $this->faceDataMinForKey(
-//            $faceData["eye"]["right_lower_eyelid"],"Y"
-//        )[1];
-//        $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["NatX"] = 505;
-//        $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["NatY"] = 258;
-        if (isset($faceData["eye"]["right_lower_eyelid"][0])) {
-            $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["NatX"] = $faceData["eye"]["right_lower_eyelid"][0]['X'];
-            $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["NatY"] = $faceData["eye"]["right_lower_eyelid"][0]['Y'];
-        }
-
-        // right_upper_eyelid - верхнее веко, движение верхнего века (N вверх, S вниз)
-        $targetFaceData["eye"]["right_upper_eyelid"] = $this->moveY($faceData["eye"]["right_upper_eyelid"],
-            $faceData["Characteristics"]["eye"]["right_upper_eyelid"]);
-        // right_lower_eyelid - нижнее веко, движение нижнего века (X без движения, N вверх, S вниз)
-        $targetFaceData["eye"]["right_lower_eyelid"] = $this->moveY($faceData["eye"]["right_lower_eyelid"],
-            $faceData["Characteristics"]["eye"]["right_lower_eyelid"]);
-        // right_eye_inner - внутренний уголок глаза, движение внутреннего уголка глаза (N вверх, S вниз)
-        $targetFaceData["eye"]["right_eye_inner"] = $this->moveY($faceData["eye"]["right_eye_inner"],
-            $faceData["Characteristics"]["eye"]["right_eye_inner"]);
-        // right_eye_outer - внешний уголок глаза, движение внешнего уголка глаза (N вверх, S вниз)
-        $targetFaceData["eye"]["right_eye_outer"] = $this->moveY($faceData["eye"]["right_eye_outer"],
-            $faceData["Characteristics"]["eye"]["right_eye_outer"]);
-        // right_eye_width - ширина глаз по Y ("+" увеличение ,"-" уменьшение)
-
-        // Создание FaceFeature
-//       $faceData["eye"]["right_eye_width"] = [];
-
-        // Расчет Width для right_eye_width
-        $faceData["eye"]["right_eye_width"] = $this->addOneDimDistance($faceData["eye"]["right_eye_width"], "Width",
-            $faceData["eye"]["right_lower_eyelid"], "Y",
-            $faceData["eye"]["right_upper_eyelid"], "Y");
-
-        // Расчет характерисик для right_eye_width, сохранение характеристик
-//       $rightEyeWidthNat = $this->getFaceDataAvrForKey($faceData["eye"]["right_eye_width"], "Width");
-        if (isset($faceData["eye"]["right_eye_width"][0]))
-         $rightEyeWidthNat = $this->$faceData["eye"]["right_eye_width"][0]["Width"];
-        $rightEyeWidthMax = $this->getFaceDataMaxForKey($faceData["eye"]["right_eye_width"], "Width");
-        $rightEyeWidthMin = $this->getFaceDataMinForKey($faceData["eye"]["right_eye_width"], "Width");
-
- //       $faceData["Characteristics"]["eye"]["right_eye_width"] = [];
-        $faceData["Characteristics"]["eye"]["right_eye_width"]["Max"] = $rightEyeWidthMax;
-        $faceData["Characteristics"]["eye"]["right_eye_width"]["Min"] = $rightEyeWidthMin;
-        $faceData["Characteristics"]["eye"]["right_eye_width"]["Nat"] = $rightEyeWidthNat;
-
-        // Расчет WidthChange и WidthChangeForce для right_eye_width
-        $targetFaceData["eye"]["right_eye_width"] = $this->moveD($faceData["eye"]["right_eye_width"], "Width",
-            $rightEyeWidthMax, $rightEyeWidthMin, $rightEyeWidthNat);
-
-        //for the left eye -----------------------------------------------------
-         $faceData["Characteristics"]["eye"]["left_eye_inner"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["left_eye_inner"], "X");
-        $faceData["Characteristics"]["eye"]["left_eye_inner"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["left_eye_inner"], "Y");
-        $faceData["Characteristics"]["eye"]["left_eye_inner"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["left_eye_inner"], "X");
-        $faceData["Characteristics"]["eye"]["left_eye_inner"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["left_eye_inner"], "Y");
-        // Здесь и далее опрделено экспертно на основе визуального анализа точек (кадры 115 и 119)
-//        $faceData["Characteristics"]["eye"]["left_eye_inner"]["NatX"] = 422;
-//        $faceData["Characteristics"]["eye"]["left_eye_inner"]["NatY"] = 250;
-        if (isset($faceData["eye"]["left_eye_inner"][0])) {
-            $faceData["Characteristics"]["eye"]["left_eye_inner"]["NatX"] = $faceData["eye"]["left_eye_inner"][0]['X'];
-            $faceData["Characteristics"]["eye"]["left_eye_inner"]["NatY"] = $faceData["eye"]["left_eye_inner"][0]['Y'];
-        }
-
-        $faceData["Characteristics"]["eye"]["left_eye_outer"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["left_eye_outer"], "X");
-        $faceData["Characteristics"]["eye"]["left_eye_outer"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["left_eye_outer"], "Y");
-        $faceData["Characteristics"]["eye"]["left_eye_outer"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["left_eye_outer"], "X");
-        $faceData["Characteristics"]["eye"]["left_eye_outer"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["left_eye_outer"], "Y");
-//        $faceData["Characteristics"]["eye"]["left_eye_outer"]["NatX"] = 538;
-//        $faceData["Characteristics"]["eye"]["left_eye_outer"]["NatY"] = 250;
-        if (isset($faceData["eye"]["left_eye_outer"][0])) {
-            $faceData["Characteristics"]["eye"]["left_eye_outer"]["NatX"] = $faceData["eye"]["left_eye_outer"][0]['X'];
-            $faceData["Characteristics"]["eye"]["left_eye_outer"]["NatY"] = $faceData["eye"]["left_eye_outer"][0]['Y'];
-        }
-
-        $faceData["Characteristics"]["eye"]["left_upper_eyelid"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["left_upper_eyelid"], "X");
-        $faceData["Characteristics"]["eye"]["left_upper_eyelid"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["left_upper_eyelid"], "Y");
-        $faceData["Characteristics"]["eye"]["left_upper_eyelid"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["left_upper_eyelid"], "X");
-        $faceData["Characteristics"]["eye"]["left_upper_eyelid"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["left_upper_eyelid"], "Y");
-//        $faceData["Characteristics"]["eye"]["left_upper_eyelid"]["NatX"] = 505;
-//        $faceData["Characteristics"]["eye"]["left_upper_eyelid"]["NatY"] = 232;
-        if (isset($faceData["eye"]["left_upper_eyelid"][0])) {
-            $faceData["Characteristics"]["eye"]["left_upper_eyelid"]["NatX"] = $faceData["eye"]["left_upper_eyelid"][0]['X'];
-            $faceData["Characteristics"]["eye"]["left_upper_eyelid"]["NatY"] = $faceData["eye"]["left_upper_eyelid"][0]['Y'];
-        }
-
-        $faceData["Characteristics"]["eye"]["left_lower_eyelid"]["MaxX"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["left_lower_eyelid"], "X");
-        $faceData["Characteristics"]["eye"]["left_lower_eyelid"]["MaxY"] = $this->getFaceDataMaxForKey(
-            $faceData["eye"]["left_lower_eyelid"], "Y");
-        $faceData["Characteristics"]["eye"]["left_lower_eyelid"]["MinX"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["left_lower_eyelid"], "X");
-        $faceData["Characteristics"]["eye"]["left_lower_eyelid"]["MinY"] = $this->getFaceDataMinForKey(
-            $faceData["eye"]["left_lower_eyelid"], "Y");
-//        $faceData["Characteristics"]["eye"]["right_lower_eyelid"]["MinYFrame"] = $this->faceDataMinForKey(
-//            $faceData["eye"]["right_lower_eyelid"],"Y"
-//        )[1];
-        //!!!
-        if (isset($faceData["eye"]["left_lower_eyelid"][0])) {
-            $faceData["Characteristics"]["eye"]["left_lower_eyelid"]["NatX"] = $faceData["eye"]["left_lower_eyelid"][0]['X'];
-            $faceData["Characteristics"]["eye"]["left_lower_eyelid"]["NatY"] = $faceData["eye"]["left_lower_eyelid"][0]['Y'];
-        }
-        // left_upper_eyelid - верхнее веко, движение верхнего века (N вверх, S вниз)
-        $targetFaceData["eye"]["left_upper_eyelid"] = $this->moveY($faceData["eye"]["left_upper_eyelid"],
-            $faceData["Characteristics"]["eye"]["left_upper_eyelid"]);
-        // left_lower_eyelid - нижнее веко, движение нижнего века (X без движения, N вверх, S вниз)
-        $targetFaceData["eye"]["left_lower_eyelid"] = $this->moveY($faceData["eye"]["left_lower_eyelid"],
-            $faceData["Characteristics"]["eye"]["left_lower_eyelid"]);
-        // left_eye_inner - внутренний уголок глаза, движение внутреннего уголка глаза (N вверх, S вниз)
-        $targetFaceData["eye"]["left_eye_inner"] = $this->moveY($faceData["eye"]["left_eye_inner"],
-            $faceData["Characteristics"]["eye"]["left_eye_inner"]);
-        // left_eye_outer - внешний уголок глаза, движение внешнего уголка глаза (N вверх, S вниз)
-        $targetFaceData["eye"]["left_eye_outer"] = $this->moveY($faceData["eye"]["left_eye_outer"],
-            $faceData["Characteristics"]["eye"]["left_eye_outer"]);
-        // left_eye_width - ширина глаз по Y ("+" увеличение ,"-" уменьшение)
-
-        // Расчет Width для left_eye_width
-        $faceData["eye"]["left_eye_width"] = $this->addOneDimDistance($faceData["eye"]["left_eye_width"],
-            "Width",
-            $faceData["eye"]["left_lower_eyelid"], "Y",
-            $faceData["eye"]["left_upper_eyelid"], "Y");
-
-        // Расчет характерисик для left_eye_width, сохранение характеристик
- //       $leftEyeWidthNat = $this->getFaceDataAvrForKey($faceData["eye"]["left_eye_width"], "Width");
-        if (isset($faceData["eye"]["left_eye_width"][0]))
-         $leftEyeWidthNat = $faceData["eye"]["left_eye_width"][0]['Width'];
-        $leftEyeWidthMax = $this->getFaceDataMaxForKey($faceData["eye"]["left_eye_width"], "Width");
-        $leftEyeWidthMin = $this->getFaceDataMinForKey($faceData["eye"]["left_eye_width"], "Width");
-
-        //       $faceData["Characteristics"]["eye"]["right_eye_width"] = [];
-        $faceData["Characteristics"]["eye"]["left_eye_width"]["Max"] = $leftEyeWidthMax;
-        $faceData["Characteristics"]["eye"]["left_eye_width"]["Min"] = $leftEyeWidthMin;
-        $faceData["Characteristics"]["eye"]["left_eye_width"]["Nat"] = $leftEyeWidthNat;
-
-        // Расчет WidthChange и WidthChangeForce для right_eye_width
-        $targetFaceData["eye"]["left_eye_width"] = $this->moveD($faceData["eye"]["left_eye_width"], "Width",
-            $leftEyeWidthMax,  $leftEyeWidthMin, $leftEyeWidthNat);
-        //-----------------------------------------------------------------------
-        return $targetFaceData["eye"];
+       return $targetFaceData["eye"];
     }
 
     /**
@@ -886,11 +852,11 @@ class FacialFeatureDetector
             $targetFaceData["mouth"]["mouth_length"][$i]["val"] = 'none';
             if(($targetFaceData["mouth"]["left_corner_mouth"][$i]["movmentDirection"] = 'left')and
                 ($targetFaceData["mouth"]["right_corner_mouth"][$i]["movmentDirection"] = 'right')){
-                $targetFaceData["mouth"]["mouth_length"][$i]["val"] = 'increase';
+                $targetFaceData["mouth"]["mouth_length"][$i]["val"] = '+';
             }
             if(($targetFaceData["mouth"]["left_corner_mouth"][$i]["movmentDirection"] = 'right')and
                 ($targetFaceData["mouth"]["right_corner_mouth"][$i]["movmentDirection"] = 'left')){
-                $targetFaceData["mouth"]["mouth_length"][$i]["val"] = 'decrease';
+                $targetFaceData["mouth"]["mouth_length"][$i]["val"] = '-';
             }
         }
 
@@ -938,11 +904,11 @@ class FacialFeatureDetector
             }
             if(($targetFaceData["mouth"]["mouth_lower_lip_outer_center"][$i]["movmentDirection"] = 'down')and
                 ($targetFaceData["mouth"]["mouth_upper_lip_outer_center"][$i]["movmentDirection"] = 'up')){
-                $targetFaceData["mouth"]["mouth_width"][$i]["val"] = 'increase';
+                $targetFaceData["mouth"]["mouth_width"][$i]["val"] = '+';
             }
             if(($targetFaceData["mouth"]["mouth_lower_lip_outer_center"][$i]["movmentDirection"] = 'up')and
                 ($targetFaceData["mouth"]["mouth_upper_lip_outer_center"][$i]["movmentDirection"] = 'down')){
-                $targetFaceData["mouth"]["mouth_width"][$i]["val"] = 'decrease';
+                $targetFaceData["mouth"]["mouth_width"][$i]["val"] = '-';
             }
         }
 
