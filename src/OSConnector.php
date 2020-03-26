@@ -11,9 +11,9 @@ use Aws\S3\Exception\S3Exception;
  */
 class OSConnector
 {
-    // Название бакета для видеоинтервью в Object Storage на Yandex.Cloud
+    // Название бакета для файлов видеоинтервью в Object Storage на Yandex.Cloud
     const OBJECT_STORAGE_VIDEO_BUCKET = 'videointerviews';
-    // Название бакета для json-файлов в Object Storage на Yandex.Cloud
+    // Название бакета для json-файлов результатов определения и интерпретации признаков в Object Storage на Yandex.Cloud
     const OBJECT_STORAGE_JSON_BUCKET = 'jsonfiles';
     // Ключ для севрвисного аккаунта (hrrrobotuserforobjectstorage) в Object Storage на Yandex.Cloud
     const OBJECT_STORAGE_KEY    = 'IZnZSrNDYYbkZRDyAtZ9';
@@ -56,7 +56,7 @@ class OSConnector
                     'Key' => $path . '/' . $fileName,
                     'Body' => fopen($file, 'r')
                 ]);
-            // Если бакет с json-файлами с результатами определения и интерпретации
+            // Если бакет с json-файлами результатов определения и интерпретации признаков
             if ($bucketName == self::OBJECT_STORAGE_JSON_BUCKET)
                 $s3Client->putObject([
                     'Bucket' => self::OBJECT_STORAGE_JSON_BUCKET,
@@ -86,7 +86,7 @@ class OSConnector
                     'Bucket' => self::OBJECT_STORAGE_VIDEO_BUCKET,
                     'Key' => $path . '/' . $fileName,
                 ]);
-            // Если бакет с json-файлами с результатами определения и интерпретации
+            // Если бакет с json-файлами результатов определения и интерпретации признаков
             if ($bucketName == self::OBJECT_STORAGE_JSON_BUCKET)
                 $s3Client->deleteObject([
                     'Bucket' => self::OBJECT_STORAGE_JSON_BUCKET,
