@@ -54,7 +54,7 @@ class OSConnector
             $s3Client->putObject([
                 'Bucket' => $bucketName,
                 'Key' => $path . '/' . $fileName,
-                'Body' => fopen($file, 'r')
+                'Body' => (is_array($file)) ? json_encode($file, true) : fopen($file, 'r'),
             ]);
         } catch (S3Exception $e) {
             echo "При загрузке файла произошла ошибка.\n";
