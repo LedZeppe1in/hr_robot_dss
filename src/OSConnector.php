@@ -98,13 +98,49 @@ class OSConnector
     }
 
     /**
-     * Получение (скачивание) объекта файла из Object Storage на Yandex.Cloud.
+     * Получение содержимого объекта файла из Object Storage на Yandex.Cloud.
+     *
+     * @param $bucketName - название бакета (videointerviews или jsonfiles)
+     * @param $path - название папки в бакете (соответствует id записи из БД)
+     * @param $fileName - имя файла (без пути
+     * @return bool|mixed - содержимое объекта файла
+     */
+    public function getFileContentToObjectStorage($bucketName, $path, $fileName)
+    {
+        $sdk = new Sdk($this->sharedConfig);
+        $s3Client = $sdk->createS3();
+        try {
+            // Переменная для возвращаемого результата
+            $result = array();
+            // Если бакет с файлами видеоинтервью
+            if ($bucketName == self::OBJECT_STORAGE_VIDEO_BUCKET)
+                $result = $s3Client->getObject([
+                    'Bucket' => self::OBJECT_STORAGE_VIDEO_BUCKET,
+                    'Key' => $path . '/' . $fileName,
+                ]);
+            // Если бакет с json-файлами результатов определения и интерпретации признаков
+            if ($bucketName == self::OBJECT_STORAGE_JSON_BUCKET)
+                $result = $s3Client->getObject([
+                    'Bucket' => self::OBJECT_STORAGE_JSON_BUCKET,
+                    'Key' => $path . '/' . $fileName,
+                ]);
+
+            return $result["Body"];
+        } catch (S3Exception $e) {
+            echo "При получении файла произошла ошибка.\n";
+        }
+
+        return false;
+    }
+
+    /**
+     * Скачивание объекта файла из Object Storage на Yandex.Cloud.
      *
      * @param $bucketName - название бакета (videointerviews или jsonfiles)
      * @param $path - название папки в бакете (соответствует id записи из БД)
      * @param $fileName - имя файла (без пути
      */
-    public function getFileToObjectStorage($bucketName, $path, $fileName)
+    public function downloadFileToObjectStorage($bucketName, $path, $fileName)
     {
         $sdk = new Sdk($this->sharedConfig);
         $s3Client = $sdk->createS3();
