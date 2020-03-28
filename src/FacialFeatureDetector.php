@@ -981,13 +981,12 @@ class FacialFeatureDetector
     /**
      * Обнаружение признаков на основе анализа входных данных.
      *
-     * @param $sourceFile - входной файл в формате json с лицевыми точками (landmarks)
+     * @param $json - содержимое файла в формате json с лицевыми точками (landmarks)
      * @return array - выходной массив с опредеделенными признаками
      */
-    public function detectFeatures($sourceFile)
+    public function detectFeatures($json)
     {
         // load data
-        $json = file_get_contents($sourceFile, true);
         $FaceData_ = json_decode($json, true);
         // check input format and convert the I format to AB
         if(strpos($json,'NORM_POINTS') !== false)
