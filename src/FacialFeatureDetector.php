@@ -494,60 +494,35 @@ class FacialFeatureDetector
         //анализируемые точки:
         // 19 (left_eyebrow_center),
         // 24 (right_eyebrow_center),
-        // 71 (left brow), 72 (right brow)
-        //Ширина лба-H = крайние точки лба-Y – крайние точки бровей-Y (определяется по точкам 19-71, 24-72)
-        //Ширина лба-H < Ширина лба-HN → уменьшение
-        //Ширина лба-HN – ширина лба в нормальном состоянии
+        //изменение ширины лба по движению бровей
         // получение нормированного значения по кадру 0
 
         if (isset($sourceFaceData['normmask'][0][19])
             && isset($sourceFaceData['normmask'][0][24])
-            && isset($sourceFaceData['normmask'][0][71])
-            && isset($sourceFaceData['normmask'][0][72])
         ) {
-            //h1 = y19 - y71
-            $h1 = abs($sourceFaceData['normmask'][0][19]['Y']-
-                $sourceFaceData['normmask'][0][71]['Y']);
-            //h2 = y24 - y72
-            $h2 = abs($sourceFaceData['normmask'][0][24]['Y']-
-                $sourceFaceData['normmask'][0][72]['Y']);
-            $natH = round(($h1+$h2)/2); //среднее значение
+            $yN19 = $sourceFaceData['normmask'][0][19]['Y'];
+            $yN24 = $sourceFaceData['normmask'][0][24]['Y'];
+            $maxY19 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 19,"Y");
+            $minY19 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],19, "Y");
+            $scaleY19 = $maxY19 - $minY19;
+            $maxY24 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 24,"Y");
+            $minY24 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],24, "Y");
+            $scaleY24 = $maxY24 - $minY24;
         }
-        $maxHForLeftBrow = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 71,"Y");
-        $minHForLeftBrow = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],71, "Y");
-        $maxHForRightBrow = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 72,"Y");
-        $minHForRightBrow = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],72, "Y");
-        $maxHForLeftEyebrowCenter = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 19,"Y");
-        $minHForLeftEyebrowCenter = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 19,"Y");
-        $maxHForRightEyebrowCenter = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 24,"Y");
-        $minHForRightEyebrowCenter = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 24,"Y");
-
-        $minH1 = abs($minHForLeftEyebrowCenter-$minHForLeftBrow);
-        $minH2 = abs($minHForRightEyebrowCenter-$minHForRightBrow);
-        $minHAv = round(($minH1+$minH2)/2); //min среднее значение
-
-        $maxH1 = abs($maxHForLeftEyebrowCenter-$maxHForLeftBrow);
-        $maxH2 = abs($maxHForRightEyebrowCenter-$maxHForRightBrow);
-        $maxHAv = round(($maxH1+$maxH2)/2); //max среднее значение
-        //
-        $scale = $maxHAv - $minHAv;
 
         for ($i = 0; $i < count($sourceFaceData['normmask']); $i++) {
-            if (isset($sourceFaceData['normmask'][$i][19]) && $sourceFaceData['normmask'][$i][71])
-                $h1 = abs($sourceFaceData['normmask'][$i][19]['Y']-
-                    $sourceFaceData['normmask'][$i][71]['Y']);
-            if (isset($sourceFaceData['normmask'][$i][24]) && $sourceFaceData['normmask'][$i][72])
-                $h2 = abs($sourceFaceData['normmask'][$i][24]['Y']-
-                    $sourceFaceData['normmask'][$i][72]['Y']);
-            $h = round(($h1+$h2)/2); //среднее значение
+            if (isset($sourceFaceData['normmask'][$i][19]) && $sourceFaceData['normmask'][$i][24]){
+                $leftEyebrowMovement = $sourceFaceData['normmask'][$i][19]['Y'] - $yN19;
+                $rightEyebrowMovement = $sourceFaceData['normmask'][$i][24]['Y'] - $yN24;
 
-            $targetFaceData["brow"]["brow_width"][$i]["force"] = $this->getForce(
-                $scale, abs($h - $natH)
-            );
-
-            if ($h > $natH) $targetFaceData["brow"]["brow_width"][$i]["val"] = '+';
-            if ($h <= $natH) $targetFaceData["brow"]["brow_width"][$i]["val"] = '-';
-            if ($h == $natH) $targetFaceData["brow"]["brow_width"][$i]["val"] = 'none';
+                $leftEyebrowMovementForce = $this->getForce($scaleY19, abs($leftEyebrowMovement));
+                $rightEyebrowMovementForce = $this->getForce($scaleY24, abs($rightEyebrowMovement));
+                $eyebrowMovementForce = round(($leftEyebrowMovementForce+$rightEyebrowMovementForce)/2); //среднее значение
+            }
+            $targetFaceData["brow"]["brow_width"][$i]["force"] = $eyebrowMovementForce;
+            if (($leftEyebrowMovement < 0)or($rightEyebrowMovement < 0)) $targetFaceData["brow"]["brow_width"][$i]["val"] = '-';
+            if (($leftEyebrowMovement > 0)or($rightEyebrowMovement > 0)) $targetFaceData["brow"]["brow_width"][$i]["val"] = '+';
+            if (($leftEyebrowMovement == 0)and($rightEyebrowMovement == 0)) $targetFaceData["brow"]["brow_width"][$i]["val"] = 'none';
         }
         return $targetFaceData["brow"];
     }
@@ -993,10 +968,10 @@ class FacialFeatureDetector
             $FaceData = $this->convertIJson($FaceData_);
         else
             $FaceData =  $FaceData_; // use the AB format
-        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData);
+//        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData);
         $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData);
         $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData);
-        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData);
+//        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData);
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
 
         return $detectedFeaturesWithTrends;
