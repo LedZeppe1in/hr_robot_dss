@@ -485,6 +485,48 @@ class FacialFeatureDetector
     }
 
     /**
+     * Обнаружение признаков носа
+     *
+     * @param $sourceFaceData - входной массив с лицевыми точками (landmarks)
+     * @return array - выходной массив с обработанным массивом для лба
+     */
+    public function detectNoseFeatures($sourceFaceData){
+        //анализируемые точки ерза носа
+        // 31 (left_nose_wing),
+        // 35 (right_nose_wing),
+        // получение нормированного значения по кадру 0
+
+        if (isset($sourceFaceData['normmask'][0][31])
+            && isset($sourceFaceData['normmask'][0][35])
+        ) {
+            $yN31 = $sourceFaceData['normmask'][0][31]['Y'];
+            $yN35 = $sourceFaceData['normmask'][0][35]['Y'];
+            $maxY31 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 31,"Y");
+            $minY31 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],31, "Y");
+            $scaleY31 = $maxY31 - $minY31;
+            $maxY35 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 35,"Y");
+            $minY35 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],35, "Y");
+            $scaleY35 = $maxY35 - $minY35;
+        }
+
+        for ($i = 0; $i < count($sourceFaceData['normmask']); $i++) {
+            if (isset($sourceFaceData['normmask'][$i][31]) && $sourceFaceData['normmask'][$i][35]){
+                $leftNoseWingMovement = $sourceFaceData['normmask'][$i][31]['Y'] - $yN31;
+                $rightNoseWingMovement = $sourceFaceData['normmask'][$i][35]['Y'] - $yN35;
+
+                $leftNoseWingMovementForce = $this->getForce($scaleY31, abs($leftNoseWingMovement));
+                $rightNoseWingMovementForce = $this->getForce($scaleY35, abs($rightNoseWingMovement));
+                $noseWingsMovementForce = round(($leftNoseWingMovementForce+$rightNoseWingMovementForce)/2); //среднее значение
+            }
+            $targetFaceData["nose"]["nose_wing_movement"][$i]["force"] = $noseWingsMovementForce;
+            if (($leftNoseWingMovement < 0)or($rightNoseWingMovement < 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'up';
+            if (($leftNoseWingMovement > 0)or($rightNoseWingMovement > 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'down';
+            if (($leftNoseWingMovement == 0)and($rightNoseWingMovement == 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'none';
+        }
+        return $targetFaceData["nose"];
+    }
+
+    /**
      * Обнаружение признаков лба.
      *
      * @param $sourceFaceData - входной массив с лицевыми точками (landmarks)
@@ -968,10 +1010,11 @@ class FacialFeatureDetector
             $FaceData = $this->convertIJson($FaceData_);
         else
             $FaceData =  $FaceData_; // use the AB format
-//        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData);
+        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData);
         $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData);
         $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData);
-//        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData);
+        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData);
+        $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData);
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
 
         return $detectedFeaturesWithTrends;
