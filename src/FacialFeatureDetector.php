@@ -8,12 +8,12 @@ class FacialFeatureDetector
     /** определение интенсивности проявления признака
      * @param $val1 - диапазон значений
      * @param $val2 - текущее значение
-     * @return float|int - интенсивность проявления по относительной шкале от 1 до 5
+     * @return float|int - интенсивность проявления по относительной шкале от 1 до 100%
      */
     public function getForce($val1, $val2)
     {
 //        $af = $val1 / (10);
-        $res = abs(round(($val2 / $val1),2));
+        $res = abs(round((100*$val2 / $val1)));
         return $res;
     }
 
@@ -126,6 +126,7 @@ class FacialFeatureDetector
      * @param $characteristics - максимальное, минимальное и нормальное положение по Y
      * @return bool - возвращаемое значение
      */
+    /*
     public function moveY($facialLandmarkCharacteristics, $characteristics)
     {
         $facialLandmarkCharacteristicsNumber = count($facialLandmarkCharacteristics);
@@ -173,7 +174,7 @@ class FacialFeatureDetector
         }
 
         return $targetFaceData;
-    }
+    }*/
 
     /**
      * Вычисление среднего значения характеристики лица за время наблюдений.
@@ -196,33 +197,7 @@ class FacialFeatureDetector
         return round($avr / $facialCharacteristicsNumber, 0);
     }
 
-    /**
-     * Вычисление максимального значения характеристики лица за время наблюдений.
-     *
-     * @param $facialCharacteristics - массив с характеристикой лица
-     * @param $key - название характеристики
-     * @return array|bool - возвращаемое значение
-     */
-    public function getFaceDataMaxForKey($facialCharacteristics, $key)
-    {
-        $facialCharacteristicsNumber = count($facialCharacteristics);
-        if ($facialCharacteristicsNumber <= 0)
-            return false;
-
-        $max = $facialCharacteristics[0][$key];
-        $maxFrame = 0;
-        for ($i = 0; $i < $facialCharacteristicsNumber; $i++)
-            if ($facialCharacteristics[$i] && $facialCharacteristics[$i][$key])
-                if ($facialCharacteristics[$i][$key] > $max) {
-                    $max = $facialCharacteristics[$i][$key];
-                    $maxFrame = $i;
-                }
-
-//        return array(0 => $max, 1 => $maxFrame);
-        return $max;
-    }
-
-    /**
+     /**
      * Вычисление максимального значения характеристики лица за время наблюдений.
      *
      * @param $facialCharacteristics - массив с характеристикой лица
@@ -268,33 +243,6 @@ class FacialFeatureDetector
             if (isset($facialCharacteristics[$i][$pointNum]) && isset($facialCharacteristics[$i][$pointNum][$key]))
                 if ($facialCharacteristics[$i][$pointNum][$key] < $min) {
                     $min = $facialCharacteristics[$i][$pointNum][$key];
-                    $minFrame = $i;
-                }
-
-//        return array(0 => $min, 1 => $minFrame);
-        return $min;
-    }
-
-    /**
-     * Вычисление минимального значения характеристики лица за время наблюдений.
-     *
-     * @param $facialCharacteristics - массив с характеристикой лица
-     * @param $key - название характеристики
-     * @return array|bool - возвращаемое значение
-     */
-    public function getFaceDataMinForKey($facialCharacteristics, $key)
-    {
-        $facialCharacteristicsNumber = count($facialCharacteristics);
-        if ($facialCharacteristicsNumber <= 0)
-            return false;
-
-        $min = $facialCharacteristics[0][$key];
-        $minFrame = 0;
-
-        for ($i = 0; $i < $facialCharacteristicsNumber; $i++)
-            if ($facialCharacteristics[$i] && $facialCharacteristics[$i][$key])
-                if ($facialCharacteristics[$i][$key] < $min) {
-                    $min = $facialCharacteristics[$i][$key];
                     $minFrame = $i;
                 }
 
