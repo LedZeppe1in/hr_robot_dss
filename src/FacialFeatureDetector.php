@@ -417,16 +417,19 @@ class FacialFeatureDetector
                 $targetFaceData["eye"]["left_eye_width"][$i]["force"] = $this->getForce(
                     $maxLeftEyeWidth, abs($leftEyeWidth - $leftEyeWidthN));
                 $targetFaceData["eye"]["left_eye_width"][$i]["val"] = $leftEyeWidth;
+//                $targetFaceData["eye"]["left_eye_width"][$i]["valNorm"] = $leftEyeWidthN;
                 $targetFaceData["eye"]["right_eye_width"][$i]["force"] = $this->getForce(
                     $maxRightEyeWidth, abs($rightEyeWidth - $rightEyeWidthN));
+//                echo $rightEyeWidthN.'/'.$maxRightEyeWidth.'/'.$rightEyeWidth.'<br>';
                 $targetFaceData["eye"]["right_eye_width"][$i]["val"] = $rightEyeWidth;
+//                $targetFaceData["eye"]["right_eye_width"][$i]["valNorm"] = $rightEyeWidthN;
                 //Глаза, ширина глаз (увеличение, уменьшение) через изменение ширины
                 $targetFaceData["eye"]["left_eye_width_changing"][$i]["force"] =
                     $targetFaceData["eye"]["left_eye_width"][$i]["force"];
                 $targetFaceData["eye"]["left_eye_width_changing"][$i]["val"] = 'none';
               if($targetFaceData["eye"]["left_eye_width"][$i]["val"]>$leftEyeWidthN)
                   $targetFaceData["eye"]["left_eye_width_changing"][$i]["val"] = '+';
-              if($targetFaceData["eye"]["left_eye_width"][$i]["val"]>$leftEyeWidthN)
+              if($targetFaceData["eye"]["left_eye_width"][$i]["val"]<$leftEyeWidthN)
                   $targetFaceData["eye"]["left_eye_width_changing"][$i]["val"] = '-';
 
                 $targetFaceData["eye"]["right_eye_width_changing"][$i]["force"] =
@@ -434,7 +437,7 @@ class FacialFeatureDetector
                 $targetFaceData["eye"]["right_eye_width_changing"][$i]["val"] = 'none';
                 if($targetFaceData["eye"]["right_eye_width"][$i]["val"]>$rightEyeWidthN)
                     $targetFaceData["eye"]["right_eye_width_changing"][$i]["val"] = '+';
-                if($targetFaceData["eye"]["right_eye_width"][$i]["val"]>$rightEyeWidthN)
+                if($targetFaceData["eye"]["right_eye_width"][$i]["val"]<$rightEyeWidthN)
                     $targetFaceData["eye"]["right_eye_width_changing"][$i]["val"] = '-';
             }
             //------------------------------------------------------------------------------------------------
@@ -1029,17 +1032,123 @@ class FacialFeatureDetector
         }
         return $sourceFaceData1;
     }
+    /**
+     * Обновление определенных значений в заданном диапазоне
+     * @param $sourceFaceData2 - входной массив с лицевыми точками (landmarks)
+     * @param $keyForUpdate - наименование ключа
+     * @param $newValue - новое значение
+     * @param $starFrame и $endFrame - диапазон для обновления
+     * @return array - выходной массив с обработанным массивом
+     */
+    public function updateValues($sourceFaceData2,$keyForUpdate,$newValue,$starFrame,$endFrame)
+    { //$sourceFaceData1[$k][$prefix."eye_closed"]
+        foreach ($sourceFaceData2 as $k1 => $v1) {
+          if(($k1 >= $starFrame)and($k1 <= $endFrame)){
+//              echo $k1.' '.$v1[$keyForUpdate].' '.$newValue.' <br>';
+              $sourceFaceData2[$k1][$keyForUpdate] = $newValue;
+          }
+        }
+      return $sourceFaceData2;
+    }
 
     /**
-     * Фильрация нежелательных проявлений, в частности
+     * Определение дополнительных проявлений, в частности
      * моргание
+     * закрытие глаза
      * @param $sourceFaceData1 - входной массив с лицевыми точками (landmarks)
      * @return array - выходной массив с обработанным массивом
      */
-    public function filteringIrrelevantFeatures($sourceFaceData1)
+    public function detectAdditionalFeatures($sourceFaceData1)
     {
+        foreach ($sourceFaceData1 as $k=>$v) {
+            if ($k === 'eye') {
+                foreach ($v as $k1 => $v1) {
+                    //eye_width
+                    if (($k1 === 'right_eye_width')||($k1 === 'left_eye_width')) {
+                        if(strpos($k1,'right')>-1) $prefix = 'right_';
+                        elseif ($prefix = 'left_');
+                        //---------------------------------------------------------------------------------------
+                        for ($i = 1; $i < count($v1); $i++) {
+                            //определение закрытие глаза, когда ширина равна 0
+                            if (isset($v1[$i]["force"])&&
+                                isset($v1[$i]["val"])) {
+                               if(($sourceFaceData1[$k][$prefix."eye_width"][$i]["force"] <= 10)&&
+                                ($sourceFaceData1[$k][$prefix."eye_width_changing"][$i]["val"] === '-'))
+//                                if ($v1[$i]["val"] == 0)
+                                    $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'yes';
+                                else
+                                    $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'no';
+                            }
+                        }
+                        //---------------------------------------------------------------------------------------
+                    }
+                    //eye_width_changing
+                    if (($k1 === 'right_eye_width_changing')||($k1 === 'left_eye_width_changing')) {
+                        if(strpos($k1,'right')>-1) $prefix = 'right_';
+                        elseif ($prefix = 'left_');
+                        //---------------------------------------------------------------------------------------
+                        $eyeStartClosingFrame = '-1';
+                        $eyeClosedFrame = '-1';
+                        $eyeStartOpeningFrame = '-1';
+                        $eyeEndOpeningFrame = '-1';
 
+                        for ($i = 1; $i < count($v1); $i++) {
+                            //определение моргания: тренд на уменьшение, закрытие, тренд на увеличение
+                            if (isset($v1[$i]["trend"])&&
+                                isset($v1[$i]["val"])
+                                ) {
+                                //если глаз закрыт и было его закрытие, то фиксируем
+                                if(($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'yes')&&
+                                    ($eyeStartClosingFrame !== '-1')&&
+                                    ($eyeStartClosingFrame === '-1')){
+                                    $eyeClosedFrame = $i;
+                                }
+                                //если глаз начинает закрываться, то фиксируем
+                                if (($v1[$i]["val"] === '-')&&($eyeStartClosingFrame === '-1')){
+                                    $eyeStartClosingFrame = $i;
+                                    $eyeStartOpeningFrame = '-1';
+                                    $eyeClosedFrame = '-1';
+                                }
+                                //если глаз открывается, но не закрывался, то обнуляем
+                                if (($v1[$i]["val"] === '+')&&($eyeClosedFrame === '-1')) {
+                                    $eyeStartClosingFrame = '-1';
+                                    $eyeStartOpeningFrame = '-1';
+                                }
+                                //если глаз открывается и закрывался, то фиксируем
+                                if (($v1[$i]["val"] === '+')&&($eyeClosedFrame !== '-1')&&
+                                    ($eyeStartClosingFrame !== '-1')) {
+                                    $eyeStartOpeningFrame = $i;
+                                }
+                                //если глаз открывается и закрывался, то ожидаем момента, когда он закончит открываться
+                                if (($v1[$i]["val"] !== '+')&&($eyeClosedFrame !== '-1')&&
+                                    ($eyeStartClosingFrame !== '-1')&&
+                                    ($eyeStartOpeningFrame !== '-1')) {
+                                    $eyeEndOpeningFrame = $i-1;
+                                }
+                                //произошло моргание, то фиксируем его
+                                if (($eyeEndOpeningFrame !== '-1')&&($eyeClosedFrame !== '-1')&&
+                                    ($eyeStartClosingFrame !== '-1')&&
+                                    ($eyeStartOpeningFrame !== '-1')) {
+                                  //изменить значения свойств в диапазоне от $eyeStartClosingFrame до $eyeEndOpeningFrame
+                                    $sourceFaceData1[$k][$prefix."eye_blink"] =
+                                     $this->updateValues($sourceFaceData1[$k][$prefix."eye_blink"],'val',
+                                       'yes',$eyeStartClosingFrame,$eyeEndOpeningFrame);
+                                  //обнулить счетчики
+                                    $eyeClosedFrame = '-1';
+                                    $eyeStartClosingFrame = '-1';
+                                    $eyeStartOpeningFrame = '-1';
+                                    $eyeEndOpeningFrame = '-1';
+                                }else{
+                                    $sourceFaceData1[$k][$prefix."eye_blink"][$i]["val"] = 'no';
+                                }
 
+                            }
+                        }
+                        //---------------------------------------------------------------------------------------
+                    }
+                }
+            }
+        }
         return $sourceFaceData1;
     }
 
@@ -1064,7 +1173,11 @@ class FacialFeatureDetector
         $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData);
         $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData);
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
+        $detectedFeaturesWithTrends = $this->detectAdditionalFeatures($detectedFeaturesWithTrends);
 
+//        $detectedFeaturesWithTrends['eye']["right_eye_blink"] = $this->updateValues(
+//            $detectedFeaturesWithTrends['eye']["right_eye_blink"],'val',
+//            'yes','5','10');
         return $detectedFeaturesWithTrends;
     }
 }
