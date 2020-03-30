@@ -1004,10 +1004,10 @@ class FacialFeatureDetector
                 if(isset($v1[0])) $arrayKeys = array_keys($v1[0]);
                 $currentTrendLength = 0;
                 for ($i = 1; $i < count($v1); $i++) {
-                    if(isset($arrayKeys[1])) {
+                    if(isset($v1[$i-1][$arrayKeys[1]]))
                         $val0 = $v1[$i-1][$arrayKeys[1]];
+                    if(isset($v1[$i]) && isset($arrayKeys[1]))
                         $val1 = $v1[$i][$arrayKeys[1]];
-                    }
                     if ((isset($v1[$i]["force"]) && $v1[$i]["force"] != 0)//force не рабно нулю
                         and ($val0 == $val1)) { //значение не меняет направление
                         $currentTrendLength++;
