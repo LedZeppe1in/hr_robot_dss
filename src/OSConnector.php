@@ -13,6 +13,8 @@ class OSConnector
 {
     // Название бакета для файлов видеоинтервью в Object Storage на Yandex.Cloud
     const OBJECT_STORAGE_VIDEO_BUCKET = 'videointerviews';
+    // Название бакета для json-файлов модифицированных цифровых масок в Object Storage на Yandex.Cloud
+    const OBJECT_STORAGE_ADVANCED_LANDMARK_BUCKET = 'advancedlandmarks';
     // Название бакета для json-файлов результатов определения признаков в Object Storage на Yandex.Cloud
     const OBJECT_STORAGE_DETECTION_RESULT_BUCKET = 'detectionresults';
     // Название бакета для json-файлов результатов интерпретации признаков в Object Storage на Yandex.Cloud
@@ -41,7 +43,7 @@ class OSConnector
     /**
      * Сохранение объекта файла в Object Storage на Yandex.Cloud.
      *
-     * @param $bucketName - название бакета (videointerviews, detectionresults или jsonfiles)
+     * @param $bucketName - название бакета (videointerviews, advancedlandmarks, detectionresults или jsonfiles)
      * @param $path - название папки в бакете (соответствует id записи из БД)
      * @param $fileName - имя файла (без пути)
      * @param $file - файл
@@ -64,7 +66,7 @@ class OSConnector
     /**
      * Удаление объекта файла из Object Storage на Yandex.Cloud.
      *
-     * @param $bucketName - название бакета (videointerviews, detectionresults или jsonfiles)
+     * @param $bucketName - название бакета (videointerviews, advancedlandmarks, detectionresults или jsonfiles)
      * @param $path - название папки в бакете (соответствует id записи из БД)
      * @param $fileName - имя файла (без пути)
      */
@@ -85,7 +87,7 @@ class OSConnector
     /**
      * Получение содержимого объекта файла из Object Storage на Yandex.Cloud.
      *
-     * @param $bucketName - название бакета (videointerviews, detectionresults или jsonfiles)
+     * @param $bucketName - название бакета (videointerviews, advancedlandmarks, detectionresults или jsonfiles)
      * @param $path - название папки в бакете (соответствует id записи из БД)
      * @param $fileName - имя файла (без пути
      * @return bool|mixed - содержимое объекта файла
@@ -111,7 +113,7 @@ class OSConnector
     /**
      * Скачивание объекта файла из Object Storage на Yandex.Cloud.
      *
-     * @param $bucketName - название бакета (videointerviews, detectionresults или jsonfiles)
+     * @param $bucketName - название бакета (videointerviews, advancedlandmarks, detectionresults или jsonfiles)
      * @param $path - название папки в бакете (соответствует id записи из БД)
      * @param $fileName - имя файла (без пути
      * @return mixed - файл с Object Storage
