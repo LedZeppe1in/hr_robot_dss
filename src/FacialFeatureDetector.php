@@ -519,9 +519,9 @@ class FacialFeatureDetector
                 $noseWingsMovementForce = round(($leftNoseWingMovementForce+$rightNoseWingMovementForce)/2); //среднее значение
             }
             $targetFaceData["nose"]["nose_wing_movement"][$i]["force"] = $noseWingsMovementForce;
-            if (($leftNoseWingMovement < 0)or($rightNoseWingMovement < 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'up';
-            if (($leftNoseWingMovement > 0)or($rightNoseWingMovement > 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'down';
-            if (($leftNoseWingMovement == 0)and($rightNoseWingMovement == 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'none';
+            if (($leftNoseWingMovement < 0)||($rightNoseWingMovement < 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'up';
+            if (($leftNoseWingMovement > 0)||($rightNoseWingMovement > 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'down';
+            if (($leftNoseWingMovement == 0)&&($rightNoseWingMovement == 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'none';
         }
         return $targetFaceData["nose"];
     }
@@ -562,9 +562,9 @@ class FacialFeatureDetector
                 $eyebrowMovementForce = round(($leftEyebrowMovementForce+$rightEyebrowMovementForce)/2); //среднее значение
             }
             $targetFaceData["brow"]["brow_width"][$i]["force"] = $eyebrowMovementForce;
-            if (($leftEyebrowMovement < 0)or($rightEyebrowMovement < 0)) $targetFaceData["brow"]["brow_width"][$i]["val"] = '-';
-            if (($leftEyebrowMovement > 0)or($rightEyebrowMovement > 0)) $targetFaceData["brow"]["brow_width"][$i]["val"] = '+';
-            if (($leftEyebrowMovement == 0)and($rightEyebrowMovement == 0)) $targetFaceData["brow"]["brow_width"][$i]["val"] = 'none';
+            if (($leftEyebrowMovement < 0)||($rightEyebrowMovement < 0)) $targetFaceData["brow"]["brow_width"][$i]["val"] = '-';
+            if (($leftEyebrowMovement > 0)||($rightEyebrowMovement > 0)) $targetFaceData["brow"]["brow_width"][$i]["val"] = '+';
+            if (($leftEyebrowMovement == 0)&&($rightEyebrowMovement == 0)) $targetFaceData["brow"]["brow_width"][$i]["val"] = 'none';
         }
         return $targetFaceData["brow"];
     }
@@ -992,6 +992,19 @@ class FacialFeatureDetector
              $sourceFaceData1[$k][$k1] = $v1;
             }
         }
+        return $sourceFaceData1;
+    }
+
+    /**
+     * Фильрация нежелательных проявлений, в частности
+     * моргание
+     * @param $sourceFaceData1 - входной массив с лицевыми точками (landmarks)
+     * @return array - выходной массив с обработанным массивом
+     */
+    public function filteringIrrelevantFeatures($sourceFaceData1)
+    {
+
+
         return $sourceFaceData1;
     }
 
