@@ -739,27 +739,27 @@ class FacialFeatureDetector
 
         // get min and max values
         for ($i = 1; $i < count($sourceFaceData['normmask']); $i++)
-            for ($j = 0; $j < count($sourceFaceData['normmask'][$i]); $j++) {
+            if (isset($sourceFaceData['normmask'][$i]))
+                for ($j = 0; $j < count($sourceFaceData['normmask'][$i]); $j++) {
+                    // min
+                    // x
+                    // echo $facePoints[$j][0][1].' :: '.$FaceData_['frame_#'.$i]['NORM_POINTS'][$j][0].'<br>';
+                    if (($sourceFaceData['normmask'][$i][$j]['X'] < $facePoints[$j][0][1]) and
+                        ($sourceFaceData['normmask'][$i][$j]['X'] != 0))
+                        $facePoints[$j][0][1] = $sourceFaceData['normmask'][$i][$j]['X'];
+                    // y
+                    if (($sourceFaceData['normmask'][$i][$j]['Y'] < $facePoints[$j][1][1]) and
+                        ($sourceFaceData['normmask'][$i][$j]['Y'] != 0))
+                        $facePoints[$j][1][1] = $sourceFaceData['normmask'][$i][$j]['Y'];
 
-                // min
-                // x
-                // echo $facePoints[$j][0][1].' :: '.$FaceData_['frame_#'.$i]['NORM_POINTS'][$j][0].'<br>';
-                if (($sourceFaceData['normmask'][$i][$j]['X'] < $facePoints[$j][0][1]) and
-                    ($sourceFaceData['normmask'][$i][$j]['X'] != 0))
-                    $facePoints[$j][0][1] = $sourceFaceData['normmask'][$i][$j]['X'];
-                // y
-                if (($sourceFaceData['normmask'][$i][$j]['Y'] < $facePoints[$j][1][1]) and
-                    ($sourceFaceData['normmask'][$i][$j]['Y'] != 0))
-                    $facePoints[$j][1][1] = $sourceFaceData['normmask'][$i][$j]['Y'];
-
-                // max
-                // x
-                if ($sourceFaceData['normmask'][$i][$j]['X'] > $facePoints[$j][0][2])
-                    $facePoints[$j][0][2] = $sourceFaceData['normmask'][$i][$j]['X'];
-                // y
-                if ($sourceFaceData['normmask'][$i][$j]['Y'] > $facePoints[$j][1][2])
-                    $facePoints[$j][1][2] = $sourceFaceData['normmask'][$i][$j]['Y'];
-            }
+                    // max
+                    // x
+                    if ($sourceFaceData['normmask'][$i][$j]['X'] > $facePoints[$j][0][2])
+                        $facePoints[$j][0][2] = $sourceFaceData['normmask'][$i][$j]['X'];
+                    // y
+                    if ($sourceFaceData['normmask'][$i][$j]['Y'] > $facePoints[$j][1][2])
+                        $facePoints[$j][1][2] = $sourceFaceData['normmask'][$i][$j]['Y'];
+                }
 
         // get scale for x and y
         // length of the scale for power detection
