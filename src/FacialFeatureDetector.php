@@ -529,7 +529,7 @@ class FacialFeatureDetector
      * @return array - выходной массив с обработанным массивом для лба
      */
     public function detectNoseFeatures($sourceFaceData){
-        //анализируемые точки ерза носа
+        //анализируемые точки низа носа
         // 31 (left_nose_wing),
         // 35 (right_nose_wing),
         // получение нормированного значения по кадру 0
@@ -608,7 +608,7 @@ class FacialFeatureDetector
     }
 
     /**
-     * Обнаружение признаков лба.
+     * Обнаружение признаков бровей.
      *
      * @param $sourceFaceData - входной массив с лицевыми точками (landmarks)
      * @return array - выходной массив с обработанным массивом для лба
@@ -809,7 +809,7 @@ class FacialFeatureDetector
         $targetFaceData = array();
 
         // print_r($facePoints);
-        // изменнеие длины рта
+        // изменение длины рта
         // NORM_POINTS 48 54
         // echo $FaceData_['normmask'][0][48][X];
         for ($i = 0; $i < count($sourceFaceData['normmask']); $i++) {
@@ -847,7 +847,7 @@ class FacialFeatureDetector
                     $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] = 'left';
                 else
                     $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] = 'right';
-            //движение рта
+            //движение уголков рта
             $xMov = '';
             if (($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] == 'right') and
                 (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]) &&
