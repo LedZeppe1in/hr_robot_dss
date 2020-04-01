@@ -13,7 +13,8 @@ class FacialFeatureDetector
     public function getForce($val1, $val2)
     {
 //        $af = $val1 / (10);
-        $res = abs(round((100*$val2 / $val1)));
+        if($val1 != 0) $res = abs(round((100*$val2 / $val1)));
+         else $res = 0;
         return $res;
     }
 
@@ -515,10 +516,23 @@ class FacialFeatureDetector
                             $FaceData_['eye'][$i][$k1]['X'] = $v1[0];
                             $FaceData_['eye'][$i][$k1]['Y'] = $v1[1];
                         }
+                    //letf_nasolabial_fold processing
+                    if (isset($v['35x51x54'])){
+                            $FaceData_['letf_nasolabial_fold'][$i][0]['X'] = $v['35x51x54'][0][0];
+                            $FaceData_['letf_nasolabial_fold'][$i][0]['Y'] = $v['35x51x54'][0][1];
+                            $FaceData_['letf_nasolabial_fold'][$i][0]['X2'] = $v['35x51x54'][0][2];
+                            $FaceData_['letf_nasolabial_fold'][$i][0]['Y2'] = $v['35x51x54'][0][3];
+                        }
+                    //right_nasolabial_fold processing
+                    if (isset($v['31x48x51'])) {
+                            $FaceData_['right_nasolabial_fold'][$i][0]['X'] = $v['31x48x51'][0][0];
+                            $FaceData_['right_nasolabial_fold'][$i][0]['Y'] = $v['31x48x51'][0][1];
+                            $FaceData_['right_nasolabial_fold'][$i][0]['X2'] = $v['31x48x51'][0][2];
+                            $FaceData_['right_nasolabial_fold'][$i][0]['Y2'] = $v['31x48x51'][0][3];
+                        }
                 }
                 $i++;
             }
-
         return $FaceData_;
     }
 
@@ -528,7 +542,8 @@ class FacialFeatureDetector
      * @param $sourceFaceData - входной массив с лицевыми точками (landmarks)
      * @return array - выходной массив с обработанным массивом для лба
      */
-    public function detectNoseFeatures($sourceFaceData){
+    public function detectNoseFeatures($sourceFaceData)
+    {
         //анализируемые точки низа носа
         // 31 (left_nose_wing),
         // 35 (right_nose_wing),
@@ -539,28 +554,61 @@ class FacialFeatureDetector
         ) {
             $yN31 = $sourceFaceData['normmask'][0][31]['Y'];
             $yN35 = $sourceFaceData['normmask'][0][35]['Y'];
-            $maxY31 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 31,"Y");
-            $minY31 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],31, "Y");
+            $maxY31 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 31, "Y");
+            $minY31 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 31, "Y");
             $scaleY31 = $maxY31 - $minY31;
-            $maxY35 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 35,"Y");
-            $minY35 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],35, "Y");
+            $maxY35 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 35, "Y");
+            $minY35 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 35, "Y");
             $scaleY35 = $maxY35 - $minY35;
         }
 
         for ($i = 0; $i < count($sourceFaceData['normmask']); $i++) {
-            if (isset($sourceFaceData['normmask'][$i][31]) && $sourceFaceData['normmask'][$i][35]){
+            if (isset($sourceFaceData['normmask'][$i][31]) && $sourceFaceData['normmask'][$i][35]) {
                 $leftNoseWingMovement = $sourceFaceData['normmask'][$i][31]['Y'] - $yN31;
                 $rightNoseWingMovement = $sourceFaceData['normmask'][$i][35]['Y'] - $yN35;
 
                 $leftNoseWingMovementForce = $this->getForce($scaleY31, abs($leftNoseWingMovement));
                 $rightNoseWingMovementForce = $this->getForce($scaleY35, abs($rightNoseWingMovement));
-                $noseWingsMovementForce = round(($leftNoseWingMovementForce+$rightNoseWingMovementForce)/2); //среднее значение
+                $noseWingsMovementForce = round(($leftNoseWingMovementForce + $rightNoseWingMovementForce) / 2); //среднее значение
             }
             $targetFaceData["nose"]["nose_wing_movement"][$i]["force"] = $noseWingsMovementForce;
-            if (($leftNoseWingMovement < 0)||($rightNoseWingMovement < 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'up';
-            if (($leftNoseWingMovement > 0)||($rightNoseWingMovement > 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'down';
-            if (($leftNoseWingMovement == 0)&&($rightNoseWingMovement == 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'none';
+            if (($leftNoseWingMovement < 0) || ($rightNoseWingMovement < 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'up';
+            if (($leftNoseWingMovement > 0) || ($rightNoseWingMovement > 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'down';
+            if (($leftNoseWingMovement == 0) && ($rightNoseWingMovement == 0)) $targetFaceData["nose"]["nose_wing_movement"][$i]["val"] = 'none';
         }
+
+//        echo json_encode($sourceFaceData['letf_nasolabial_fold'][0][0]);
+//        echo '<br><br>';
+//        json_encode($sourceFaceData['letf_nasolabial_fold'][0][0]);
+//        json_encode($sourceFaceData['right_nasolabial_fold'][0][0]);
+        //анализ носогубных складок на основе треугольников
+        if (isset($sourceFaceData['letf_nasolabial_fold'][0][0])
+            && isset($sourceFaceData['right_nasolabial_fold'][0][0])
+        ) {
+            $xRightNF = $sourceFaceData['right_nasolabial_fold'][0][0]['X'];
+            $xLeftNF = $sourceFaceData['left_nasolabial_fold'][0][0]['X'];
+            $maxRightNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "X");
+            $minRightNF = $this->getFaceDataMinForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "X");
+            $scaleRightNF = $maxRightNF - $minRightNF;
+            $maxLeftNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['left_nasolabial_fold'], 0, "X");
+            $minLeftNF = $this->getFaceDataMinForKeyV2($sourceFaceData['left_nasolabial_fold'], 0, "X");
+            $scaleLeftNF = $maxLeftNF - $minLeftNF;
+
+
+        for ($i = 0; $i < count($sourceFaceData['right_nasolabial_fold']); $i++) {
+            if (isset($sourceFaceData['right_nasolabial_fold'][$i][0]) && $sourceFaceData['left_nasolabial_fold'][$i][0]) {
+                $rightNFMovement = $sourceFaceData['right_nasolabial_fold'][$i][0]['X'] - $xRightNF;
+                $leftNFMovement = $sourceFaceData['left_nasolabial_fold'][$i][0]['X'] - $xLeftNF;
+                $rightNFMovementForce = $this->getForce($scaleRightNF, abs($rightNFMovement));
+
+                $leftNFMovementForce = $this->getForce($scaleLeftNF, abs($leftNFMovement));
+                $avNFMovementForce = round(($rightNFMovementForce + $leftNFMovementForce) / 2); //среднее значение
+            }
+            $targetFaceData["nose"]["nasolabial_fold_movement"][$i]["force"] = $avNFMovementForce;
+            $targetFaceData["nose"]["nasolabial_fold_movement"][$i]["val"] = 'none';
+            if (($leftNFMovement < 0) || ($rightNFMovement > 0)) $targetFaceData["nose"]["nasolabial_fold_movement"][$i]["val"] = 'aside';
+        }
+    }
         return $targetFaceData["nose"];
     }
 
@@ -972,30 +1020,94 @@ class FacialFeatureDetector
     {
         foreach ($sourceFaceData1 as $k=>$v) {
             foreach ($v as $k1=>$v1) {
-                if(isset($v1[0])) $arrayKeys = array_keys($v1[0]);
+                if(isset($v1[0])) {
+                    $v1[0]["trend"] = '1=';
+                    $v1[0]["confidence"] = 1;
+                };
                 $currentTrendLength = 0;
+
                 for ($i = 1; $i < count($v1); $i++) {
-                    if(isset($v1[$i-1][$arrayKeys[1]]))
-                        $val0 = $v1[$i-1][$arrayKeys[1]];
-                    if(isset($v1[$i]) && isset($arrayKeys[1]))
-                        $val1 = $v1[$i][$arrayKeys[1]];
-                    if ((isset($v1[$i]["force"]) && $v1[$i]["force"] != 0)//force не рабно нулю
-                        and ($val0 == $val1)) { //значение не меняет направление
-                        $currentTrendLength++;
-                        $v1[$i]["trend"] = $currentTrendLength;
-                        $v1[$i]["confidence"] = 1;
-                    } else { //the trend is change direction or force = 0
-//                        if ($currentTrendLength < $trendLength) {
-//                            echo $currentTrendLength . ' ' . $i . '<br>';
-                            //clear features of previouse frames
-                        $v1[$i]["trend"] = 0;
-                        $v1[$i]["confidence"] = 0;
-                        for ($i1 = $i; $i1 < ($i - $currentTrendLength); $i1--) {
-                                $v1[$i1]["confidence"] = 0;
-//                            if (isset($v[$i1][1])) $v[$i1][1] = 'none';
+//                    if(isset($v1[$i-1][$arrayKeys[1]]))
+//                        $val0 = $v1[$i-1][$arrayKeys[1]];
+//                    if(isset($v1[$i]) && isset($arrayKeys[1]))
+//                        $val1 = $v1[$i][$arrayKeys[1]];
+
+//echo $v1[$i]["force"].'/'.$v1[$i-1]["force"].'/'.$v1[$i]["val"].'/'.$v1[$i-1]["val"].'/'.$v1[$i]["trend"].'<br>';
+                    if ((isset($v1[$i]["force"])) && (isset($v1[$i-1]["force"])) &&
+                        (isset($v1[$i]["val"])) && (isset($v1[$i-1]["val"]))) {
+
+                        if (($v1[$i-1]["force"]<$v1[$i]["force"]) &&    //если интенсивность увеличивается
+                            ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
+                            (strpos($v1[$i-1]["trend"],'+')>0)){ //и был тренд на увеличение, то продолжаем его
+                            ++$currentTrendLength;
+                            $v1[$i]["trend"] = $currentTrendLength.'+';
+                            $v1[$i]["confidence"] = 1;
+                        }
+
+                        if (($v1[$i-1]["force"]>$v1[$i]["force"]) &&    //если интенсивность уменьшается
+                            ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
+                            (strpos($v1[$i-1]["trend"],'-')>0)){ //и был тренд на уменьшение, то продолжаем его
+                            ++$currentTrendLength;
+                            $v1[$i]["trend"] = $currentTrendLength.'-';
+                            $v1[$i]["confidence"] = 1;
+                        }
+
+                        if (($v1[$i-1]["force"] === $v1[$i]["force"]) &&    //если интенсивность не меняется
+                            ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
+                            (strpos($v1[$i-1]["trend"],'=')>0)){ //и был тренд на сохранение, то продолжаем его
+                            ++$currentTrendLength;
+                            $v1[$i]["trend"] = $currentTrendLength.'=';
+                            $v1[$i]["confidence"] = 1;
+                        }
+
+                        if (($v1[$i-1]["force"]<$v1[$i]["force"]) &&    //если интенсивность увеличивается
+                            ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
+                            (strpos($v1[$i-1]["trend"],'+') === false)){
+                            //и был тренд на уменьшение или сохранение, то начинаем новый тренд на увеличение
+                            $currentTrendLength = 1;
+                            $v1[$i]["trend"] = $currentTrendLength.'+';
+                            $v1[$i]["confidence"] = 1;
+                        }
+
+                        if (($v1[$i-1]["force"]>$v1[$i]["force"]) &&    //если интенсивность уменьшается
+                            ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
+                            (strpos($v1[$i-1]["trend"],'-') === false)){
+                            //и был тренд на увеличение или сохранение, то начинаем новый тренд на уменьшение
+                            $currentTrendLength = 1;
+                            $v1[$i]["trend"] = $currentTrendLength.'-';
+                            $v1[$i]["confidence"] = 1;
+                        }
+
+                        if (($v1[$i-1]["force"] === $v1[$i]["force"]) &&    //если интенсивность не маеняется
+                            ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
+                            (strpos($v1[$i-1]["trend"],'=') === false)){
+                            //и был тренд на увеличение или уменьшение, то начинаем новый тренд на сохранение
+                            $currentTrendLength = 1;
+                            $v1[$i]["trend"] = $currentTrendLength.'=';
+                            $v1[$i]["confidence"] = 1;
+                        }
+
+                        if ($v1[$i-1]["val"] !== $v1[$i]["val"]){ //если значения отличаются
+                            //это либо числовое значение
+                            if (is_numeric($v1[$i]["val"])){
+                                if ($v1[$i-1]["val"]>$v1[$i]["val"]) $trenfVal = '-';
+                                if ($v1[$i-1]["val"]<$v1[$i]["val"]) $trenfVal = '+';
+
+                                if (strpos($v1[$i-1]["trend"],$trenfVal)>0){ //значение тренда сохраняется
+                                    ++$currentTrendLength;
+                                } else {$currentTrendLength = 1;}
+                                $v1[$i]["trend"] = $currentTrendLength.$trenfVal;
+                                $v1[$i]["confidence"] = 1;
+                            } else {
+                                //либо смена направления для качественного значения
+                                $currentTrendLength = 1;
+                                if ($v1[$i-1]["force"]>$v1[$i]["force"]) $trenfVal = '-';
+                                if ($v1[$i-1]["force"]<$v1[$i]["force"]) $trenfVal = '+';
+                                if ($v1[$i-1]["force"] === $v1[$i]["force"]) $trenfVal = '=';
+                                $v1[$i]["trend"] = $currentTrendLength.$trenfVal;
+                                $v1[$i]["confidence"] = 1;
                             }
-                            $currentTrendLength = 0;
- //                       }
+                        }
                     }
                 }
              $sourceFaceData1[$k][$k1] = $v1;
