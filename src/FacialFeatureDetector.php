@@ -933,7 +933,8 @@ class FacialFeatureDetector
                 }
             }
 
-            if ($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"] == 0)
+            if (isset($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]) &&
+                $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"] == 0)
                 $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] = 'none';
             else
                 if ($rightMouthCornerXMov < 0)
@@ -955,7 +956,9 @@ class FacialFeatureDetector
                if (($leftMouthCornerXMov < 0) && ($rightMouthCornerXMov < 0))
                    $yMov = 'up';
 
-            if (isset($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]))
+            $force1 = 0;
+            if (isset($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]) &&
+                isset($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"]))
                 $force1 = $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"];
             if (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i])){
                 $force2 = $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["force"];
@@ -1105,7 +1108,7 @@ class FacialFeatureDetector
 
                         if (($v1[$i-1]["force"]<$v1[$i]["force"]) &&    //если интенсивность увеличивается
                             ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
-                            (strpos($v1[$i-1]["trend"],'+')>0)){ //и был тренд на увеличение, то продолжаем его
+                            (isset($v1[$i-1]["trend"]) && (strpos($v1[$i-1]["trend"],'+') > 0))) { //и был тренд на увеличение, то продолжаем его
                             ++$currentTrendLength;
                             $v1[$i]["trend"] = $currentTrendLength.'+';
                             $v1[$i]["confidence"] = 1;
@@ -1113,7 +1116,7 @@ class FacialFeatureDetector
 
                         if (($v1[$i-1]["force"]>$v1[$i]["force"]) &&    //если интенсивность уменьшается
                             ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
-                            (strpos($v1[$i-1]["trend"],'-')>0)){ //и был тренд на уменьшение, то продолжаем его
+                            (isset($v1[$i-1]["trend"]) && (strpos($v1[$i-1]["trend"],'-') > 0))) { //и был тренд на уменьшение, то продолжаем его
                             ++$currentTrendLength;
                             $v1[$i]["trend"] = $currentTrendLength.'-';
                             $v1[$i]["confidence"] = 1;
@@ -1121,7 +1124,7 @@ class FacialFeatureDetector
 
                         if (($v1[$i-1]["force"] === $v1[$i]["force"]) &&    //если интенсивность не меняется
                             ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
-                            (strpos($v1[$i-1]["trend"],'=')>0)){ //и был тренд на сохранение, то продолжаем его
+                            (isset($v1[$i-1]["trend"]) && (strpos($v1[$i-1]["trend"],'=') > 0))) { //и был тренд на сохранение, то продолжаем его
                             ++$currentTrendLength;
                             $v1[$i]["trend"] = $currentTrendLength.'=';
                             $v1[$i]["confidence"] = 1;
@@ -1129,7 +1132,7 @@ class FacialFeatureDetector
 
                         if (($v1[$i-1]["force"]<$v1[$i]["force"]) &&    //если интенсивность увеличивается
                             ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
-                            (strpos($v1[$i-1]["trend"],'+') === false)){
+                            (isset($v1[$i-1]["trend"]) && (strpos($v1[$i-1]["trend"],'+') === false))) {
                             //и был тренд на уменьшение или сохранение, то начинаем новый тренд на увеличение
                             $currentTrendLength = 1;
                             $v1[$i]["trend"] = $currentTrendLength.'+';
@@ -1138,7 +1141,7 @@ class FacialFeatureDetector
 
                         if (($v1[$i-1]["force"]>$v1[$i]["force"]) &&    //если интенсивность уменьшается
                             ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
-                            (strpos($v1[$i-1]["trend"],'-') === false)){
+                            (isset($v1[$i-1]["trend"]) && (strpos($v1[$i-1]["trend"],'-') === false))) {
                             //и был тренд на увеличение или сохранение, то начинаем новый тренд на уменьшение
                             $currentTrendLength = 1;
                             $v1[$i]["trend"] = $currentTrendLength.'-';
@@ -1147,7 +1150,7 @@ class FacialFeatureDetector
 
                         if (($v1[$i-1]["force"] === $v1[$i]["force"]) &&    //если интенсивность не маеняется
                             ($v1[$i-1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
-                            (strpos($v1[$i-1]["trend"],'=') === false)){
+                            (isset($v1[$i-1]["trend"]) && (strpos($v1[$i-1]["trend"],'=') === false))) {
                             //и был тренд на увеличение или уменьшение, то начинаем новый тренд на сохранение
                             $currentTrendLength = 1;
                             $v1[$i]["trend"] = $currentTrendLength.'=';
@@ -1159,8 +1162,8 @@ class FacialFeatureDetector
                             if (is_numeric($v1[$i]["val"])){
                                 if ($v1[$i-1]["val"]>$v1[$i]["val"]) $trenfVal = '-';
                                 if ($v1[$i-1]["val"]<$v1[$i]["val"]) $trenfVal = '+';
-
-                                if (strpos($v1[$i-1]["trend"],$trenfVal)>0){ //значение тренда сохраняется
+                                //значение тренда сохраняется
+                                if (isset($v1[$i-1]["trend"]) && (strpos($v1[$i-1]["trend"], $trenfVal) > 0)) {
                                     ++$currentTrendLength;
                                 } else {$currentTrendLength = 1;}
                                 $v1[$i]["trend"] = $currentTrendLength.$trenfVal;
