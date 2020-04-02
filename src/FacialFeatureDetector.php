@@ -1317,11 +1317,11 @@ class FacialFeatureDetector
             $FaceData = $this->convertIJson($FaceData_);
         else
             $FaceData =  $FaceData_; // use the AB format
-//        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData);
+        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData);
         $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData);
-//        $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData);
-//        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData);
-//        $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData);
+        $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData);
+        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData);
+        $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData);
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalFeatures($detectedFeaturesWithTrends);
 
