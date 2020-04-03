@@ -11,6 +11,8 @@ use Aws\S3\Exception\S3Exception;
  */
 class OSConnector
 {
+    // Название бакета для файла базы знаний в Object Storage на Yandex.Cloud
+    const OBJECT_STORAGE_KNOWLEDGE_BASE_BUCKET = 'knowledgebase';
     // Название бакета для файлов видеоинтервью в Object Storage на Yandex.Cloud
     const OBJECT_STORAGE_VIDEO_BUCKET = 'videointerviews';
     // Название бакета для json-файлов модифицированных цифровых масок в Object Storage на Yandex.Cloud
@@ -55,7 +57,7 @@ class OSConnector
         try {
             $s3Client->putObject([
                 'Bucket' => $bucketName,
-                'Key' => $path . '/' . $fileName,
+                'Key' => ($path != null) ? $path . '/' . $fileName : $fileName,
                 'Body' => (is_array($file)) ? json_encode($file, JSON_UNESCAPED_UNICODE) :
                     fopen($file, 'r'),
             ]);
@@ -100,7 +102,7 @@ class OSConnector
         try {
             $result = $s3Client->getObject([
                 'Bucket' => $bucketName,
-                'Key' => $path . '/' . $fileName,
+                'Key' => ($path != null) ? $path . '/' . $fileName : $fileName,
             ]);
 
             return $result["Body"];
@@ -126,7 +128,7 @@ class OSConnector
         try {
             $result = $s3Client->getObject([
                 'Bucket' => $bucketName,
-                'Key' => $path . '/' . $fileName,
+                'Key' => ($path != null) ? $path . '/' . $fileName : $fileName,
             ]);
             // Установка типа контента при скачивании файла
             header('Content-Description: File Transfer');
