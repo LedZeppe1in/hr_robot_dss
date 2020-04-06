@@ -39,7 +39,7 @@ class DBConnector
     }
 
     /**
-     * Выборка записей из таблицы "hrrobot_video_interview" с не пустым полем "landmark_file_name".
+     * Поиск записей в таблице "hrrobot_video_interview" с не пустым полем "video_file_name".
      *
      * @param $connection - соединение с БД
      * @return resource - выборка (строки) из таблицы "hrrobot_video_interview"
@@ -49,48 +49,111 @@ class DBConnector
         // SQL-запрос
         $sql = 'SELECT *
             FROM hrrobot_video_interview,
-            WHERE landmark_file_name IS NOT NULL';
+            WHERE video_file_name IS NOT NULL';
         // Выполнение SQL-запроса
-        $res = pg_query($connection, $sql) or die("Ошибка в запросе: " .
+        $result = pg_query($connection, $sql) or die("Ошибка в запросе: " .
             iconv('UTF-8', 'CP1251', $sql) . " " . pg_last_error($connection));
 
-        return $res;
+        return $result;
     }
 
     /**
-     * Добавление новой записи в таблицу "hrrobot_advanced_landmark".
+     * Поиск записи в таблице "hrrobot_video_interview" по идентификатору.
      *
      * @param $connection - соединение с БД
-     * @param $fileName - название json-файла модифицированной цифровой маски (сохраняемого на Object Storage)
+     * @param $id - идентификатор видеоинтервью (PK)
+     * @return resource - запись из таблицы "hrrobot_video_interview"
+     */
+    public function getVideoInterview($connection, $id)
+    {
+        // SQL-запрос
+        $sql = "SELECT *
+            FROM hrrobot_video_interview,
+            WHERE id = '$id'";
+        // Выполнение SQL-запроса
+        $result = pg_query($connection, $sql) or die("Ошибка в запросе: " .
+            iconv('UTF-8', 'CP1251', $sql) . " " . pg_last_error($connection));
+
+        return $result;
+    }
+
+    /**
+     * Поиск записей в таблице "hrrobot_landmark" с не пустым полем "landmark_file_name".
+     *
+     * @param $connection - соединение с БД
+     * @return resource - выборка (строки) из таблицы "hrrobot_landmark"
+     */
+    public function getLandmarks($connection)
+    {
+        // SQL-запрос
+        $sql = 'SELECT *
+            FROM hrrobot_landmark,
+            WHERE landmark_file_name IS NOT NULL';
+        // Выполнение SQL-запроса
+        $result = pg_query($connection, $sql) or die("Ошибка в запросе: " .
+            iconv('UTF-8', 'CP1251', $sql) . " " . pg_last_error($connection));
+
+        return $result;
+    }
+
+    /**
+     * Поиск записи в таблице "hrrobot_landmark" по идентификатору.
+     *
+     * @param $connection - соединение с БД
+     * @param $id - идентификатор видеоинтервью (PK)
+     * @return resource - запись из таблицы "hrrobot_landmark"
+     */
+    public function getLandmark($connection, $id)
+    {
+        // SQL-запрос
+        $sql = "SELECT *
+            FROM hrrobot_landmark,
+            WHERE id = '$id'";
+        // Выполнение SQL-запроса
+        $result = pg_query($connection, $sql) or die("Ошибка в запросе: " .
+            iconv('UTF-8', 'CP1251', $sql) . " " . pg_last_error($connection));
+
+        return $result;
+    }
+
+    /**
+     * Добавление новой записи в таблицу "Цифровая маска" (hrrobot_landmark).
+     *
+     * @param $connection - соединение с БД
+     * @param $fileName - название json-файла с лицевыми точками сохраняемого на Object Storage
+     * @param $description - описание цифровой маски
      * @param $videoInterviewId - идентификатор видеоинтервью (дочернего ключа, FK) из таблицы "hrrobot_video_interview")
      */
-    public function insertAdvancedLandmark($connection, $fileName, $videoInterviewId)
+    public function insertLandmark($connection, $fileName, $description, $videoInterviewId)
     {
         // Получение текущего времени
         $currentTime = time();
         // SQL-запрос
-        $sql = "INSERT INTO hrrobot_advanced_landmark (created_at, updated_at, file_name, video_interview_id) 
-            VALUES ('$currentTime', '$currentTime', '$fileName', '$videoInterviewId')";
+        $sql = "INSERT INTO hrrobot_advanced_landmark (created_at, updated_at, file_name, description, 
+                video_interview_id) 
+            VALUES ('$currentTime', '$currentTime', '$fileName', '$description', '$videoInterviewId')";
         // Выполнение SQL-запроса
         pg_query($connection, $sql) or die("Ошибка в запросе: " .
             iconv('UTF-8', 'CP1251', $sql) . " " . pg_last_error($connection));
     }
 
     /**
-     * Обновление таблицы "hrrobot_advanced_landmark".
+     * Обновление таблицы "hrrobot_landmark".
      *
      * @param $connection - соединение с БД
-     * @param $id - идентификатор (PK) записи о json-файле модифицированной маски (таблица "hrrobot_advanced_landmark")
-     * @param $fileName - обновляемое значение для поля названия json-файла модифицированной цифровой маски (file_name)
+     * @param $id - идентификатор (PK) записи о json-файле модифицированной маски (таблица "hrrobot_landmark")
+     * @param $fileName - название json-файла с лицевыми точками сохраняемого на Object Storage
+     * @param $description - описание цифровой маски
      * @param $videoInterviewId - обновляемое значение для поля идентификатора видеоинтервью (дочернего ключа, FK)
      */
-    public function updateAdvancedLandmark($connection, $id, $fileName, $videoInterviewId)
+    public function updateLandmark($connection, $id, $fileName, $description, $videoInterviewId)
     {
         // Получение текущего времени
         $currentTime = time();
         // SQL-запрос
         $sql = "UPDATE hrrobot_advanced_landmark
-            SET updated_at = '$currentTime', file_name = '$fileName', video_interview_id = '$videoInterviewId'
+            SET updated_at = '$currentTime', file_name = '$fileName', description = '$description', 
+                video_interview_id = '$videoInterviewId'
             WHERE id = '$id'";
         // Выполнение SQL-запроса
         pg_query($connection, $sql) or die("Ошибка в запросе: " .
