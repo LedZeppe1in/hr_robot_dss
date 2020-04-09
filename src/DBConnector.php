@@ -6,11 +6,11 @@
 class DBConnector
 {
     // Настройки подключения к БД на сервере Yandex.Cloud
-    const HR_ROBOT_HOST = 'rc1a-cxj2zyrrqtga2084.mdb.yandexcloud.net';
-    const HR_ROBOT_PORT = 6432;
-    const HR_ROBOT_USER_NAME = 'u-2';
-    const HR_ROBOT_PASSWORD = 'MXh;dod_22892h_u3_4748@';
-    const HR_ROBOT_DB_NAME = 'D1';
+    protected $host = 'rc1a-cxj2zyrrqtga2084.mdb.yandexcloud.net';
+    protected $port = 6432;
+    protected $userName = 'u-2';
+    protected $password = 'MXh;dod_22892h_u3_4748@';
+    protected $dbName = 'D1';
 
     /**
      * Подключение к БД.
@@ -19,12 +19,19 @@ class DBConnector
      */
     public function connect()
     {
-        return pg_connect(
-            'host=' . self::HR_ROBOT_HOST .
-            'dbname=' . self::HR_ROBOT_DB_NAME .
-            'port=' . self::HR_ROBOT_PORT .
-            'user=' . self::HR_ROBOT_USER_NAME .
-            'password=' . self::HR_ROBOT_PASSWORD) or die("Не удалось открыть соединение с сервером базы данных!");
+        // Подключение
+        $connection = pg_connect("
+            host=$this->host
+            dbname=$this->dbName
+            port=$this->port
+            user=$this->userName
+            password=$this->password
+        ");
+        // Проверка подключения
+        if (!$connection)
+            die("Не удалось открыть соединение с сервером базы данных!");
+        else
+            return $connection;
     }
 
     /**
@@ -48,7 +55,7 @@ class DBConnector
     {
         // SQL-запрос
         $sql = 'SELECT *
-            FROM hrrobot_video_interview,
+            FROM hrrobot_video_interview
             WHERE video_file_name IS NOT NULL';
         // Выполнение SQL-запроса
         $result = pg_query($connection, $sql) or die("Ошибка в запросе: " .
@@ -68,7 +75,7 @@ class DBConnector
     {
         // SQL-запрос
         $sql = "SELECT *
-            FROM hrrobot_video_interview,
+            FROM hrrobot_video_interview
             WHERE id = '$id'";
         // Выполнение SQL-запроса
         $result = pg_query($connection, $sql) or die("Ошибка в запросе: " .
@@ -87,7 +94,7 @@ class DBConnector
     {
         // SQL-запрос
         $sql = 'SELECT *
-            FROM hrrobot_landmark,
+            FROM hrrobot_landmark
             WHERE landmark_file_name IS NOT NULL';
         // Выполнение SQL-запроса
         $result = pg_query($connection, $sql) or die("Ошибка в запросе: " .
@@ -100,14 +107,14 @@ class DBConnector
      * Поиск записи в таблице "hrrobot_landmark" по идентификатору.
      *
      * @param $connection - соединение с БД
-     * @param $id - идентификатор видеоинтервью (PK)
+     * @param $id - идентификатор цифровой маски (PK)
      * @return resource - запись из таблицы "hrrobot_landmark"
      */
     public function getLandmark($connection, $id)
     {
         // SQL-запрос
         $sql = "SELECT *
-            FROM hrrobot_landmark,
+            FROM hrrobot_landmark
             WHERE id = '$id'";
         // Выполнение SQL-запроса
         $result = pg_query($connection, $sql) or die("Ошибка в запросе: " .
@@ -129,8 +136,7 @@ class DBConnector
         // Получение текущего времени
         $currentTime = time();
         // SQL-запрос
-        $sql = "INSERT INTO hrrobot_advanced_landmark (created_at, updated_at, file_name, description, 
-                video_interview_id) 
+        $sql = "INSERT INTO hrrobot_advanced_landmark (created_at, updated_at, file_name, description, video_interview_id) 
             VALUES ('$currentTime', '$currentTime', '$fileName', '$description', '$videoInterviewId')";
         // Выполнение SQL-запроса
         pg_query($connection, $sql) or die("Ошибка в запросе: " .
@@ -141,7 +147,7 @@ class DBConnector
      * Обновление таблицы "hrrobot_landmark".
      *
      * @param $connection - соединение с БД
-     * @param $id - идентификатор (PK) записи о json-файле модифицированной маски (таблица "hrrobot_landmark")
+     * @param $id - идентификатор цифровой маски (PK)
      * @param $fileName - название json-файла с лицевыми точками сохраняемого на Object Storage
      * @param $description - описание цифровой маски
      * @param $videoInterviewId - обновляемое значение для поля идентификатора видеоинтервью (дочернего ключа, FK)
