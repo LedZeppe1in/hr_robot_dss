@@ -644,20 +644,20 @@ class FacialFeatureDetector
         if (isset($sourceFaceData['left_nasolabial_fold'][0][0])
             && isset($sourceFaceData['right_nasolabial_fold'][0][0])
         ) {
-            $xRightNF = $sourceFaceData['right_nasolabial_fold'][0][0]['X'];
-            $xLeftNF = $sourceFaceData['left_nasolabial_fold'][0][0]['X'];
-            $maxRightNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "X");
-            $minRightNF = $this->getFaceDataMinForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "X");
+            $xRightNF = $sourceFaceData['right_nasolabial_fold'][0][0]['X2'];
+            $xLeftNF = $sourceFaceData['left_nasolabial_fold'][0][0]['X2'];
+            $maxRightNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "X2");
+            $minRightNF = $this->getFaceDataMinForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "X2");
             $scaleRightNF = $maxRightNF - $minRightNF;
-            $maxLeftNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['left_nasolabial_fold'], 0, "X");
-            $minLeftNF = $this->getFaceDataMinForKeyV2($sourceFaceData['left_nasolabial_fold'], 0, "X");
+            $maxLeftNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['left_nasolabial_fold'], 0, "X2");
+            $minLeftNF = $this->getFaceDataMinForKeyV2($sourceFaceData['left_nasolabial_fold'], 0, "X2");
             $scaleLeftNF = $maxLeftNF - $minLeftNF;
 
 
         for ($i = 0; $i < count($sourceFaceData['right_nasolabial_fold']); $i++) {
             if (isset($sourceFaceData['right_nasolabial_fold'][$i][0]) && $sourceFaceData['left_nasolabial_fold'][$i][0]) {
-                $rightNFMovement = $sourceFaceData['right_nasolabial_fold'][$i][0]['X'] - $xRightNF;
-                $leftNFMovement = $sourceFaceData['left_nasolabial_fold'][$i][0]['X'] - $xLeftNF;
+                $rightNFMovement = $sourceFaceData['right_nasolabial_fold'][$i][0]['X2'] - $xRightNF;
+                $leftNFMovement = $sourceFaceData['left_nasolabial_fold'][$i][0]['X2'] - $xLeftNF;
                 $targetFaceData["nose"]["right_nasolabial_fold_movement"][$i]["force"] =
                     $this->getForce($scaleRightNF, abs($rightNFMovement));
                 if ($rightNFMovement>0) $targetFaceData["nose"]["right_nasolabial_fold_movement"][$i]["val"] = 'from center aside';
