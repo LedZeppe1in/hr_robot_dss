@@ -252,6 +252,25 @@ class FacialFeatureDetector
         return $min;
     }
 
+    public function getFaceDataMaxForKeyV3($facialCharacteristics, $pointNum, $key)
+    {
+        $facialCharacteristicsNumber = count($facialCharacteristics);
+        if ($facialCharacteristicsNumber <= 0)
+            return false;
+
+        $max = $facialCharacteristics[$pointNum][0][$key];
+ //       $minFrame = 0;
+
+        for ($i = 0; $i < $facialCharacteristicsNumber; $i++)
+            if (isset($facialCharacteristics[$pointNum][$i]) && isset($facialCharacteristics[$pointNum][$i][$key]))
+                if ($facialCharacteristics[$pointNum][$i][$key] > $max) {
+                    $max = $facialCharacteristics[$pointNum][$i][$key];
+//                    $minFrame = $i;
+                }
+
+//        return array(0 => $min, 1 => $minFrame);
+        return $max;
+    }
     /**
      * Обнаружение признаков глаза.
      *
@@ -853,14 +872,14 @@ class FacialFeatureDetector
 
             $targetFaceData["eyebrow"]["left_eyebrow_movement"][$i]["val"] = 'none';
             if (($leftEyebrowMovementHOut > 0)and($leftEyebrowMovementHIn > 0))
-                $targetFaceData["eyebrow"]["left_eyebrow_movement"][$i]["val"] = 'up';
-            if (($leftEyebrowMovementHOut < 0)and($leftEyebrowMovementHIn < 0))
                 $targetFaceData["eyebrow"]["left_eyebrow_movement"][$i]["val"] = 'down';
+            if (($leftEyebrowMovementHOut < 0)and($leftEyebrowMovementHIn < 0))
+                $targetFaceData["eyebrow"]["left_eyebrow_movement"][$i]["val"] = 'up';
             $targetFaceData["eyebrow"]["right_eyebrow_movement"][$i]["val"] = 'none';
             if (($rightEyebrowMovementHOut > 0)and($rightEyebrowMovementHIn > 0))
-                $targetFaceData["eyebrow"]["right_eyebrow_movement"][$i]["val"] = 'up';
-            if (($rightEyebrowMovementHOut < 0)and($rightEyebrowMovementHIn < 0))
                 $targetFaceData["eyebrow"]["right_eyebrow_movement"][$i]["val"] = 'down';
+            if (($rightEyebrowMovementHOut < 0)and($rightEyebrowMovementHIn < 0))
+                $targetFaceData["eyebrow"]["right_eyebrow_movement"][$i]["val"] = 'up';
 
             //If Направление движения брови (Линии брови) = Вверх AND Движение брови-H-OUT < Движение брови-H-IN
             //  → Направление движения внутреннего уголка брови = Вверх AND Направление движения внешнего уголка брови = Вниз
@@ -927,225 +946,225 @@ class FacialFeatureDetector
             $yN51 = $sourceFaceData['normmask'][0][51]['Y'];
             $yN57 = $sourceFaceData['normmask'][0][57]['Y'];
             $mouthWidthN = $yN57 - $yN51;
-        }
 
-        $maxX48 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 48,"X");
-        $minX48 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],48, "X");
-        $scaleX48 = $maxX48 - $minX48;
-        $maxY48 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 48,"Y");
-        $minY48 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],48, "Y");
-        $scaleY48 = $maxY48 - $minY48;
-        $maxX54 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 54,"X");
-        $minX54 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],54, "X");
-        $scaleX54 = $maxX54 - $minX54;
-        $maxY54 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 54,"Y");
-        $minY54 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],54, "Y");
-        $scaleY54 = $maxY54 - $minY54;
-        $maxMouthLength = $maxX54 - $minX48;
-        $minMouthLength = $minX54 - $maxX48;
-        $scaleMouthLength = $maxMouthLength - $minMouthLength;
 
-        $maxY51 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 51,"Y");
-        $minY51 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],51, "Y");
-        $scaleY51 = $maxY51 - $minY51;
-        $maxY57 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 57,"Y");
-        $minY57 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],57, "Y");
-        $scaleY57 = $maxY57 - $minY57;
-        $maxMouthWidth = $maxY57 - $minY51;
-        $minMouthWidth = $minY57 - $maxY51;
-        $scaleMouthWidth = $maxMouthWidth - $minMouthWidth;
+            $maxX48 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 48, "X");
+            $minX48 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 48, "X");
+            $scaleX48 = $maxX48 - $minX48;
+            $maxY48 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 48, "Y");
+            $minY48 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 48, "Y");
+            $scaleY48 = $maxY48 - $minY48;
+            $maxX54 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 54, "X");
+            $minX54 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 54, "X");
+            $scaleX54 = $maxX54 - $minX54;
+            $maxY54 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 54, "Y");
+            $minY54 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 54, "Y");
+            $scaleY54 = $maxY54 - $minY54;
+            $maxMouthLength = $maxX54 - $minX48;
+            $minMouthLength = $minX54 - $maxX48;
+            $scaleMouthLength = $maxMouthLength - $minMouthLength;
 
-        // изменение длины рта
-        // NORM_POINTS 48 54
-        // echo $FaceData_['normmask'][0][48][X];
-        for ($i = 0; $i < count($sourceFaceData['normmask']); $i++) {
-            if (isset($sourceFaceData['normmask'][$i][48])) {
-                $leftMouthCornerXMov = $sourceFaceData['normmask'][$i][48]['X'] - $xN48;
-                $leftMouthCornerYMov = $sourceFaceData['normmask'][$i][48]['Y'] - $yN48;
+            $maxY51 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 51, "Y");
+            $minY51 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 51, "Y");
+            $scaleY51 = $maxY51 - $minY51;
+            $maxY57 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 57, "Y");
+            $minY57 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 57, "Y");
+            $scaleY57 = $maxY57 - $minY57;
+            $maxMouthWidth = $maxY57 - $minY51;
+            $minMouthWidth = $minY57 - $maxY51;
+            $scaleMouthWidth = $maxMouthWidth - $minMouthWidth;
 
-                $leftMouthCornerXMovForce= $this->getForce($scaleX48, abs($leftMouthCornerXMov));
-                $leftMouthCornerYMovForce= $this->getForce($scaleY48, abs($leftMouthCornerYMov));
-                $leftMouthCornerYMovAvForce = round(($leftMouthCornerXMovForce+$leftMouthCornerYMovForce)/2);
-                $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["force"] = $leftMouthCornerYMovAvForce;
-            }
-            if (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]))
-                if ($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["force"] == 0)
-                    $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["val"] = 'none';
-                else {
-                    if ($leftMouthCornerYMov < 0) $yMov = 'up';
-                    if ($leftMouthCornerYMov > 0) $yMov = 'down';
-                    if ($leftMouthCornerXMov < 0) $xMov = 'from center';
-                     else $xMov = 'to center';
-                    if($yMov == 'none') $yMov = '';
-                    if (($xMov != '')&&($yMov != ''))  $yMov = ' and '.$yMov;
-                    $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["val"] =  $xMov.$yMov;
-                }
-            if (isset($sourceFaceData['normmask'][$i][54])) {
-                $rightMouthCornerXMov = $sourceFaceData['normmask'][$i][54]['X'] - $xN54;
-                $rightMouthCornerYMov = $sourceFaceData['normmask'][$i][54]['Y'] - $yN54;
-
-                $rightMouthCornerXMovForce= $this->getForce($scaleX54, abs($rightMouthCornerXMov));
-                $rightMouthCornerYMovForce= $this->getForce($scaleY54, abs($rightMouthCornerYMov));
-                $rightMouthCornerYMovAvForce = round(($rightMouthCornerXMovForce+$rightMouthCornerYMovForce)/2);
-                $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"] = $rightMouthCornerYMovAvForce;
-
+            // изменение длины рта
+            // NORM_POINTS 48 54
+            // echo $FaceData_['normmask'][0][48][X];
+            for ($i = 0; $i < count($sourceFaceData['normmask']); $i++) {
                 if (isset($sourceFaceData['normmask'][$i][48])) {
-                  $mouthLength = $sourceFaceData['normmask'][$i][54]['X'] - $sourceFaceData['normmask'][$i][49]['X'];
+                    $leftMouthCornerXMov = $sourceFaceData['normmask'][$i][48]['X'] - $xN48;
+                    $leftMouthCornerYMov = $sourceFaceData['normmask'][$i][48]['Y'] - $yN48;
+
+                    $leftMouthCornerXMovForce = $this->getForce($scaleX48, abs($leftMouthCornerXMov));
+                    $leftMouthCornerYMovForce = $this->getForce($scaleY48, abs($leftMouthCornerYMov));
+                    $leftMouthCornerYMovAvForce = round(($leftMouthCornerXMovForce + $leftMouthCornerYMovForce) / 2);
+                    $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["force"] = $leftMouthCornerYMovAvForce;
                 }
-            }
+                if (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]))
+                    if ($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["force"] == 0)
+                        $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["val"] = 'none';
+                    else {
+                        if ($leftMouthCornerYMov < 0) $yMov = 'up';
+                        if ($leftMouthCornerYMov > 0) $yMov = 'down';
+                        if ($leftMouthCornerXMov < 0) $xMov = 'from center';
+                        else $xMov = 'to center';
+                        if ($yMov == 'none') $yMov = '';
+                        if (($xMov != '') && ($yMov != '')) $yMov = ' and ' . $yMov;
+                        $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["val"] = $xMov . $yMov;
+                    }
+                if (isset($sourceFaceData['normmask'][$i][54])) {
+                    $rightMouthCornerXMov = $sourceFaceData['normmask'][$i][54]['X'] - $xN54;
+                    $rightMouthCornerYMov = $sourceFaceData['normmask'][$i][54]['Y'] - $yN54;
 
-            if (isset($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]) &&
-                $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"] == 0)
-                $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] = 'none';
-            else {
-                if ($rightMouthCornerYMov < 0) $yMov = 'up';
-                if ($rightMouthCornerYMov > 0) $yMov = 'down';
-                if ($rightMouthCornerXMov > 0) $xMov = 'from center';
-                else $xMov = 'to center';
-                if($yMov == 'none') $yMov = '';
-                if (($xMov != '')&&($yMov != ''))  $yMov = ' and '.$yMov;
-                $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] =  $xMov.$yMov;
-            }
-            //движение уголков рта
-            $xMov = '';
-            if (($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] == 'from center') and
-                (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]) &&
-                    $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["val"] == 'from center')) {
-                $xMov = 'from center aside';
-                // $targetFaceData["mouth"]["mouth_corners_movement"][$i]["val"] = 'aside';
-            }
-            $yMov = '';
-            if (($leftMouthCornerXMov > 0) && ($rightMouthCornerXMov > 0))
-                $yMov = 'down';
-            else
-               if (($leftMouthCornerXMov < 0) && ($rightMouthCornerXMov < 0))
-                   $yMov = 'up';
+                    $rightMouthCornerXMovForce = $this->getForce($scaleX54, abs($rightMouthCornerXMov));
+                    $rightMouthCornerYMovForce = $this->getForce($scaleY54, abs($rightMouthCornerYMov));
+                    $rightMouthCornerYMovAvForce = round(($rightMouthCornerXMovForce + $rightMouthCornerYMovForce) / 2);
+                    $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"] = $rightMouthCornerYMovAvForce;
 
-            $force1 = 0;
-            if (isset($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]) &&
-                isset($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"]))
-                $force1 = $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"];
-            if (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i])){
-                $force2 = $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["force"];
-                $forceAv = round(($force1 + $force2) / 2);
-            }
-            $targetFaceData["mouth"]["mouth_corners_movement"][$i]["force"] = $forceAv;
+                    if (isset($sourceFaceData['normmask'][$i][48])) {
+                        $mouthLength = $sourceFaceData['normmask'][$i][54]['X'] - $sourceFaceData['normmask'][$i][48]['X'];
+                    }
+                }
 
-            if($xMov == 'none') $xMov = '';
-            if($yMov == 'none') $yMov = '';
-            if (($xMov != '')&&($yMov != ''))  $yMov = ' and '.$yMov;
-
-            $targetFaceData["mouth"]["mouth_corners_movement"][$i]["val"] = trim($xMov.$yMov);
-            if ($targetFaceData["mouth"]["mouth_corners_movement"][$i]["val"] == '')
-               $targetFaceData["mouth"]["mouth_corners_movement"][$i]["val"] = 'none';
-
-            $targetFaceData["mouth"]["mouth_length"][$i]["force"] =  $this->getForce(
-                $scaleMouthLength, abs(($mouthLength - $mouthLengthN)));
-
-            if ($mouthLength === $mouthLengthN) {
-                $targetFaceData["mouth"]["mouth_length"][$i]["force"] = 0;
-                $targetFaceData["mouth"]["mouth_length"][$i]["val"] = 'none';
-            }
-            if ($mouthLength > $mouthLengthN) $targetFaceData["mouth"]["mouth_length"][$i]["val"] = '+';
-            if ($mouthLength < $mouthLengthN) $targetFaceData["mouth"]["mouth_length"][$i]["val"] = '-';
-
-/*            if (($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["val"] = 'left') and
-                ($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] = 'right'))
-                $targetFaceData["mouth"]["mouth_length"][$i]["val"] = '+';
-            if (($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["val"] = 'right') and
-                ($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] = 'left'))
-                $targetFaceData["mouth"]["mouth_length"][$i]["val"] = '-';*/
-
-            // изменение ширины рта
-            // NORM_POINTS 51 57
-
-            if (isset($sourceFaceData['normmask'][$i][51])) {
-                $upperLipYMov = $sourceFaceData['normmask'][$i][51]['Y'] - $yN51;
-                $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["force"] = $this->getForce(
-                    $scaleY51, abs($upperLipYMov));
-//                $force1 = $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["force"];
-            }
-
-            if (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]))
-                if (isset($targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]) &&
-                    $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["force"] == 0)
-                    $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'none';
+                if (isset($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]) &&
+                    $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"] == 0)
+                    $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] = 'none';
+                else {
+                    if ($rightMouthCornerYMov < 0) $yMov = 'up';
+                    if ($rightMouthCornerYMov > 0) $yMov = 'down';
+                    if ($rightMouthCornerXMov > 0) $xMov = 'from center';
+                    else $xMov = 'to center';
+                    if ($yMov == 'none') $yMov = '';
+                    if (($xMov != '') && ($yMov != '')) $yMov = ' and ' . $yMov;
+                    $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] = $xMov . $yMov;
+                }
+                //движение уголков рта
+                $xMov = '';
+                if (($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] == 'from center') and
+                    (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]) &&
+                        $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["val"] == 'from center')) {
+                    $xMov = 'from center aside';
+                    // $targetFaceData["mouth"]["mouth_corners_movement"][$i]["val"] = 'aside';
+                }
+                $yMov = '';
+                if (($leftMouthCornerXMov > 0) && ($rightMouthCornerXMov > 0))
+                    $yMov = 'down';
                 else
-                    if ($upperLipYMov < 0)
-                        $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'up';
+                    if (($leftMouthCornerXMov < 0) && ($rightMouthCornerXMov < 0))
+                        $yMov = 'up';
+
+                $force1 = 0;
+                if (isset($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]) &&
+                    isset($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"]))
+                    $force1 = $targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["force"];
+                if (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i])) {
+                    $force2 = $targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["force"];
+                    $forceAv = round(($force1 + $force2) / 2);
+                }
+                /*        $targetFaceData["mouth"]["mouth_corners_movement"][$i]["force"] = $forceAv;
+
+                        if($xMov == 'none') $xMov = '';
+                        if($yMov == 'none') $yMov = '';
+                        if (($xMov != '')&&($yMov != ''))  $yMov = ' and '.$yMov;
+
+                        $targetFaceData["mouth"]["mouth_corners_movement"][$i]["val"] = trim($xMov.$yMov);
+                        if ($targetFaceData["mouth"]["mouth_corners_movement"][$i]["val"] == '')
+                           $targetFaceData["mouth"]["mouth_corners_movement"][$i]["val"] = 'none';*/
+                $mouthLengthX = abs($mouthLength - $mouthLengthN);
+                $targetFaceData["mouth"]["mouth_length"][$i]["force"] = $this->getForce(
+                    $scaleMouthLength, $mouthLengthX);
+
+                if ($mouthLength === $mouthLengthN) {
+                    $targetFaceData["mouth"]["mouth_length"][$i]["force"] = 0;
+                    $targetFaceData["mouth"]["mouth_length"][$i]["val"] = 'none';
+                }
+                if ($mouthLength > $mouthLengthN) $targetFaceData["mouth"]["mouth_length"][$i]["val"] = '+';
+                if ($mouthLength < $mouthLengthN) $targetFaceData["mouth"]["mouth_length"][$i]["val"] = '-';
+
+                /*            if (($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["val"] = 'left') and
+                                ($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] = 'right'))
+                                $targetFaceData["mouth"]["mouth_length"][$i]["val"] = '+';
+                            if (($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]["val"] = 'right') and
+                                ($targetFaceData["mouth"]["right_corner_mouth_movement"][$i]["val"] = 'left'))
+                                $targetFaceData["mouth"]["mouth_length"][$i]["val"] = '-';*/
+
+                // изменение ширины рта
+                // NORM_POINTS 51 57
+
+                if (isset($sourceFaceData['normmask'][$i][51])) {
+                    $upperLipYMov = $sourceFaceData['normmask'][$i][51]['Y'] - $yN51;
+                    $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["force"] = $this->getForce(
+                        $scaleY51, abs($upperLipYMov));
+//                $force1 = $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["force"];
+                }
+
+                if (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]))
+                    if (isset($targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]) &&
+                        $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["force"] == 0)
+                        $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'none';
                     else
-                        $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'down';
+                        if ($upperLipYMov < 0)
+                            $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'up';
+                        else
+                            $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'down';
 //            $deltaYUpperLip = $y;
 //            if (isset($targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["force"]))
 //                $force1 = $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["force"];
 
-            if (isset($sourceFaceData['normmask'][$i][57])){
-                $lowerLipYMov = $sourceFaceData['normmask'][$i][57]['Y'] - $yN57;
-                if (isset($sourceFaceData['normmask'][$i][51])) {
-                    $mouthWidth = $sourceFaceData['normmask'][$i][57]['Y'] - $sourceFaceData['normmask'][$i][51]['Y'];
+                if (isset($sourceFaceData['normmask'][$i][57])) {
+                    $lowerLipYMov = $sourceFaceData['normmask'][$i][57]['Y'] - $yN57;
+                    if (isset($sourceFaceData['normmask'][$i][51])) {
+                        $mouthWidth = $sourceFaceData['normmask'][$i][57]['Y'] - $sourceFaceData['normmask'][$i][51]['Y'];
+                    }
                 }
-            }
 
-            $targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["force"] =
-                $this->getForce( $scaleY57, abs($lowerLipYMov));
+                $targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["force"] =
+                    $this->getForce($scaleY57, abs($lowerLipYMov));
 
-            if ($targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["force"] == 0)
-                $targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'none';
-            else
-                if ($lowerLipYMov > 0)
-                    $targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'down';
+                if ($targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["force"] == 0)
+                    $targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'none';
                 else
-                    $targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'up';
+                    if ($lowerLipYMov > 0)
+                        $targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'down';
+                    else
+                        $targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'up';
 //            $deltaYLowerLip = $y;
 //            $force2 = $targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["force"];
 //            $forceAv = round(($force1 + $force2)/2);
 
-            $targetFaceData["mouth"]["mouth_width"][$i]["force"] =  $this->getForce(
-                $scaleMouthWidth, abs(($mouthWidth - $mouthWidthN)));
+                $targetFaceData["mouth"]["mouth_width"][$i]["force"] = $this->getForce(
+                    $scaleMouthWidth, abs(($mouthWidth - $mouthWidthN)));
 
-            if ($mouthWidth === $mouthWidthN) {
-                $targetFaceData["mouth"]["mouth_width"][$i]["force"] = 0;
-                $targetFaceData["mouth"]["mouth_width"][$i]["val"] = 'none';
-            }
+                if ($mouthWidth === $mouthWidthN) {
+                    $targetFaceData["mouth"]["mouth_width"][$i]["force"] = 0;
+                    $targetFaceData["mouth"]["mouth_width"][$i]["val"] = 'none';
+                }
 //            if() !!!! 'compressed'
-            if ($mouthWidth > $mouthWidthN) $targetFaceData["mouth"]["mouth_width"][$i]["val"] = '+';
-            if ($mouthWidth < $mouthWidthN) $targetFaceData["mouth"]["mouth_width"][$i]["val"] = '-';
+                if ($mouthWidth > $mouthWidthN) $targetFaceData["mouth"]["mouth_width"][$i]["val"] = '+';
+                if ($mouthWidth < $mouthWidthN) $targetFaceData["mouth"]["mouth_width"][$i]["val"] = '-';
 
- /*           $targetFaceData["mouth"]["mouth_width"][$i]["force"] = $forceAv;
-            $targetFaceData["mouth"]["mouth_width"][$i]["val"] = 'none';
-            if (($deltaYLowerLip == 0)and($deltaYLowerLip == 0)){
-                $targetFaceData["mouth"]["mouth_width"][$i]["val"] = 'compressed';
-            }
-            if(($targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'down')and
-                ($targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'up')){
-                $targetFaceData["mouth"]["mouth_width"][$i]["val"] = '+';
-            }
-            if(($targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'up')and
-                ($targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'down')){
-                $targetFaceData["mouth"]["mouth_width"][$i]["val"] = '-';
-            }*/
-            // определение формы рта
-            // NORM_POINTS 61 62 63 65 66 67
-            if (isset($sourceFaceData['normmask'][$i][67])) {
-                $width1 = $sourceFaceData['normmask'][$i][67]['Y'] - $sourceFaceData['normmask'][$i][61]['Y'];
-                $width2 = $sourceFaceData['normmask'][$i][66]['Y'] - $sourceFaceData['normmask'][$i][62]['Y'];
-                $width3 = $sourceFaceData['normmask'][$i][65]['Y'] - $sourceFaceData['normmask'][$i][63]['Y'];
-                $lengthTest = $sourceFaceData['normmask'][$i][65]['X'] - $sourceFaceData['normmask'][$i][67]['X'];
+                /*           $targetFaceData["mouth"]["mouth_width"][$i]["force"] = $forceAv;
+                           $targetFaceData["mouth"]["mouth_width"][$i]["val"] = 'none';
+                           if (($deltaYLowerLip == 0)and($deltaYLowerLip == 0)){
+                               $targetFaceData["mouth"]["mouth_width"][$i]["val"] = 'compressed';
+                           }
+                           if(($targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'down')and
+                               ($targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'up')){
+                               $targetFaceData["mouth"]["mouth_width"][$i]["val"] = '+';
+                           }
+                           if(($targetFaceData["mouth"]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'up')and
+                               ($targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'down')){
+                               $targetFaceData["mouth"]["mouth_width"][$i]["val"] = '-';
+                           }*/
+                // определение формы рта
+                // NORM_POINTS 61 62 63 65 66 67
+                if (isset($sourceFaceData['normmask'][$i][67])) {
+                    $width1 = $sourceFaceData['normmask'][$i][67]['Y'] - $sourceFaceData['normmask'][$i][61]['Y'];
+                    $width2 = $sourceFaceData['normmask'][$i][66]['Y'] - $sourceFaceData['normmask'][$i][62]['Y'];
+                    $width3 = $sourceFaceData['normmask'][$i][65]['Y'] - $sourceFaceData['normmask'][$i][63]['Y'];
+                    $lengthTest = $sourceFaceData['normmask'][$i][65]['X'] - $sourceFaceData['normmask'][$i][67]['X'];
 
-                //брать интенсивность изменения ширины рта
-                $targetFaceData["mouth"]["mouth_form"][$i]["force"] =
-                    $targetFaceData["mouth"]["mouth_width"][$i]["force"];
-            }
-            // echo $width1.'/'.$width2.'/'.$width3.'<br>';
-            if (($width1 != 0) and ($width2 != 0) and ($width3 != 0) and ($lengthTest / 4 < $width2))
-                if (($width1 < $width2) and ($width3 < $width2))
-                    $targetFaceData["mouth"]["mouth_form"][$i]["val"] = 'ellipse';
+                    //брать интенсивность изменения ширины рта
+                    $targetFaceData["mouth"]["mouth_form"][$i]["force"] =
+                        $targetFaceData["mouth"]["mouth_width"][$i]["force"];
+                }
+                // echo $width1.'/'.$width2.'/'.$width3.'<br>';
+                if (($width1 != 0) and ($width2 != 0) and ($width3 != 0) and ($lengthTest / 4 < $width2))
+                    if (($width1 < $width2) and ($width3 < $width2))
+                        $targetFaceData["mouth"]["mouth_form"][$i]["val"] = 'ellipse';
+                    else
+                        $targetFaceData["mouth"]["mouth_form"][$i]["val"] = 'rectangle';
                 else
-                    $targetFaceData["mouth"]["mouth_form"][$i]["val"] = 'rectangle';
-            else
-                $targetFaceData["mouth"]["mouth_form"][$i]["val"] = 'line';
+                    $targetFaceData["mouth"]["mouth_form"][$i]["val"] = 'line';
+            }
         }
-
         return $targetFaceData["mouth"];
     }
 
@@ -1284,6 +1303,9 @@ class FacialFeatureDetector
     {
         foreach ($sourceFaceData1 as $k=>$v) {
             if ($k === 'eye') {
+                $maxREW = $this->getFaceDataMaxForKeyV3($sourceFaceData1['eye'],'right_eye_width', "val");
+                $maxLEW = $this->getFaceDataMaxForKeyV3($sourceFaceData1['eye'],'left_eye_width', "val");
+
                 foreach ($v as $k1 => $v1) {
                     //eye_width
                     if (($k1 === 'right_eye_width')||($k1 === 'left_eye_width')) {
@@ -1292,11 +1314,12 @@ class FacialFeatureDetector
                         //---------------------------------------------------------------------------------------
                         for ($i = 1; $i < count($v1); $i++) {
                             //определение закрытие глаза, когда ширина равна 0
-                            if (isset($v1[$i]["force"])&&
+                            if (//isset($v1[$i]["force"])&&
                                 isset($v1[$i]["val"])) {
-                               if(($sourceFaceData1[$k][$prefix."eye_width"][$i]["force"] <= 10)&&
-                                ($sourceFaceData1[$k][$prefix."eye_width_changing"][$i]["val"] === '-'))
-//                                if ($v1[$i]["val"] == 0)
+                               if($prefix === 'right_') $val = round($maxREW/10);
+                               else $val = round($maxLEW/10);
+//echo $val.'/'.$sourceFaceData1[$k][$prefix."eye_width"][$i]["val"].'<br>';
+                               if($sourceFaceData1[$k][$prefix."eye_width"][$i]["val"] <= $val)
                                     $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'yes';
                                 else
                                     $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'no';
