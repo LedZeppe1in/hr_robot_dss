@@ -693,6 +693,7 @@ class FacialFeatureDetector
 //        json_encode($sourceFaceData['letf_nasolabial_fold'][0][0]);
 //        json_encode($sourceFaceData['right_nasolabial_fold'][0][0]);
             //анализ носогубных складок на основе треугольников
+            $normFrameIndex = -1;
             if (isset($sourceFaceData['left_nasolabial_fold'][0][0])
                 && isset($sourceFaceData['right_nasolabial_fold'][0][0])
             ) $normFrameIndex = 0;
