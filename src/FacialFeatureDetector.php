@@ -695,9 +695,14 @@ class FacialFeatureDetector
             //анализ носогубных складок на основе треугольников
             if (isset($sourceFaceData['left_nasolabial_fold'][0][0])
                 && isset($sourceFaceData['right_nasolabial_fold'][0][0])
-            ) {
-                $xRightNF = $sourceFaceData['right_nasolabial_fold'][0][0]['X2'];
-                $xLeftNF = $sourceFaceData['left_nasolabial_fold'][0][0]['X2'];
+            ) $normFrameIndex = 0;
+            if (isset($sourceFaceData['left_nasolabial_fold'][1][0])
+                && isset($sourceFaceData['right_nasolabial_fold'][1][0])
+            )
+            {
+                if ($normFrameIndex != 0) $normFrameIndex = 1;
+                $xRightNF = $sourceFaceData['right_nasolabial_fold'][$normFrameIndex][0]['X2'];
+                $xLeftNF = $sourceFaceData['left_nasolabial_fold'][$normFrameIndex][0]['X2'];
                 $maxRightNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "X2");
                 $minRightNF = $this->getFaceDataMinForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "X2");
                 $scaleRightNF = $maxRightNF - $minRightNF;
