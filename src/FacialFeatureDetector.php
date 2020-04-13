@@ -873,6 +873,7 @@ class FacialFeatureDetector
                 $targetFaceData["eyebrow"]["right_eyebrow_outer_movement"][$i]["force"] = $this->getForce(
                     $scaleY26, abs($rightEyebrowMovementHOut));
 
+                $xMov = 'none';
                 if ($leftEyebrowMovementHIn > 0) $yMov = 'down';
                 if ($leftEyebrowMovementHIn < 0) $yMov = 'up';
                 if ($leftEyebrowMovementHIn == 0) $yMov = 'none';
