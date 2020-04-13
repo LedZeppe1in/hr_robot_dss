@@ -211,12 +211,14 @@ class FacialFeatureDetector
         $facialCharacteristicsNumber = count($facialCharacteristics);
         if ($facialCharacteristicsNumber <= 0)
             return false;
-
-        $max = $facialCharacteristics[0][$pointNum][$key];
+        $max = 0;
+        if (isset($facialCharacteristics[0][$pointNum][$key]))
+            $max = $facialCharacteristics[0][$pointNum][$key];
         $maxFrame = 0;
         for ($i = 0; $i < $facialCharacteristicsNumber; $i++)
             if (isset($facialCharacteristics[$i][$pointNum]) && isset($facialCharacteristics[$i][$pointNum][$key]))
-                if ($facialCharacteristics[$i][$pointNum][$key] > $max) {
+                if (isset($facialCharacteristics[$i][$pointNum][$key]) &&
+                    ($facialCharacteristics[$i][$pointNum][$key] > $max)) {
                     $max = $facialCharacteristics[$i][$pointNum][$key];
                     $maxFrame = $i;
                 }
@@ -237,13 +239,15 @@ class FacialFeatureDetector
         $facialCharacteristicsNumber = count($facialCharacteristics);
         if ($facialCharacteristicsNumber <= 0)
             return false;
-
-        $min = $facialCharacteristics[0][$pointNum][$key];
+        $min = 0;
+        if (isset($facialCharacteristics[0][$pointNum][$key]))
+            $min = $facialCharacteristics[0][$pointNum][$key];
         $minFrame = 0;
 
         for ($i = 0; $i < $facialCharacteristicsNumber; $i++)
             if (isset($facialCharacteristics[$i][$pointNum]) && isset($facialCharacteristics[$i][$pointNum][$key]))
-                if ($facialCharacteristics[$i][$pointNum][$key] < $min) {
+                if (isset($facialCharacteristics[$i][$pointNum][$key]) &&
+                    ($facialCharacteristics[$i][$pointNum][$key] < $min)) {
                     $min = $facialCharacteristics[$i][$pointNum][$key];
                     $minFrame = $i;
                 }
@@ -257,13 +261,15 @@ class FacialFeatureDetector
         $facialCharacteristicsNumber = count($facialCharacteristics);
         if ($facialCharacteristicsNumber <= 0)
             return false;
-
-        $max = $facialCharacteristics[$pointNum][0][$key];
+        $max = 0;
+        if (isset($facialCharacteristics[$pointNum][0][$key]))
+            $max = $facialCharacteristics[$pointNum][0][$key];
  //       $minFrame = 0;
 
         for ($i = 0; $i <= $facialCharacteristicsNumber; $i++)
             if (isset($facialCharacteristics[$pointNum][$i]) && isset($facialCharacteristics[$pointNum][$i][$key]))
-                if ($facialCharacteristics[$pointNum][$i][$key] > $max) {
+                if (isset($facialCharacteristics[$pointNum][$i][$key]) &&
+                    ($facialCharacteristics[$pointNum][$i][$key] > $max)) {
                     $max = $facialCharacteristics[$pointNum][$i][$key];
 //                    $minFrame = $i;
                 }
