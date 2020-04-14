@@ -211,8 +211,9 @@ class FacialFeatureDetector
         $facialCharacteristicsNumber = count($facialCharacteristics);
         if ($facialCharacteristicsNumber <= 0)
             return false;
-
-        $max = $facialCharacteristics[0][$pointNum][$key];
+        $max = 0;
+        if (isset($facialCharacteristics[0][$pointNum][$key]))
+            $max = $facialCharacteristics[0][$pointNum][$key];
         $maxFrame = 0;
         for ($i = 0; $i < $facialCharacteristicsNumber; $i++)
             if (isset($facialCharacteristics[$i][$pointNum]) && isset($facialCharacteristics[$i][$pointNum][$key]))
@@ -237,8 +238,9 @@ class FacialFeatureDetector
         $facialCharacteristicsNumber = count($facialCharacteristics);
         if ($facialCharacteristicsNumber <= 0)
             return false;
-
-        $min = $facialCharacteristics[0][$pointNum][$key];
+        $min = 0;
+        if (isset($facialCharacteristics[0][$pointNum][$key]))
+            $min = $facialCharacteristics[0][$pointNum][$key];
         $minFrame = 0;
 
         for ($i = 0; $i < $facialCharacteristicsNumber; $i++)
