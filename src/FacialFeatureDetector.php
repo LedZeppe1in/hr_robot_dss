@@ -1463,6 +1463,62 @@ class FacialFeatureDetector
       return $sourceFaceData2;
     }
 
+    public function saveXY($sourceFaceData2,$fileName)
+    {
+        // load data
+        $FaceData_ = json_decode($sourceFaceData2, true);
+        // check input format and convert the I format to AB
+        if(strpos($sourceFaceData2,'NORM_POINTS') !== false)
+            $sourceFaceData3 = $this->convertIJson($FaceData_);
+        else
+            $sourceFaceData3 =  $FaceData_; // use the AB format
+        //
+        $arr = array('61','62', '63', '65', '66', '67', 36,37,38,39, 40, 41, 42, 43, 44, 45, 46,47, 31, 35,
+            19,24, 17, 21, 22, 26, 48,54, 51, 57, );
+        $res = array();
+        for ($i = 0; $i < count($sourceFaceData3['normmask']); $i++) {
+            foreach ($arr as $k1 => $v1) {
+//              print_r($sourceFaceData3['normmask'][$i][$v1]);
+//                echo  '<br>';
+              if (isset($sourceFaceData3['normmask'][$i][$v1])){
+                $res[$v1] =  $res[$v1].$i.';'.$sourceFaceData3['normmask'][$i][$v1]['X'].';'.
+                    $sourceFaceData3['normmask'][$i][$v1]['Y']."\n";
+              }
+             }
+        }
+        for ($i = 0; $i < count($sourceFaceData3['left_nasolabial_fold']); $i++) {
+            $res['31x48x74'] =  $res['31x48x74'].$i.';'.
+                ($sourceFaceData3['left_nasolabial_fold'][$i][0]['X'] - $sourceFaceData3['left_nasolabial_fold'][$i][0]['X2']).';'.
+                ($sourceFaceData3['left_nasolabial_fold'][$i][0]['Y'] - $sourceFaceData3['left_nasolabial_fold'][$i][0]['Y2'])."\n";
+        }
+        for ($i = 0; $i < count($sourceFaceData3['right_nasolabial_fold']); $i++) {
+            $res['35x54x75'] =  $res['35x54x75'].$i.';'.
+                ($sourceFaceData3['right_nasolabial_fold'][$i][0]['X'] - $sourceFaceData3['right_nasolabial_fold'][$i][0]['X2']).';'.
+                ($sourceFaceData3['right_nasolabial_fold'][$i][0]['Y'] - $sourceFaceData3['right_nasolabial_fold'][$i][0]['Y2'])."\n";
+        }
+        for ($i = 0; $i < count($sourceFaceData3['left_nasolabial_fold_2']); $i++) {
+            $res['31x40x74'] =  $res['31x40x74'].$i.';'.
+                ($sourceFaceData3['left_nasolabial_fold_2'][$i][0]['X'] - $sourceFaceData3['left_nasolabial_fold_2'][$i][0]['X2']).';'.
+                ($sourceFaceData3['left_nasolabial_fold_2'][$i][0]['Y'] - $sourceFaceData3['left_nasolabial_fold_2'][$i][0]['Y2'])."\n";
+        }
+        for ($i = 0; $i < count($sourceFaceData3['right_nasolabial_fold_2']); $i++) {
+            $res['35x47x75'] =  $res['35x47x75'].$i.';'.
+                ($sourceFaceData3['right_nasolabial_fold_2'][$i][0]['X'] - $sourceFaceData3['right_nasolabial_fold_2'][$i][0]['X2']).';'.
+                ($sourceFaceData3['right_nasolabial_fold_2'][$i][0]['Y'] - $sourceFaceData3['right_nasolabial_fold_2'][$i][0]['Y2'])."\n";
+        }
+        //        print_r($res);
+        foreach ($res as $k => $v) {
+//            echo $v.'<br>';
+            $fd = fopen($fileName.'_'.$k.'.csv', "w");
+            fwrite($fd,$v);
+            fclose($fd);
+        }
+
+
+
+ //       return $sourceFaceData2;
+    }
+
     /**
      * Определение дополнительных проявлений, в частности
      * моргание
