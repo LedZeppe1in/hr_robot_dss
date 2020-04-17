@@ -609,18 +609,34 @@ class FacialFeatureDetector
                             $FaceData_['left_nasolabial_fold'][$i][0]['Y'] = $v['31x48x74'][0][1];
                             $FaceData_['left_nasolabial_fold'][$i][0]['X2'] = $v['31x48x74'][0][2];
                             $FaceData_['left_nasolabial_fold'][$i][0]['Y2'] = $v['31x48x74'][0][3];
-                        }
+                            $FaceData_['left_nasolabial_fold'][$i][0]['SUMX'] = $v['31x48x74'][1][0];
+                            $FaceData_['left_nasolabial_fold'][$i][0]['SUMY'] = $v['31x48x74'][1][1];
+                            $FaceData_['left_nasolabial_fold'][$i][0]['SUMX2'] = $v['31x48x74'][1][2];
+                            $FaceData_['left_nasolabial_fold'][$i][0]['SUMY2'] = $v['31x48x74'][1][3];
+                            $FaceData_['left_nasolabial_fold'][$i][0]['NNN'] = $v['31x48x74'][1][4];
+
+                    }
                     if (isset($v['31x40x74'])){
                         $FaceData_['left_nasolabial_fold_2'][$i][0]['X'] = $v['31x40x74'][0][0];
                         $FaceData_['left_nasolabial_fold_2'][$i][0]['Y'] = $v['31x40x74'][0][1];
                         $FaceData_['left_nasolabial_fold_2'][$i][0]['X2'] = $v['31x40x74'][0][2];
                         $FaceData_['left_nasolabial_fold_2'][$i][0]['Y2'] = $v['31x40x74'][0][3];
+                        $FaceData_['left_nasolabial_fold_2'][$i][0]['SUMX'] = $v['31x40x74'][1][0];
+                        $FaceData_['left_nasolabial_fold_2'][$i][0]['SUMY'] = $v['31x40x74'][1][1];
+                        $FaceData_['left_nasolabial_fold_2'][$i][0]['SUMX2'] = $v['31x40x74'][1][2];
+                        $FaceData_['left_nasolabial_fold_2'][$i][0]['SUMY2'] = $v['31x40x74'][1][3];
+                        $FaceData_['left_nasolabial_fold_2'][$i][0]['NNN'] = $v['31x40x74'][1][4];
                     }
                     if (isset($v['40x41x74'])){
                         $FaceData_['left_nasolabial_fold_3'][$i][0]['X'] = $v['40x41x74'][0][0];
                         $FaceData_['left_nasolabial_fold_3'][$i][0]['Y'] = $v['40x41x74'][0][1];
                         $FaceData_['left_nasolabial_fold_3'][$i][0]['X2'] = $v['40x41x74'][0][2];
                         $FaceData_['left_nasolabial_fold_3'][$i][0]['Y2'] = $v['40x41x74'][0][3];
+                        $FaceData_['left_nasolabial_fold_3'][$i][0]['SUMX'] = $v['40x41x74'][1][0];
+                        $FaceData_['left_nasolabial_fold_3'][$i][0]['SUMY'] = $v['40x41x74'][1][1];
+                        $FaceData_['left_nasolabial_fold_3'][$i][0]['SUMX2'] = $v['40x41x74'][1][2];
+                        $FaceData_['left_nasolabial_fold_3'][$i][0]['SUMY2'] = $v['40x41x74'][1][3];
+                        $FaceData_['left_nasolabial_fold_3'][$i][0]['NNN'] = $v['40x41x74'][1][4];
                     }
                     //right_nasolabial_fold processing
                     if (isset($v['35x54x75'])) {
@@ -628,18 +644,33 @@ class FacialFeatureDetector
                             $FaceData_['right_nasolabial_fold'][$i][0]['Y'] = $v['35x54x75'][0][1];
                             $FaceData_['right_nasolabial_fold'][$i][0]['X2'] = $v['35x54x75'][0][2];
                             $FaceData_['right_nasolabial_fold'][$i][0]['Y2'] = $v['35x54x75'][0][3];
+                            $FaceData_['right_nasolabial_fold'][$i][0]['SUMX'] = $v['35x54x75'][1][0];
+                            $FaceData_['right_nasolabial_fold'][$i][0]['SUMY'] = $v['35x54x75'][1][1];
+                            $FaceData_['right_nasolabial_fold'][$i][0]['SUMX2'] = $v['35x54x75'][1][2];
+                            $FaceData_['right_nasolabial_fold'][$i][0]['SUMY2'] = $v['35x54x75'][1][3];
+                            $FaceData_['right_nasolabial_fold'][$i][0]['NNN'] = $v['35x54x75'][1][4];
                         }
                     if (isset($v['35x47x75'])) {
                         $FaceData_['right_nasolabial_fold_2'][$i][0]['X'] = $v['35x47x75'][0][0];
                         $FaceData_['right_nasolabial_fold_2'][$i][0]['Y'] = $v['35x47x75'][0][1];
                         $FaceData_['right_nasolabial_fold_2'][$i][0]['X2'] = $v['35x47x75'][0][2];
                         $FaceData_['right_nasolabial_fold_2'][$i][0]['Y2'] = $v['35x47x75'][0][3];
+                        $FaceData_['right_nasolabial_fold_2'][$i][0]['SUMX'] = $v['35x47x75'][1][0];
+                        $FaceData_['right_nasolabial_fold_2'][$i][0]['SUMY'] = $v['35x47x75'][1][1];
+                        $FaceData_['right_nasolabial_fold_2'][$i][0]['SUMX2'] = $v['35x47x75'][1][2];
+                        $FaceData_['right_nasolabial_fold_2'][$i][0]['SUMY2'] = $v['35x47x75'][1][3];
+                        $FaceData_['right_nasolabial_fold_2'][$i][0]['NNN'] = $v['35x47x75'][1][4];
                     }
                     if (isset($v['46x47x75'])) {
                         $FaceData_['right_nasolabial_fold_3'][$i][0]['X'] = $v['46x47x75'][0][0];
                         $FaceData_['right_nasolabial_fold_3'][$i][0]['Y'] = $v['46x47x75'][0][1];
                         $FaceData_['right_nasolabial_fold_3'][$i][0]['X2'] = $v['46x47x75'][0][2];
                         $FaceData_['right_nasolabial_fold_3'][$i][0]['Y2'] = $v['46x47x75'][0][3];
+                        $FaceData_['right_nasolabial_fold_3'][$i][0]['SUMX'] = $v['46x47x75'][1][0];
+                        $FaceData_['right_nasolabial_fold_3'][$i][0]['SUMY'] = $v['46x47x75'][1][1];
+                        $FaceData_['right_nasolabial_fold_3'][$i][0]['SUMX2'] = $v['46x47x75'][1][2];
+                        $FaceData_['right_nasolabial_fold_3'][$i][0]['SUMY2'] = $v['46x47x75'][1][3];
+                        $FaceData_['right_nasolabial_fold_3'][$i][0]['NNN'] = $v['46x47x75'][1][4];
                     }               }
                 $i++;
             }
@@ -704,39 +735,66 @@ class FacialFeatureDetector
             )
             {
                 if ($normFrameIndex != 0) $normFrameIndex = 1;
-                $xRightNF = $sourceFaceData['right_nasolabial_fold'][$normFrameIndex][0]['Y2'];
-                $xLeftNF = $sourceFaceData['left_nasolabial_fold'][$normFrameIndex][0]['Y2'];
-                $maxRightNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "Y2");
-                $minRightNF = $this->getFaceDataMinForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "Y2");
-                $scaleRightNF = $maxRightNF - $minRightNF;
-                $maxLeftNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['left_nasolabial_fold'], 0, "Y2");
-                $minLeftNF = $this->getFaceDataMinForKeyV2($sourceFaceData['left_nasolabial_fold'], 0, "Y2");
-                $scaleLeftNF = $maxLeftNF - $minLeftNF;
+                $xRightNF = $sourceFaceData['right_nasolabial_fold'][$normFrameIndex][0]['X2'];
+                $xLeftNF = $sourceFaceData['left_nasolabial_fold'][$normFrameIndex][0]['X2'];
+ //               $xRightNF2 = $sourceFaceData['right_nasolabial_fold_2'][$normFrameIndex][0]['NNN'];
+//                $xLeftNF2 = $sourceFaceData['left_nasolabial_fold_2'][$normFrameIndex][0]['NNN'];
 
+                $maxRightNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "X2");
+                $minRightNF = $this->getFaceDataMinForKeyV2($sourceFaceData['right_nasolabial_fold'], 0, "X2");
+                $scaleRightNF = $maxRightNF - $minRightNF;
+//                $maxRightNF2 = $this->getFaceDataMaxForKeyV2($sourceFaceData['right_nasolabial_fold_2'], 0, "NNN");
+//                $minRightNF2 = $this->getFaceDataMinForKeyV2($sourceFaceData['right_nasolabial_fold_2'], 0, "NNN");
+//                $scaleRightNF2 = $maxRightNF2 - $minRightNF2;
+                $maxLeftNF = $this->getFaceDataMaxForKeyV2($sourceFaceData['left_nasolabial_fold'], 0, "X2");
+                $minLeftNF = $this->getFaceDataMinForKeyV2($sourceFaceData['left_nasolabial_fold'], 0, "X2");
+                $scaleLeftNF = $maxLeftNF - $minLeftNF;
+//                $maxLeftNF2 = $this->getFaceDataMaxForKeyV2($sourceFaceData['left_nasolabial_fold_2'], 0, "NNN");
+//                $minLeftNF2 = $this->getFaceDataMinForKeyV2($sourceFaceData['left_nasolabial_fold_2'], 0, "NNN");
+//                $scaleLeftNF2 = $maxLeftNF2 - $minLeftNF2;
 
                 for ($i = 0; $i < count($sourceFaceData['right_nasolabial_fold']); $i++) {
                     if (isset($sourceFaceData['right_nasolabial_fold'][$i][0]) && $sourceFaceData['left_nasolabial_fold'][$i][0]) {
-                        $rightNFMovement = $sourceFaceData['right_nasolabial_fold'][$i][0]['Y2'] - $xRightNF;
-                        $leftNFMovement = $sourceFaceData['left_nasolabial_fold'][$i][0]['Y2'] - $xLeftNF;
+                        $rightNFMovement = $sourceFaceData['right_nasolabial_fold'][$i][0]['X2'] - $xRightNF;
+                        $leftNFMovement = $sourceFaceData['left_nasolabial_fold'][$i][0]['X2'] - $xLeftNF;
+//                        $rightNFMovement2 = $sourceFaceData['right_nasolabial_fold'][$i][0]['NNN'] - $xRightNF2;
+//                        $leftNFMovement2 = $sourceFaceData['left_nasolabial_fold'][$i][0]['NNN'] - $xLeftNF2;
  //                       echo $i.' '.($sourceFaceData['right_nasolabial_fold'][$i][0]['X2']-
  //                           $sourceFaceData['right_nasolabial_fold'][$i][0]['X']).'/'.($sourceFaceData['right_nasolabial_fold'][$i][0]['Y2']-
  //                               $sourceFaceData['right_nasolabial_fold'][$i][0]['Y']).'<br>';
 
                         $targetFaceData["nose"]["right_nasolabial_fold_movement"][$i]["force"] =
                             $this->getForce($scaleRightNF, abs($rightNFMovement));
-                        if ($rightNFMovement < 0) $targetFaceData["nose"]["right_nasolabial_fold_movement"][$i]["val"] = 'from center';
-                        if ($rightNFMovement > 0) $targetFaceData["nose"]["right_nasolabial_fold_movement"][$i]["val"] = 'to center';
+//                        $targetFaceData["nose"]["right_nasolabial_fold_movement_2"][$i]["force"] =
+//                            $this->getForce($scaleRightNF2, abs($rightNFMovement2));
+
+                        if ($rightNFMovement > 0) $targetFaceData["nose"]["right_nasolabial_fold_movement"][$i]["val"] = 'from center';
+                        if ($rightNFMovement < 0) $targetFaceData["nose"]["right_nasolabial_fold_movement"][$i]["val"] = 'to center';
                         if (($rightNFMovement == 0) ||
                             ($targetFaceData["nose"]["right_nasolabial_fold_movement"][$i]["force"] == 0))
                              $targetFaceData["nose"]["right_nasolabial_fold_movement"][$i]["val"] = 'none';
+//                        if ($rightNFMovement2 > 0) $targetFaceData["nose"]["right_nasolabial_fold_movement_2"][$i]["val"] = 'from center aside';
+//                        if ($rightNFMovement2 < 0) $targetFaceData["nose"]["right_nasolabial_fold_movement_2"][$i]["val"] = 'to center';
+//                        if (($rightNFMovement2 == 0) ||
+//                            ($targetFaceData["nose"]["right_nasolabial_fold_movement_2"][$i]["force"] == 0))
+//                            $targetFaceData["nose"]["right_nasolabial_fold_movement_2"][$i]["val"] = 'none';
 
                         $targetFaceData["nose"]["left_nasolabial_fold_movement"][$i]["force"] =
                             $this->getForce($scaleLeftNF, abs($leftNFMovement));
+//                        $targetFaceData["nose"]["left_nasolabial_fold_movement_2"][$i]["force"] =
+//                            $this->getForce($scaleLeftNF2, abs($leftNFMovement2));
+
                         if ($leftNFMovement < 0) $targetFaceData["nose"]["left_nasolabial_fold_movement"][$i]["val"] = 'from center aside';
                         if ($leftNFMovement > 0) $targetFaceData["nose"]["left_nasolabial_fold_movement"][$i]["val"] = 'to center';
                         if (($leftNFMovement == 0) ||
                             ($targetFaceData["nose"]["left_nasolabial_fold_movement"][$i]["force"] == 0))
                              $targetFaceData["nose"]["left_nasolabial_fold_movement"][$i]["val"] = 'none';
+/*
+                        if ($leftNFMovement2 < 0) $targetFaceData["nose"]["left_nasolabial_fold_movement_2"][$i]["val"] = 'from center aside';
+                        if ($leftNFMovement2 > 0) $targetFaceData["nose"]["left_nasolabial_fold_movement_2"][$i]["val"] = 'to center';
+                        if (($leftNFMovement2 == 0) ||
+                            ($targetFaceData["nose"]["left_nasolabial_fold_movement_2"][$i]["force"] == 0))
+                            $targetFaceData["nose"]["left_nasolabial_fold_movement_2"][$i]["val"] = 'none';*/
                     }
                 }
             }
@@ -1489,22 +1547,36 @@ class FacialFeatureDetector
         for ($i = 0; $i < count($sourceFaceData3['left_nasolabial_fold']); $i++) {
             $res['31x48x74'] =  $res['31x48x74'].$i.';'.
                 ($sourceFaceData3['left_nasolabial_fold'][$i][0]['X'] - $sourceFaceData3['left_nasolabial_fold'][$i][0]['X2']).';'.
-                ($sourceFaceData3['left_nasolabial_fold'][$i][0]['Y'] - $sourceFaceData3['left_nasolabial_fold'][$i][0]['Y2'])."\n";
+                ($sourceFaceData3['left_nasolabial_fold'][$i][0]['Y'] - $sourceFaceData3['left_nasolabial_fold'][$i][0]['Y2']).';'.
+                $sourceFaceData3['left_nasolabial_fold'][$i][0]['SUMX'].';'.
+                $sourceFaceData3['left_nasolabial_fold'][$i][0]['SUMY'].';'.
+                $sourceFaceData3['left_nasolabial_fold'][$i][0]['SUMX2'].';'.
+                $sourceFaceData3['left_nasolabial_fold'][$i][0]['SUMY2'].';'.
+                $sourceFaceData3['left_nasolabial_fold'][$i][0]['NNN']."\n";
         }
         for ($i = 0; $i < count($sourceFaceData3['right_nasolabial_fold']); $i++) {
             $res['35x54x75'] =  $res['35x54x75'].$i.';'.
                 ($sourceFaceData3['right_nasolabial_fold'][$i][0]['X'] - $sourceFaceData3['right_nasolabial_fold'][$i][0]['X2']).';'.
-                ($sourceFaceData3['right_nasolabial_fold'][$i][0]['Y'] - $sourceFaceData3['right_nasolabial_fold'][$i][0]['Y2'])."\n";
+                ($sourceFaceData3['right_nasolabial_fold'][$i][0]['Y'] - $sourceFaceData3['right_nasolabial_fold'][$i][0]['Y2']).';'.
+                $sourceFaceData3['right_nasolabial_fold'][$i][0]['SUMX'].';'.
+                $sourceFaceData3['right_nasolabial_fold'][$i][0]['SUMY'].';'.
+                $sourceFaceData3['right_nasolabial_fold'][$i][0]['SUMX2'].';'.
+                $sourceFaceData3['right_nasolabial_fold'][$i][0]['SUMY2'].';'.
+                $sourceFaceData3['right_nasolabial_fold'][$i][0]['NNN']."\n";
         }
         for ($i = 0; $i < count($sourceFaceData3['left_nasolabial_fold_2']); $i++) {
             $res['31x40x74'] =  $res['31x40x74'].$i.';'.
                 ($sourceFaceData3['left_nasolabial_fold_2'][$i][0]['X'] - $sourceFaceData3['left_nasolabial_fold_2'][$i][0]['X2']).';'.
-                ($sourceFaceData3['left_nasolabial_fold_2'][$i][0]['Y'] - $sourceFaceData3['left_nasolabial_fold_2'][$i][0]['Y2'])."\n";
+                ($sourceFaceData3['left_nasolabial_fold_2'][$i][0]['Y'] - $sourceFaceData3['left_nasolabial_fold_2'][$i][0]['Y2']).';'.
+                $sourceFaceData3['left_nasolabial_fold_2'][$i][0]['SUMX'].';'.
+                $sourceFaceData3['left_nasolabial_fold_2'][$i][0]['SUMY'].';'.$sourceFaceData3['left_nasolabial_fold_2'][$i][0]['NNN']."\n";
         }
         for ($i = 0; $i < count($sourceFaceData3['right_nasolabial_fold_2']); $i++) {
             $res['35x47x75'] =  $res['35x47x75'].$i.';'.
                 ($sourceFaceData3['right_nasolabial_fold_2'][$i][0]['X'] - $sourceFaceData3['right_nasolabial_fold_2'][$i][0]['X2']).';'.
-                ($sourceFaceData3['right_nasolabial_fold_2'][$i][0]['Y'] - $sourceFaceData3['right_nasolabial_fold_2'][$i][0]['Y2'])."\n";
+                ($sourceFaceData3['right_nasolabial_fold_2'][$i][0]['Y'] - $sourceFaceData3['right_nasolabial_fold_2'][$i][0]['Y2']).';'.
+                $sourceFaceData3['right_nasolabial_fold_2'][$i][0]['SUMX'].';'.
+                $sourceFaceData3['right_nasolabial_fold_2'][$i][0]['SUMY'].';'.$sourceFaceData3['right_nasolabial_fold_2'][$i][0]['NNN']."\n";
         }
         //        print_r($res);
         foreach ($res as $k => $v) {
@@ -2017,14 +2089,14 @@ class FacialFeatureDetector
         }
         if ((($sourceFeatureName == 'left_corner_mouth_movement_y') ||
                 ($sourceFeatureName == 'right_corner_mouth_movement_y')) &&
-            ($sourceValue == 'from center and up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
+            ($sourceValue == 'up')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
             $targetValues['changeDirection'] = 'Вверх';
         }
         if ((($sourceFeatureName == 'left_corner_mouth_movement_y') ||
                 ($sourceFeatureName == 'right_corner_mouth_movement_y')) &&
             ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
+            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
             $targetValues['changeDirection'] = 'Вниз';
         }
         // Губы
@@ -2092,7 +2164,7 @@ class FacialFeatureDetector
                 ($sourceFeatureName == 'right_nasolabial_fold_movement')) &&
             ($sourceValue == 'from center aside')) {
             $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'От центра в стороны ';
+            $targetValues['changeDirection'] = 'От центра в стороны';
         }
 
         return $targetValues;
