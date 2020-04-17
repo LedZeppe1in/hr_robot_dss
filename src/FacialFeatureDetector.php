@@ -1202,6 +1202,7 @@ class FacialFeatureDetector
                     $targetFaceData["mouth"]["left_corner_mouth_movement_x"][$i]["force"] = $leftMouthCornerXMovForce;
                     $targetFaceData["mouth"]["left_corner_mouth_movement_y"][$i]["force"] = $leftMouthCornerYMovForce;
 
+                    $yMov = '';
                     if ($leftMouthCornerYMov < 0) $yMov = 'up';
                     if ($leftMouthCornerYMov > 0) $yMov = 'down';
                     if ($leftMouthCornerXMov < 0) $xMov = 'from center';
