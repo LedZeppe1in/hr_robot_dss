@@ -720,7 +720,7 @@ class FacialFeatureDetector
 //        json_encode($sourceFaceData['letf_nasolabial_fold'][0][0]);
 //        json_encode($sourceFaceData['right_nasolabial_fold'][0][0]);
             //анализ носогубных складок на основе треугольников
-            $normFrameIndex = -1;
+ /*           $normFrameIndex = -1;
             if (isset($sourceFaceData['left_nasolabial_fold'][0][0])
                 && isset($sourceFaceData['right_nasolabial_fold'][0][0])
             ) $normFrameIndex = 0;
@@ -778,7 +778,7 @@ class FacialFeatureDetector
 //                        $targetFaceData["nose"]["left_nasolabial_fold_movement_2"][$i]["force"] =
 //                            $this->getForce($scaleLeftNF2, abs($leftNFMovement2));
 
-                        if ($leftNFMovement < 0) $targetFaceData["nose"]["left_nasolabial_fold_movement"][$i]["val"] = 'from center aside';
+                        if ($leftNFMovement < 0) $targetFaceData["nose"]["left_nasolabial_fold_movement"][$i]["val"] = 'from center';
                         if ($leftNFMovement > 0) $targetFaceData["nose"]["left_nasolabial_fold_movement"][$i]["val"] = 'to center';
                         if (($leftNFMovement == 0) ||
                             ($targetFaceData["nose"]["left_nasolabial_fold_movement"][$i]["force"] == 0))
@@ -789,9 +789,9 @@ class FacialFeatureDetector
                         if (($leftNFMovement2 == 0) ||
                             ($targetFaceData["nose"]["left_nasolabial_fold_movement_2"][$i]["force"] == 0))
                             $targetFaceData["nose"]["left_nasolabial_fold_movement_2"][$i]["val"] = 'none';*/
-                    }
-                }
-            }
+ //                   }
+ //               }
+//            }*/
             return $targetFaceData["nose"];
         }else return false;
     }
@@ -1627,6 +1627,30 @@ class FacialFeatureDetector
     public function detectAdditionalFeatures($sourceFaceData1)
     {
         foreach ($sourceFaceData1 as $k=>$v) {
+
+            // детекция носогубки (v.2): по уголкам рта
+            if ($k === 'mouth'){
+                foreach ($v as $k1 => $v1) {
+                if (($k1 === 'left_corner_mouth_movement_x') || ($k1 === 'right_corner_mouth_movement_x')){
+                    if(strpos($k1,'right')>-1) $prefix = 'right_';
+                    elseif ($prefix = 'left_');
+                    for ($i = 0; $i < count($v1); $i++) {
+                        if (isset($v1[$i]["val"]) && isset($v1[$i]["force"])
+                            //                                 &&  isset($v1[$i]["confidence"]) && isset($v1[$i]["trend"])
+                        ) {
+                            $sourceFaceData1['nose'][$prefix."nasolabial_fold_movement"][$i]["force"] =
+                                $v1[$i]["force"];
+                            $sourceFaceData1['nose'][$prefix."nasolabial_fold_movement"][$i]["val"] =
+                                $v1[$i]["val"];
+                            $sourceFaceData1['nose'][$prefix."nasolabial_fold_movement"][$i]["trend"] =
+                                $v1[$i]["trend"];
+                            $sourceFaceData1['nose'][$prefix."nasolabial_fold_movement"][$i]["confidence"] =
+                                $v1[$i]["confidence"];
+                        }
+                    }
+                }
+            }
+            }
             if ($k === 'eye') {
                 $maxREW = $this->getFaceDataMaxForKeyV3($sourceFaceData1['eye'],'right_eye_width', "val");
                 $maxLEW = $this->getFaceDataMaxForKeyV3($sourceFaceData1['eye'],'left_eye_width', "val");
@@ -1640,7 +1664,7 @@ class FacialFeatureDetector
                         elseif ($prefix = 'left_');
                         //---------------------------------------------------------------------------------------
                         for ($i = 1; $i < count($v1); $i++) {
-                            //определение закрытие глаза, когда ширина равна 0
+                            //определение закрытие глаза, когда ширина равна 50%
                             if (//isset($v1[$i]["force"])&&
                                 isset($v1[$i]["val"])) {
                                if($prefix === 'right_') {
@@ -1668,7 +1692,8 @@ class FacialFeatureDetector
                         }
                         //---------------------------------------------------------------------------------------
                     }
-                    //eye_width_changing
+                    //--------------------------------------------------------------------------------------------
+                    //моргание
                     if (($k1 === 'right_eye_width_changing')||($k1 === 'left_eye_width_changing')) {
                         if(strpos($k1,'right')>-1) $prefix = 'right_';
                         elseif ($prefix = 'left_');
@@ -1762,9 +1787,6 @@ class FacialFeatureDetector
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalFeatures($detectedFeaturesWithTrends);
 
-//        $detectedFeaturesWithTrends['eye']["right_eye_blink"] = $this->updateValues(
-//            $detectedFeaturesWithTrends['eye']["right_eye_blink"],'val',
-//            'yes','5','10');
         return $detectedFeaturesWithTrends;
     }
 
@@ -2198,7 +2220,7 @@ class FacialFeatureDetector
         }
         if ((($sourceFeatureName == 'left_nasolabial_fold_movement') ||
                 ($sourceFeatureName == 'right_nasolabial_fold_movement')) &&
-            ($sourceValue == 'from center aside')) {
+            ($sourceValue == 'from center')) {
             $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
             $targetValues['changeDirection'] = 'От центра в стороны';
         }
