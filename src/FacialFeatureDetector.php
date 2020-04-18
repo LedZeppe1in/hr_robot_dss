@@ -780,6 +780,38 @@ class FacialFeatureDetector
     }
 
     /**
+     * Обнаружение признаков подбородка.
+     *
+     * @param $sourceFaceData - входной массив с лицевыми точками (landmarks)
+     * @return array - выходной массив с обработанным массивом для лба
+     */
+    public function detectChinFeatures($sourceFaceData){
+        //анализируемые точки:
+        // 8 (нижняя центральная точка подбородка),
+        //изменение ширины лба по движению бровей
+
+        if (isset($sourceFaceData['normmask'][0][8])
+        ) {
+            $yN8 = $sourceFaceData['normmask'][0][8]['Y'];
+            $maxY8 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 8,"Y");
+            $minY8 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'],8, "Y");
+            $scaleY8 = $maxY8 - $minY8;
+
+            for ($i = 0; $i < count($sourceFaceData['normmask']); $i++) {
+                if (isset($sourceFaceData['normmask'][$i][8])){
+                    $chinMovement = $sourceFaceData['normmask'][$i][8]['Y'] - $yN8;
+                    $chinMovementForce = $this->getForce($scaleY8, abs($chinMovement));
+                }
+                $targetFaceData["chin"]["chin_movement"][$i]["force"] = $chinMovementForce;
+                if ($chinMovement < 0) $targetFaceData["chin"]["chin_movement"][$i]["val"] = 'up';
+                if ($chinMovement > 0) $targetFaceData["chin"]["chin_movement"][$i]["val"] = 'down';
+                if ($chinMovement == 0) $targetFaceData["chin"]["chin_movement"][$i]["val"] = 'none';
+            }
+            return $targetFaceData["chin"];
+        } else return false;
+
+    }
+    /**
      * Обнаружение признаков лба.
      *
      * @param $sourceFaceData - входной массив с лицевыми точками (landmarks)
@@ -1710,6 +1742,7 @@ class FacialFeatureDetector
         $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData);
         $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData);
         $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData);
+        $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData);
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalFeatures($detectedFeaturesWithTrends);
 
