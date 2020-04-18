@@ -410,70 +410,47 @@ class FacialFeatureDetector
                 $leftEyeInnerCornerForce = $this->getForce($scaleX39, abs($leftEyeInnerCorner));
                 $rightEyeInnerCornerForce = $this->getForce($scaleX42, abs($rightEyeInnerCorner));
 
-                $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["force"] = $this->getForce(
+                $targetFaceData["eye"]["left_eye_lower_eyelid_movement_y"][$i]["force"] = $this->getForce(
                     $scaleY41, abs($leftEyeLowerEyelidH));
-                $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["force"] = $this->getForce(
+                $targetFaceData["eye"]["right_eye_lower_eyelid_movement_y"][$i]["force"] = $this->getForce(
                     $scaleY47, abs($rightEyeLowerEyelidH));
 
-                if ($leftEyeLowerEyelidH < 0) $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] = 'up';
-                if ($leftEyeLowerEyelidH > 0) $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] = 'down';
+                if ($leftEyeLowerEyelidH < 0) $targetFaceData["eye"]["left_eye_lower_eyelid_movement_y"][$i]["val"] = 'up';
+                if ($leftEyeLowerEyelidH > 0) $targetFaceData["eye"]["left_eye_lower_eyelid_movement_y"][$i]["val"] = 'down';
                 if ($leftEyeLowerEyelidH == 0) {
-                    $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["force"] = 0;
-                    $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] = 'none';
+                    $targetFaceData["eye"]["left_eye_lower_eyelid_movement_y"][$i]["force"] = 0;
+                    $targetFaceData["eye"]["left_eye_lower_eyelid_movement_y"][$i]["val"] = 'none';
                 }
-                if ($leftEyeInnerCorner > 0) {
-                    $yMov = $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"];
-                    if ($yMov == 'none') $yMov = '';
-                    $xMov = 'to center';
-                    if (($xMov != '') && ($yMov != '')) $yMov = ' and ' . $yMov;
-                    $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] = $xMov . $yMov;
+                $targetFaceData["eye"]["left_eye_lower_eyelid_movement_x"][$i]["force"] = $leftEyeInnerCornerForce;
+                if ($leftEyeInnerCorner > 0) $targetFaceData["eye"]["left_eye_lower_eyelid_movement_x"][$i]["val"] = 'to center';
+                if ($leftEyeInnerCorner < 0) $targetFaceData["eye"]["left_eye_lower_eyelid_movement_x"][$i]["val"] = 'from center';
+                if ($leftEyeInnerCorner == 0) $targetFaceData["eye"]["left_eye_lower_eyelid_movement_x"][$i]["val"] = 'none';
 
-                    $targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["force"] =
-                        round((($targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["force"] +
-                                $leftEyeInnerCornerForce) / 2), 2);
-                }
-
-                if ($rightEyeLowerEyelidH < 0) $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] = 'up';
-                if ($rightEyeLowerEyelidH > 0) $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] = 'down';
+                if ($rightEyeLowerEyelidH < 0) $targetFaceData["eye"]["right_eye_lower_eyelid_movement_y"][$i]["val"] = 'up';
+                if ($rightEyeLowerEyelidH > 0) $targetFaceData["eye"]["right_eye_lower_eyelid_movement_y"][$i]["val"] = 'down';
                 if ($rightEyeLowerEyelidH == 0) {
-                    $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["force"] = 0;
-                    $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] = 'none';
+                    $targetFaceData["eye"]["right_eye_lower_eyelid_movement_y"][$i]["force"] = 0;
+                    $targetFaceData["eye"]["right_eye_lower_eyelid_movement_y"][$i]["val"] = 'none';
                 }
-                if ($rightEyeInnerCorner < 0) {
-                    $yMov = $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"];
-                    if ($yMov == 'none') $yMov = '';
-                    $xMov = 'to center';
-                    if (($xMov != '') && ($yMov != '')) $yMov = ' and ' . $yMov;
-                    $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] = $xMov . $yMov;
+                $targetFaceData["eye"]["right_eye_lower_eyelid_movement_x"][$i]["force"] = $rightEyeInnerCornerForce;
+                if ($rightEyeInnerCorner < 0) $targetFaceData["eye"]["right_eye_lower_eyelid_movement_x"][$i]["val"] = 'to center';
+                if ($rightEyeInnerCorner > 0) $targetFaceData["eye"]["right_eye_lower_eyelid_movement_x"][$i]["val"] = 'from center';
+                if ($rightEyeInnerCorner == 0) $targetFaceData["eye"]["right_eye_lower_eyelid_movement_x"][$i]["val"] = 'none';
 
-                    $targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["force"] =
-                        round((($targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["force"] +
-                                $rightEyeInnerCornerForce) / 2), 2);
-                }
+                $targetFaceData["eye"]["right_eye_lower_eyelid_movement_d"][$i]["force"] =
+                    round(($targetFaceData["eye"]["right_eye_lower_eyelid_movement_x"][$i]["force"]+
+                        $targetFaceData["eye"]["right_eye_lower_eyelid_movement_y"][$i]["force"])/2,2);
+                $targetFaceData["eye"]["right_eye_lower_eyelid_movement_d"][$i]["val"] =
+                    $targetFaceData["eye"]["right_eye_lower_eyelid_movement_x"][$i]["val"].' and '.
+                    $targetFaceData["eye"]["right_eye_lower_eyelid_movement_y"][$i]["val"];
+
+                $targetFaceData["eye"]["left_eye_lower_eyelid_movement_d"][$i]["force"] =
+                    round(($targetFaceData["eye"]["left_eye_lower_eyelid_movement_x"][$i]["force"]+
+                            $targetFaceData["eye"]["left_eye_lower_eyelid_movement_y"][$i]["force"])/2,2);
+                $targetFaceData["eye"]["left_eye_lower_eyelid_movement_d"][$i]["val"] =
+                    $targetFaceData["eye"]["left_eye_lower_eyelid_movement_x"][$i]["val"].' and '.
+                    $targetFaceData["eye"]["left_eye_lower_eyelid_movement_y"][$i]["val"];
                 //------------------------------------------------------------------------------------------------
-                //Нижнее веко, движение нижнего века (без движения, вверх, вниз, к центру и вверх)
-                //Глаза, ширина глаз (увеличение, уменьшение) через движение век
-                /* if (($targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["val"] == 'down')and
-                     ($targetFaceData["eye"]["left_eye_upper_eyelid_movement"][$i]["val"] == 'up')){
-                     $targetFaceData["eye"]["left_eye_width_changing"][$i]["force"] =
-                         round((($targetFaceData["eye"]["left_eye_lower_eyelid_movement"][$i]["force"] +
-                                 $targetFaceData["eye"]["left_eye_upper_eyelid_movement"][$i]["force"]) / 2), 2);
-                     $targetFaceData["eye"]["left_eye_width_changing"][$i]["val"] = '+';
-                 } else{
-                     $targetFaceData["eye"]["left_eye_width_changing"][$i]["force"] = 0;
-                     $targetFaceData["eye"]["left_eye_width_changing"][$i]["val"] = 'none';
-                 }
-
-                 if (($targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["val"] == 'down')and
-                     ($targetFaceData["eye"]["right_eye_upper_eyelid_movement"][$i]["val"] == 'up')){
-                     $targetFaceData["eye"]["right_eye_width_changing"][$i]["force"] =
-                         round((($targetFaceData["eye"]["right_eye_lower_eyelid_movement"][$i]["force"] +
-                                 $targetFaceData["eye"]["right_eye_upper_eyelid_movement"][$i]["force"]) / 2), 2);
-                     $targetFaceData["eye"]["right_eye_width_changing"][$i]["val"] = '+';
-                 } else{
-                     $targetFaceData["eye"]["right_eye_width_changing"][$i]["force"] = 0;
-                     $targetFaceData["eye"]["right_eye_width_changing"][$i]["val"] = 'none';
-                 }*/
                 //width, расстояние между 37 и 41 для левого глаза, для правого - 43 и 47
                 if (isset($sourceFaceData['normmask'][$i][37]) &&
                     isset($sourceFaceData['normmask'][$i][41]) &&
@@ -1872,13 +1849,21 @@ class FacialFeatureDetector
             $targetValues['changeDirection'] = 'Уменьшение';
         }
         // Нижнии веки
-        if ($sourceFeatureName == 'left_eye_lower_eyelid_movement')
+        if (($sourceFeatureName == 'left_eye_lower_eyelid_movement_x') ||
+            ($sourceFeatureName == 'left_eye_lower_eyelid_movement_y') ||
+            ($sourceFeatureName == 'left_eye_lower_eyelid_movement_d'))
             $targetValues['targetFacePart'] = 'Нижнее веко левого глаза';
-        if ($sourceFeatureName == 'right_eye_lower_eyelid_movement')
+        if (($sourceFeatureName == 'right_eye_lower_eyelid_movement_x') ||
+            ($sourceFeatureName == 'right_eye_lower_eyelid_movement_y') ||
+            ($sourceFeatureName == 'right_eye_lower_eyelid_movement_d'))
             $targetValues['targetFacePart'] = 'Нижнее веко правого глаза';
-        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement') ||
-                ($sourceFeatureName == 'right_eye_lower_eyelid_movement')) &&
-            ($sourceValue == 'none')) {
+        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_x') ||
+                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_x') ||
+                ($sourceFeatureName == 'left_eye_lower_eyelid_movement_y') ||
+                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_y') ||
+                ($sourceFeatureName == 'left_eye_lower_eyelid_movement_d') ||
+                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_d')) &&
+            (($sourceValue == 'none') || ($sourceValue == 'none and none'))) {
             $targetValues['featureChangeType'] = 'Отсутствие типа';
             $targetValues['changeDirection'] = 'Отсутствие направления';
         }
@@ -1894,12 +1879,13 @@ class FacialFeatureDetector
             $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
             $targetValues['changeDirection'] = 'Вниз';
         }
-        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement') ||
-                ($sourceFeatureName == 'right_eye_lower_eyelid_movement')) &&
+        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_d') ||
+                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_d')) &&
             ($sourceValue == 'to center and up')) {
             $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
             $targetValues['changeDirection'] = 'К центру и вверх';
         }
+
         // Верхнии веки
         if ($sourceFeatureName == 'left_eye_upper_eyelid_movement')
             $targetValues['targetFacePart'] = 'Верхнее веко левого глаза';
