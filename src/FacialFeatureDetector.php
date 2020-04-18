@@ -1739,8 +1739,8 @@ class FacialFeatureDetector
                                     }
                                  $eyeClosedFrame = '-1';
                                 }
-                                echo $i.' :: '.$eyeStartClosingFrame.'/'.$eyeClosedFrame.'/'.$v1[$i]["val"].'/'.
-                                    $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"].'<br>';
+//                                echo $i.' :: '.$eyeStartClosingFrame.'/'.$eyeClosedFrame.'/'.$v1[$i]["val"].'/'.
+//                                    $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"].'<br>';
                             }
                         }
                         //---------------------------------------------------------------------------------------
