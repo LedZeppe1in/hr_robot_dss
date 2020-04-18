@@ -1538,6 +1538,7 @@ class FacialFeatureDetector
      */
     public function updateValues($sourceFaceData2,$keyForUpdate,$newValue,$starFrame,$endFrame)
     { //$sourceFaceData1[$k][$prefix."eye_closed"]
+//        echo '!!!'.$starFrame.':'.$endFrame.'<br>';
         foreach ($sourceFaceData2 as $k1 => $v1) {
           if(($k1 >= $starFrame)and($k1 <= $endFrame)){
 //              echo $k1.' '.$v1[$keyForUpdate].' '.$newValue.' <br>';
@@ -1702,57 +1703,44 @@ class FacialFeatureDetector
                         $eyeClosedFrame = '-1';
                         $eyeStartOpeningFrame = '-1';
                         $eyeEndOpeningFrame = '-1';
+                        for ($i = 0; $i < count($v1); $i++) $sourceFaceData1[$k][$prefix."eye_blink"][$i]["val"] = 'no';
 
-                        for ($i = 1; $i < count($v1); $i++) {
-                            //определение моргания: тренд на уменьшение, закрытие, тренд на увеличение
-                            if (isset($v1[$i]["trend"])&&
+                        for ($i = 0; $i < count($v1); $i++) {
+                            //определение моргания: уменьшение, закрытие, предполагаем, что открытие длится столько же, сколько закрытие
+                            if (//isset($v1[$i]["trend"])&&
                                 isset($v1[$i]["val"])
                                 ) {
-                                //если глаз закрыт и было его закрытие, то фиксируем
-                                if(($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'yes')&&
-                                    ($eyeStartClosingFrame !== '-1')&&
-                                    ($eyeStartClosingFrame === '-1')){
-                                    $eyeClosedFrame = $i;
-                                }
                                 //если глаз начинает закрываться, то фиксируем
                                 if (($v1[$i]["val"] === '-')&&($eyeStartClosingFrame === '-1')){
                                     $eyeStartClosingFrame = $i;
-                                    $eyeStartOpeningFrame = '-1';
-                                    $eyeClosedFrame = '-1';
+//                                    $eyeStartOpeningFrame = '-1';
+//                                    $eyeClosedFrame = '-1';
                                 }
-                                //если глаз открывается, но не закрывался, то обнуляем
-                                if (($v1[$i]["val"] === '+')&&($eyeClosedFrame === '-1')) {
+                                //если глаз не закрывается, и не закрывался, то обнуляем
+                                if (($v1[$i]["val"] !== '-')&&($eyeClosedFrame === '-1')) {
                                     $eyeStartClosingFrame = '-1';
                                     $eyeStartOpeningFrame = '-1';
-                                }
-                                //если глаз открывается и закрывался, то фиксируем
-                                if (($v1[$i]["val"] === '+')&&($eyeClosedFrame !== '-1')&&
-                                    ($eyeStartClosingFrame !== '-1')) {
-                                    $eyeStartOpeningFrame = $i;
-                                }
-                                //если глаз открывается и закрывался, то ожидаем момента, когда он закончит открываться
-                                if (($v1[$i]["val"] !== '+')&&($eyeClosedFrame !== '-1')&&
-                                    ($eyeStartClosingFrame !== '-1')&&
-                                    ($eyeStartOpeningFrame !== '-1')) {
-                                    $eyeEndOpeningFrame = $i-1;
-                                }
-                                //произошло моргание, то фиксируем его
-                                if (($eyeEndOpeningFrame !== '-1')&&($eyeClosedFrame !== '-1')&&
-                                    ($eyeStartClosingFrame !== '-1')&&
-                                    ($eyeStartOpeningFrame !== '-1')) {
-                                  //изменить значения свойств в диапазоне от $eyeStartClosingFrame до $eyeEndOpeningFrame
-                                    $sourceFaceData1[$k][$prefix."eye_blink"] =
-                                     $this->updateValues($sourceFaceData1[$k][$prefix."eye_blink"],'val',
-                                       'yes',$eyeStartClosingFrame,$eyeEndOpeningFrame);
-                                  //обнулить счетчики
-                                    $eyeClosedFrame = '-1';
-                                    $eyeStartClosingFrame = '-1';
-                                    $eyeStartOpeningFrame = '-1';
-                                    $eyeEndOpeningFrame = '-1';
-                                }else{
-                                    $sourceFaceData1[$k][$prefix."eye_blink"][$i]["val"] = 'no';
                                 }
 
+                                //если глаз закрыт и ранее это не фиксировалось, то фиксируем
+                                if(($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'yes')
+                                    &&($eyeClosedFrame === '-1')) $eyeClosedFrame = $i;
+
+                                //если глаз открыт и ранее фиксировалось его закрытие, то возможно моргание
+                                if(($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'no')
+                                    &&($eyeClosedFrame !== '-1')){
+                                    //processing
+                                   if($eyeStartClosingFrame !== '-1') {
+                                        //изменить значения свойств в диапазоне от $eyeStartClosingFrame до $eyeEndOpeningFrame
+                                        $sourceFaceData1[$k][$prefix . "eye_blink"] =
+                                            $this->updateValues($sourceFaceData1[$k][$prefix . "eye_blink"], 'val',
+                                                'yes', $eyeStartClosingFrame, ($i + $eyeClosedFrame - $eyeStartClosingFrame));
+//                                       $eyeStartClosingFrame = $i + $eyeClosedFrame - $eyeStartClosingFrame;
+                                    }
+                                 $eyeClosedFrame = '-1';
+                                }
+                                echo $i.' :: '.$eyeStartClosingFrame.'/'.$eyeClosedFrame.'/'.$v1[$i]["val"].'/'.
+                                    $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"].'<br>';
                             }
                         }
                         //---------------------------------------------------------------------------------------
