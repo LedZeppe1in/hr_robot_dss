@@ -315,11 +315,17 @@ class FacialFeatureDetector
 
             $xN39 = $sourceFaceData['normmask'][0][39]['X'];
             $xN42 = $sourceFaceData['normmask'][0][42]['X'];
+            $xN36 = $sourceFaceData['normmask'][0][36]['X'];
             $yN39 = $sourceFaceData['normmask'][0][39]['Y'];
             $yN42 = $sourceFaceData['normmask'][0][42]['Y'];
             $yN36 = $sourceFaceData['normmask'][0][36]['Y'];
             $yN45 = $sourceFaceData['normmask'][0][45]['Y'];
+            $xN45 = $sourceFaceData['normmask'][0][45]['X'];
 
+            $leftEyeWidthMaxByCircle = $xN39 - $xN36;
+            $leftEyeWidthScaleByCircle = $leftEyeWidthMaxByCircle - $leftEyeWidthN;
+            $rightEyeWidthMaxByCircle = $xN45 - $xN42;
+            $rightEyeWidthScaleByCircle = $rightEyeWidthMaxByCircle - $rightEyeWidthN;
 
             $maxY37 = $this->getFaceDataMaxForKeyV2($sourceFaceData['normmask'], 37, "Y");
             $minY37 = $this->getFaceDataMinForKeyV2($sourceFaceData['normmask'], 37, "Y");
@@ -458,21 +464,32 @@ class FacialFeatureDetector
                     isset($sourceFaceData['normmask'][$i][47])) {
                     $leftEyeWidth = $sourceFaceData['normmask'][$i][41]['Y'] - $sourceFaceData['normmask'][$i][37]['Y'];
                     $rightEyeWidth = $sourceFaceData['normmask'][$i][47]['Y'] - $sourceFaceData['normmask'][$i][43]['Y'];
+
+//                    $targetFaceData["eye"]["left_eye_width"][$i]["force"] = $this->getForce(
+//                        $maxLeftEyeWidth, abs($leftEyeWidth - $leftEyeWidthN));
                     $targetFaceData["eye"]["left_eye_width"][$i]["force"] = $this->getForce(
-                        $maxLeftEyeWidth, abs($leftEyeWidth - $leftEyeWidthN));
+                        $leftEyeWidthScaleByCircle, abs($leftEyeWidth - $leftEyeWidthN));
                     $targetFaceData["eye"]["left_eye_width"][$i]["val"] = $leftEyeWidth;
+
+//                    $targetFaceData["eye"]["right_eye_width"][$i]["force"] = $this->getForce(
+//                        $maxRightEyeWidth, abs($rightEyeWidth - $rightEyeWidthN));
                     $targetFaceData["eye"]["right_eye_width"][$i]["force"] = $this->getForce(
-                        $maxRightEyeWidth, abs($rightEyeWidth - $rightEyeWidthN));
+                        $rightEyeWidthScaleByCircle, abs($rightEyeWidth - $rightEyeWidthN));
                     $targetFaceData["eye"]["right_eye_width"][$i]["val"] = $rightEyeWidth;
 
                     //альтернативно: width, расстояние между 38 и 40 для левого глаза, для правого - 44 и 46
                     $leftEyeWidth2 = $sourceFaceData['normmask'][$i][40]['Y'] - $sourceFaceData['normmask'][$i][38]['Y'];
                     $rightEyeWidth2 = $sourceFaceData['normmask'][$i][46]['Y'] - $sourceFaceData['normmask'][$i][44]['Y'];
+ //                   $targetFaceData["eye"]["left_eye_width2"][$i]["force"] = $this->getForce(
+//                        $maxLeftEyeWidth2, abs($leftEyeWidth2 - $leftEyeWidthN2));
                     $targetFaceData["eye"]["left_eye_width2"][$i]["force"] = $this->getForce(
-                        $maxLeftEyeWidth2, abs($leftEyeWidth2 - $leftEyeWidthN2));
+                        ($leftEyeWidthMaxByCircle - $leftEyeWidthN2), abs($leftEyeWidth2 - $leftEyeWidthN2));
+
                     $targetFaceData["eye"]["left_eye_width2"][$i]["val"] = $leftEyeWidth2;
+//                    $targetFaceData["eye"]["right_eye_width2"][$i]["force"] = $this->getForce(
+//                        $maxRightEyeWidth2, abs($rightEyeWidth2 - $rightEyeWidthN2));
                     $targetFaceData["eye"]["right_eye_width2"][$i]["force"] = $this->getForce(
-                        $maxRightEyeWidth2, abs($rightEyeWidth2 - $rightEyeWidthN2));
+                        ($rightEyeWidthMaxByCircle - $rightEyeWidthN2), abs($rightEyeWidth2 - $rightEyeWidthN2));
                     $targetFaceData["eye"]["right_eye_width2"][$i]["val"] = $rightEyeWidth2;
 
                     //Глаза, ширина глаз (увеличение, уменьшение) через изменение ширины
@@ -788,7 +805,6 @@ class FacialFeatureDetector
     public function detectChinFeatures($sourceFaceData){
         //анализируемые точки:
         // 8 (нижняя центральная точка подбородка),
-        //изменение ширины лба по движению бровей
 
         if (isset($sourceFaceData['normmask'][0][8])
         ) {
