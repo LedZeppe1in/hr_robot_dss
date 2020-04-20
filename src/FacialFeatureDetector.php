@@ -1717,18 +1717,20 @@ class FacialFeatureDetector
 //                                    $eyeClosedFrame = '-1';
                                 }
                                 //если глаз не закрывается, и не закрывался, то обнуляем
-                                if (($v1[$i]["val"] !== '-')&&($eyeClosedFrame === '-1')) {
+                                if (($v1[$i]["val"] !== '-') && ($eyeClosedFrame === '-1')) {
                                     $eyeStartClosingFrame = '-1';
                                     $eyeStartOpeningFrame = '-1';
                                 }
 
                                 //если глаз закрыт и ранее это не фиксировалось, то фиксируем
-                                if(($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'yes')
-                                    &&($eyeClosedFrame === '-1')) $eyeClosedFrame = $i;
+                                if (isset($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"]) &&
+                                    ($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'yes') &&
+                                    ($eyeClosedFrame === '-1')) $eyeClosedFrame = $i;
 
                                 //если глаз открыт и ранее фиксировалось его закрытие, то возможно моргание
-                                if(($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'no')
-                                    &&($eyeClosedFrame !== '-1')){
+                                if (isset($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"]) &&
+                                    ($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'no') &&
+                                    ($eyeClosedFrame !== '-1')) {
                                     //processing
                                    if($eyeStartClosingFrame !== '-1') {
                                         //изменить значения свойств в диапазоне от $eyeStartClosingFrame до $eyeEndOpeningFrame
