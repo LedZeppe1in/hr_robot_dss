@@ -1030,10 +1030,17 @@ class FacialFeatureDetector
 
                 //определяем движение брови по движению верхних точек бровей
                 // 19 - левая бровь, 24 - правая бровь
-                $rightEyebrowMovementY = $sourceFaceData['normmask'][$i][24]['Y'] - $yN24;
-                $rightEyebrowMovementX = $sourceFaceData['normmask'][$i][24]['X'] - $xN24;
-                $leftEyebrowMovementY = $sourceFaceData['normmask'][$i][19]['Y'] - $yN19;
-                $leftEyebrowMovementX = $sourceFaceData['normmask'][$i][19]['X'] - $xN19;
+                if (isset($sourceFaceData['normmask'][$i])) {
+                    $rightEyebrowMovementY = $sourceFaceData['normmask'][$i][24]['Y'] - $yN24;
+                    $rightEyebrowMovementX = $sourceFaceData['normmask'][$i][24]['X'] - $xN24;
+                    $leftEyebrowMovementY = $sourceFaceData['normmask'][$i][19]['Y'] - $yN19;
+                    $leftEyebrowMovementX = $sourceFaceData['normmask'][$i][19]['X'] - $xN19;
+                } else {
+                    $rightEyebrowMovementY = 0;
+                    $rightEyebrowMovementX = 0;
+                    $leftEyebrowMovementY = 0;
+                    $leftEyebrowMovementX = 0;
+                }
                 $rightEyebrowXMovForce = $this->getForce($scaleX24, abs($rightEyebrowMovementX));
                 $rightEyebrowYMovForce = $this->getForce($scaleY24, abs($rightEyebrowMovementY));
 //                $targetFaceData["eyebrow"]["right_eyebrow_movement"][$i]["force"] =
@@ -1277,9 +1284,9 @@ class FacialFeatureDetector
 
                 //движение уголков рта
                 $xMov = 'none';
-                if (($targetFaceData["mouth"]["right_corner_mouth_movement_x"][$i]["val"] ==
-                        $targetFaceData["mouth"]["left_corner_mouth_movement_x"][$i]["val"] ) and
-                    (isset($targetFaceData["mouth"]["left_corner_mouth_movement_x"][$i]))) {
+                if (isset($targetFaceData["mouth"]["left_corner_mouth_movement_x"][$i]) &&
+                    ($targetFaceData["mouth"]["right_corner_mouth_movement_x"][$i]["val"] ==
+                        $targetFaceData["mouth"]["left_corner_mouth_movement_x"][$i]["val"])) {
                     $xMov = $targetFaceData["mouth"]["right_corner_mouth_movement_x"][$i]["val"];
                 }
                 $targetFaceData["mouth"]["mouth_corners_movement"][$i]["val"] = $xMov;
