@@ -2432,30 +2432,32 @@ class FacialFeatureDetector
             $frameFacts = array();
             // Обход всех определенных лицевых признаков
             foreach ($detectedFeatures as $facePart => $features)
-                foreach ($features as $featureName => $frames)
-                    for ($j = 1; $j < count($frames); $j++)
-                        if (isset($frames[$j]["val"]) && isset($frames[$j]["force"]))
-                            if ($i == $j) {
-                                // Поиск соответствий
-                                $targetValues = self::findCorrespondences($facePart, $featureName, $frames[$j]["val"]);
-                                // Если соответсвия найдены
-                                if ($targetValues['targetFacePart'] != null &&
-                                    $targetValues['featureChangeType'] != null &&
-                                    $targetValues['changeDirection'] != null) {
-                                    // Формирование факта одного признака для текущего кадра
-                                    $fact['NameOfTemplate'] = 'T1986';
-                                    $fact['s861'] = $targetValues['targetFacePart'];
-                                    $fact['s862'] = $targetValues['featureChangeType'];
-                                    $fact['s863'] = $targetValues['changeDirection'];
-                                    $fact['s864'] = $frames[$j]["force"];
-                                    $fact['s869'] = count($frames);
-                                    $fact['s870'] = 1;
-                                    $fact['s871'] = count($frames);
-                                    $fact['s874'] = $j;
-                                    // Добавление факта одного признака для текущего кадра в набор фактов
-                                    array_push($frameFacts, $fact);
+                if ($features != null)
+                    foreach ($features as $featureName => $frames)
+                        for ($j = 1; $j < count($frames); $j++)
+                            if (isset($frames[$j]["val"]) && isset($frames[$j]["force"]))
+                                if ($i == $j) {
+                                    // Поиск соответствий
+                                    $targetValues = self::findCorrespondences($facePart, $featureName,
+                                        $frames[$j]["val"]);
+                                    // Если соответсвия найдены
+                                    if ($targetValues['targetFacePart'] != null &&
+                                        $targetValues['featureChangeType'] != null &&
+                                        $targetValues['changeDirection'] != null) {
+                                        // Формирование факта одного признака для текущего кадра
+                                        $fact['NameOfTemplate'] = 'T1986';
+                                        $fact['s861'] = $targetValues['targetFacePart'];
+                                        $fact['s862'] = $targetValues['featureChangeType'];
+                                        $fact['s863'] = $targetValues['changeDirection'];
+                                        $fact['s864'] = $frames[$j]["force"];
+                                        $fact['s869'] = count($frames);
+                                        $fact['s870'] = 1;
+                                        $fact['s871'] = count($frames);
+                                        $fact['s874'] = $j;
+                                        // Добавление факта одного признака для текущего кадра в набор фактов
+                                        array_push($frameFacts, $fact);
+                                    }
                                 }
-                            }
             // Добавление набора фактов для текущего кадра в общий массив
             array_push($facts, $frameFacts);
         }
