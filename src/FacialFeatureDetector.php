@@ -2398,7 +2398,7 @@ class FacialFeatureDetector
             $targetValues['targetFacePart'] = 'Правая носогубная складка';
         if ((($sourceFeatureName == 'left_nasolabial_fold_movement') ||
                 ($sourceFeatureName == 'right_nasolabial_fold_movement')) &&
-            ($sourceValue == 'none')) {
+            ($sourceValue != 'from center')) {
             $targetValues['featureChangeType'] = 'Отсутствие типа';
             $targetValues['changeDirection'] = 'Отсутствие направления';
         }
