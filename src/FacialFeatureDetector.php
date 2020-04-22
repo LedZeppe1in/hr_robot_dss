@@ -90,9 +90,7 @@ class FacialFeatureDetector
 
                     $facialCharacteristics[$i]["widthChange"] = "-";
                     $facialCharacteristics[$i]["widthChangeForce"] = round(
-                        (($facialCharacteristics[$i][$key] - $nat) / $deltaForMinus),
-                        2
-                    );
+                        (($facialCharacteristics[$i][$key] - $nat) / $deltaForMinus));
 
                 } elseif ($facialCharacteristics[$i][$key] > $nat) {
                     // Увеличение ширины
@@ -103,9 +101,7 @@ class FacialFeatureDetector
 
 
                     $facialCharacteristics[$i]["widthChangeForce"] = round(
-                        (($facialCharacteristics[$i][$key] - $nat) / $deltaForPlus),
-                        2
-                    );
+                        (($facialCharacteristics[$i][$key] - $nat) / $deltaForPlus));
                 } else {
                     // Ввести погрешность для определения отсутсвтия движения
                     $facialCharacteristics[$i]["widthChange"] = "X";
@@ -196,7 +192,7 @@ class FacialFeatureDetector
             if ($facialCharacteristics[$i] && $facialCharacteristics[$i][$key])
                 $avr += $facialCharacteristics[$i][$key];
 
-        return round($avr / $facialCharacteristicsNumber, 0);
+        return round($avr / $facialCharacteristicsNumber);
     }
 
      /**
@@ -447,14 +443,14 @@ class FacialFeatureDetector
 
                 $targetFaceData["eye"]["right_eye_lower_eyelid_movement_d"][$i]["force"] =
                     round(($targetFaceData["eye"]["right_eye_lower_eyelid_movement_x"][$i]["force"]+
-                        $targetFaceData["eye"]["right_eye_lower_eyelid_movement_y"][$i]["force"])/2,2);
+                        $targetFaceData["eye"]["right_eye_lower_eyelid_movement_y"][$i]["force"])/2);
                 $targetFaceData["eye"]["right_eye_lower_eyelid_movement_d"][$i]["val"] =
                     $targetFaceData["eye"]["right_eye_lower_eyelid_movement_x"][$i]["val"].' and '.
                     $targetFaceData["eye"]["right_eye_lower_eyelid_movement_y"][$i]["val"];
 
                 $targetFaceData["eye"]["left_eye_lower_eyelid_movement_d"][$i]["force"] =
                     round(($targetFaceData["eye"]["left_eye_lower_eyelid_movement_x"][$i]["force"]+
-                            $targetFaceData["eye"]["left_eye_lower_eyelid_movement_y"][$i]["force"])/2,2);
+                            $targetFaceData["eye"]["left_eye_lower_eyelid_movement_y"][$i]["force"])/2);
                 $targetFaceData["eye"]["left_eye_lower_eyelid_movement_d"][$i]["val"] =
                     $targetFaceData["eye"]["left_eye_lower_eyelid_movement_x"][$i]["val"].' and '.
                     $targetFaceData["eye"]["left_eye_lower_eyelid_movement_y"][$i]["val"];
@@ -1631,9 +1627,9 @@ class FacialFeatureDetector
     public function saveXY2($sourceFaceData3,$fileName)
     {
         //
-        //       $arr = array('61','62', '63', '65', '66', '67', 36,37,38,39, 40, 41, 42, 43, 44, 45, 46,47, 31, 35,
-        //           19,24, 17, 21, 22, 26, 48, 54, 51, 57, 27, 28, 29);
-        $arr = array('61');
+               $arr = array('61','62', '63', '65', '66', '67', 36,37,38,39, 40, 41, 42, 43, 44, 45, 46,47, 31, 35,
+                   19,24, 17, 21, 22, 26, 48, 54, 51, 57, 27, 28, 29);
+//        $arr = array('61');
         $res = array();
         for ($i = 0; $i < count($sourceFaceData3['normmask']); $i++) {
             foreach ($arr as $k1 => $v1) {
@@ -1803,11 +1799,14 @@ class FacialFeatureDetector
                                             ($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'no') &&
                                             ($eyeClosedFrame !== '-1')) {
                                             //processing
-                                           if($eyeStartClosingFrame !== '-1') {
+                                            //!!! эвристика - моргание - это закрытие глаза максиму на 14 кадров
+                                           if(($eyeStartClosingFrame !== '-1') && (($i - $eyeClosedFrame) <= 14)) {
                                                 //изменить значения свойств в диапазоне от $eyeStartClosingFrame до $eyeEndOpeningFrame
                                                 $sourceFaceData1[$k][$prefix . "eye_blink"] =
                                                     $this->updateValues($sourceFaceData1[$k][$prefix . "eye_blink"], 'val',
-                                                        'yes', $eyeStartClosingFrame, ($i + $eyeClosedFrame - $eyeStartClosingFrame));
+                                                        //!!! эвристика - берем по 7 кадров на закрытие и открытие глаза
+                                                        'yes', ($eyeClosedFrame - 7) , ($i + 7));
+//                                                        'yes', $eyeStartClosingFrame, ($i + $eyeClosedFrame - $eyeStartClosingFrame));
         //                                       $eyeStartClosingFrame = $i + $eyeClosedFrame - $eyeStartClosingFrame;
                                             }
                                          $eyeClosedFrame = '-1';
@@ -1830,6 +1829,7 @@ class FacialFeatureDetector
      * @return array - выходной массив с обработанным массивом
      */
     public function processingWithMovingAverage($sourceFaceData1, $cnt)
+        //!!! вопрос центрирования результатов
     {
      $resFaceData = array();
      if ($sourceFaceData1 != null)
@@ -1887,8 +1887,9 @@ class FacialFeatureDetector
         else
             $FaceData =  $FaceData_; // use the AB format
 
-        $FaceData = $this->processingWithMovingAverage($FaceData,3);
- //       $this->saveXY2($FaceData1,'ma');
+        $FaceData = $this->processingWithMovingAverage($FaceData,5);
+        $FaceData = $this->processingWithMovingAverage($FaceData,7);
+ //       $this->saveXY2($FaceData,'w3cry_I.json');
 
         $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData);
         $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData);
