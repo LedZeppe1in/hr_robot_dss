@@ -2104,15 +2104,15 @@ class FacialFeatureDetector
         }
         if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_x') ||
                 ($sourceFeatureName == 'right_eye_lower_eyelid_movement_x')) &&
-            ($sourceValue == 'up')) {
+            ($sourceValue == 'to center')) {
             $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Вверх';
+            $targetValues['changeDirection'] = 'К центру';
         }
         if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_x') ||
                 ($sourceFeatureName == 'right_eye_lower_eyelid_movement_x')) &&
-            ($sourceValue == 'down')) {
+            ($sourceValue == 'from center')) {
             $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Вниз';
+            $targetValues['changeDirection'] = 'От центра';
         }
         if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_y') ||
                 ($sourceFeatureName == 'right_eye_lower_eyelid_movement_y')) &&
