@@ -1890,7 +1890,7 @@ class FacialFeatureDetector
 
         $FaceData = $this->processingWithMovingAverage($FaceData,5);
         $FaceData = $this->processingWithMovingAverage($FaceData,7);
- //       $this->saveXY2($FaceData,'w3cry_I.json');
+ //       $this->saveXY2($FaceData,'m1smileI.json');
 
         $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData);
         $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData);
@@ -2134,7 +2134,7 @@ class FacialFeatureDetector
         }
         if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_d') ||
                 ($sourceFeatureName == 'right_eye_lower_eyelid_movement_d')) &&
-            ($sourceValue == 'none and none')) {
+            ($sourceValue != 'to center and up')) {
             $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
             $targetValues['changeDirection'] = 'Отсутствие направления';
         }
@@ -2394,6 +2394,10 @@ class FacialFeatureDetector
             $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
             $targetValues['changeDirection'] = 'Вниз';
         }
+        if (($sourceFeatureName == 'chin_movement') && ($sourceValue == 'up')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
+            $targetValues['changeDirection'] = 'Вверх';
+        }
         /* Соответствия для носа */
         // Крылья носа
         if ($sourceFacePart == 'nose')
@@ -2407,6 +2411,10 @@ class FacialFeatureDetector
         if (($sourceFeatureName == 'nose_wing_movement') && ($sourceValue == 'up')) {
             $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
             $targetValues['changeDirection'] = 'Вверх';
+        }
+        if (($sourceFeatureName == 'nose_wing_movement') && ($sourceValue == 'down')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
+            $targetValues['changeDirection'] = 'Вниз';
         }
         /* Носогубная складка */
         if ($sourceFeatureName == 'left_nasolabial_fold_movement')
