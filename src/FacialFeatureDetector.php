@@ -1957,6 +1957,11 @@ class FacialFeatureDetector
             $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
             $targetValues['changeDirection'] = 'К центру';
         }
+        if ((($sourceFeatureName == 'left_eyebrow_movement_x') || ($sourceFeatureName == 'right_eyebrow_movement_x')) &&
+            ($sourceValue == 'from center')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
+            $targetValues['changeDirection'] = 'От центра';
+        }
         if ((($sourceFeatureName == 'left_eyebrow_movement_y') || ($sourceFeatureName == 'right_eyebrow_movement_y')) &&
             ($sourceValue == 'up')) {
             $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
@@ -1998,11 +2003,23 @@ class FacialFeatureDetector
             $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
             $targetValues['changeDirection'] = 'К центру';
         }
+        if ((($sourceFeatureName == 'left_eyebrow_inner_movement_x') ||
+                ($sourceFeatureName == 'right_eyebrow_inner_movement_x')) &&
+            ($sourceValue == 'from center')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
+            $targetValues['changeDirection'] = 'От центра';
+        }
+        if ((($sourceFeatureName == 'left_eyebrow_inner_movement_y') ||
+            ($sourceFeatureName == 'right_eyebrow_inner_movement_y')) &&
+        ($sourceValue == 'up')) {
+        $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
+        $targetValues['changeDirection'] = 'Вверх';
+        }
         if ((($sourceFeatureName == 'left_eyebrow_inner_movement_y') ||
                 ($sourceFeatureName == 'right_eyebrow_inner_movement_y')) &&
-            ($sourceValue == 'up')) {
+            ($sourceValue == 'down')) {
             $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
+            $targetValues['changeDirection'] = 'Вниз';
         }
  /*       if ((($sourceFeatureName == 'left_eyebrow_inner_movement') ||
                 ($sourceFeatureName == 'right_eyebrow_inner_movement')) &&
@@ -2392,7 +2409,7 @@ class FacialFeatureDetector
             $targetValues['changeDirection'] = 'Вверх';
         }
         /* Носогубная складка */
-        if ($sourceFacePart == 'left_nasolabial_fold_movement')
+        if ($sourceFeatureName == 'left_nasolabial_fold_movement')
             $targetValues['targetFacePart'] = 'Левая носогубная складка';
         if ($sourceFeatureName == 'right_nasolabial_fold_movement')
             $targetValues['targetFacePart'] = 'Правая носогубная складка';
