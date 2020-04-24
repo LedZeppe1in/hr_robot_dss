@@ -1975,7 +1975,7 @@ class FacialFeatureDetector
         $detectedFeatures = $this->addPoints('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3)');
         $FaceData = $this->processingWithMovingAverage($FaceData,5);
         $detectedFeatures = $this->addPoints('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3_5)');
-        //        $this->saveXY2($FaceData,'m1.json');
+ //               $this->saveXY2($FaceData,'m1.json');
  /*         $fd = fopen('_MA.json', "w");
               fwrite($fd,json_encode($FaceData));
               fclose($fd);*/
@@ -2367,7 +2367,7 @@ class FacialFeatureDetector
         if ($sourceFeatureName == 'mouth_length')
             $targetValues['targetFacePart'] = 'Рот';
         if (($sourceFeatureName == 'mouth_length') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
+            $targetValues['featureChangeType'] = 'Изменение размера по горизонтали';
             $targetValues['changeDirection'] = 'Отсутствие направления';
         }
         if (($sourceFeatureName == 'mouth_length') && ($sourceValue == '-')) {
@@ -2381,7 +2381,7 @@ class FacialFeatureDetector
         if ($sourceFeatureName == 'mouth_width')
             $targetValues['targetFacePart'] = 'Рот';
         if (($sourceFeatureName == 'mouth_width') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
+            $targetValues['featureChangeType'] = 'Изменение размера по вертикали';
             $targetValues['changeDirection'] = 'Отсутствие направления';
         }
         if (($sourceFeatureName == 'mouth_width') && ($sourceValue == '-')) {
@@ -2454,7 +2454,7 @@ class FacialFeatureDetector
         if ((($sourceFeatureName == 'mouth_upper_lip_outer_center_movement') ||
                 ($sourceFeatureName == 'mouth_lower_lip_outer_center_movement')) &&
             ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
+            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
             $targetValues['changeDirection'] = 'Отсутствие направления';
         }
         if ((($sourceFeatureName == 'mouth_upper_lip_outer_center_movement') ||
