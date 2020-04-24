@@ -1360,7 +1360,7 @@ class FacialFeatureDetector
 //                $force1 = $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["force"];
                 }
 
-                if (isset($targetFaceData["mouth"]["left_corner_mouth_movement"][$i]))
+                if (isset($targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]))
                     if (isset($targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]) &&
                         $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["force"] == 0)
                         $targetFaceData["mouth"]["mouth_upper_lip_outer_center_movement"][$i]["val"] = 'none';
@@ -1975,7 +1975,7 @@ class FacialFeatureDetector
         $detectedFeatures = $this->addPoints('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3)');
         $FaceData = $this->processingWithMovingAverage($FaceData,5);
         $detectedFeatures = $this->addPoints('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3_5)');
- //               $this->saveXY2($FaceData,'m1.json');
+//                $this->saveXY2($FaceData,'m1.json');
  /*         $fd = fopen('_MA.json', "w");
               fwrite($fd,json_encode($FaceData));
               fclose($fd);*/
