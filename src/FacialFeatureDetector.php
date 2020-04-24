@@ -1861,7 +1861,7 @@ class FacialFeatureDetector
                     for ($i = $neighborsCnt; $i < count($sourceFaceData1[$k]) - $neighborsCnt; $i++) {
                         if (isset($sourceFaceData1[$k][$i])) //frames
                             foreach ($sourceFaceData1[$k][$i] as $k1 => $v1) { //points
-                                if (isset($sourceFaceData1[$k][$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
+                                if (isset($sourceFaceData1[$k][$i-1][$k1]) && isset($sourceFaceData1[$k][$i+1][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
                                     $neighborLeftValueX = ($sourceFaceData1[$k][$i-1][$k1]['X']+
                                         $sourceFaceData1[$k][$i-1][$k1]['X']*$level);
                                     $neighborRightValueX = ($sourceFaceData1[$k][$i+1][$k1]['X']+
