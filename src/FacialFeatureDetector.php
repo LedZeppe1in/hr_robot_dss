@@ -559,7 +559,7 @@ class FacialFeatureDetector
         } else return false;
     }
 
-    public function addPoints($pointsName,$sourceFaceData,$resFaceData,$info)
+    public function addPointsToResulrs($pointsName,$sourceFaceData,$resFaceData,$info)
     {
         if (isset($sourceFaceData['normmask']))
         for ($i = 0; $i < count($sourceFaceData['normmask']); $i++) {
@@ -585,11 +585,20 @@ class FacialFeatureDetector
                     //norm points processing
                     if (isset($v['NORM_POINTS']))
                         foreach ($v['NORM_POINTS'] as $k1 => $v1) {
-//                  for ($i1 = 0; $i1 < count($v['NORM_POINTS']); $i1++) {
-//                      $pointName = $k1;
-//                      echo $pointName.'<br>';
                             $FaceData_['normmask'][$i][$k1]['X'] = $v1[0];
                             $FaceData_['normmask'][$i][$k1]['Y'] = $v1[1];
+                        }
+                    //norm irises processing
+                    if (isset($v['NORM_IRISES']))
+                        foreach ($v['NORM_IRISES'] as $k1 => $v1) {
+                            $FaceData_['normirises'][$i][$k1]['X'] = $v1[0];
+                            $FaceData_['normirises'][$i][$k1]['Y'] = $v1[1];
+                        }
+                    //points processing
+                    if (isset($v['POINTS']))
+                        foreach ($v['POINTS'] as $k1 => $v1) {
+                            $FaceData_['points'][$i][$k1]['X'] = $v1[0];
+                            $FaceData_['points'][$i][$k1]['Y'] = $v1[1];
                         }
                     //brow points processing
                     if (isset($v['brow']))
@@ -1851,6 +1860,68 @@ class FacialFeatureDetector
         return $sourceFaceData1;
     }
 
+    public function processingRotation($sourceFaceData1){
+     // input data from the points levels
+     if ($sourceFaceData1 != null) {
+         $normX39 = 0; $normY39 = 0; $deltaX39 = 0; $deltaY39 = 0;
+         for ($i = 0; $i < count($sourceFaceData1); $i++) {
+             //--------------------------------------------------------------------------------------------------
+             if (isset($sourceFaceData1[$i])) //frames
+             if (isset($sourceFaceData1[$i][39])
+                 && isset($sourceFaceData1[$i][42])
+             ) {
+                 //get  the equation of a linear function by 2 (39 and 42) points for each frame
+                 //(y39-y42)x+(x42-x39)y+(x39*y42-x42*y39)=0
+                 //when x=0 then y= - (x39*y42-x42*y39) / (x42-x39);
+                 $deltaY = abs(round(($sourceFaceData1[$i][39]['X'] * $sourceFaceData1[$i][42]['Y'] -
+                         $sourceFaceData1[$i][42]['X'] * $sourceFaceData1[$i][39]['Y']) /
+                     ($sourceFaceData1[$i][42]['X'] - $sourceFaceData1[$i][39]['X'])));
+
+                 //get rotation angle, coordibates of 39 and 42 points are used
+                 $rotationAngle = acos(abs($sourceFaceData1[$i][42]['X']) /
+                     (sqrt(pow($sourceFaceData1[$i][42]['X'], 2) +
+                         pow($sourceFaceData1[$i][42]['Y'] - $deltaY, 2))));
+
+                 foreach ($sourceFaceData1[$i] as $k1 => $v1) { //points
+                     if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
+                         $sourceFaceData1[$i][$k1]['X'] = round($sourceFaceData1[$i][$k1]['X'] * cos($rotationAngle) -
+                             $sourceFaceData1[$i][$k1]['Y'] * sin($rotationAngle));
+                         $sourceFaceData1[$i][$k1]['Y'] = round($sourceFaceData1[$i][$k1]['X'] * sin($rotationAngle) +
+                             $sourceFaceData1[$i][$k1]['Y'] * cos($rotationAngle));
+                     }
+                 }
+
+                 //precise positioning the 39 point is used
+                 if($normX39 == 0) {
+                 $normX39 = $sourceFaceData1[$i][39]['X'];
+                 $normY39 = $sourceFaceData1[$i][39]['Y'];
+                }
+                $deltaX39 = $sourceFaceData1[$i][39]['X'] - $normX39;
+                $deltaY39 = $sourceFaceData1[$i][39]['Y'] - $normY39;
+//                echo $normX39.'/'.$normY39.' :: '.$deltaX39.'/'.$deltaY39.'<br>';
+                if(($deltaX39 != 0) || ($deltaY39 != 0)){
+                    foreach ($sourceFaceData1[$i] as $k1 => $v1) { //points
+                        if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
+                            $sourceFaceData1[$i][$k1]['X'] = round($sourceFaceData1[$i][$k1]['X'] + $deltaX39);
+                            $sourceFaceData1[$i][$k1]['Y'] = round($sourceFaceData1[$i][$k1]['Y'] + $deltaY39);
+                        }
+                    }
+                }
+
+//             $distRX3942 = $rX42 - $rX39;
+//             $distRY3942 = $rY42 - $rY42;
+//             echo $sourceFaceData1[0][39]['X'].'/'.$sourceFaceData1[0][39]['Y'].' '.$sourceFaceData1[0][42]['X'].'/'.
+//                 $sourceFaceData1[0][42]['Y'].' <br>';
+                 //                 $distX3942.' '.$distY3942.' -> '.
+//                 rad2deg($rotationAngle).'='.rad2deg($rotationAngle).' '.$rX42.'/'.$rY42.' :: '.$distRX3942.' '.$distRY3942. '<br>';
+             }
+             //---------------------------------------------------------------------------------------------------
+         }
+     }
+    return $sourceFaceData1;
+
+    }
+
     public function processingOutliers($sourceFaceData1,$level,$neighborsCnt){
         //bt default $neighborsCnt = 1
         $resFaceData = array();
@@ -1970,15 +2041,22 @@ class FacialFeatureDetector
             fclose($fd);*/
         $detectedFeatures = array();
         $FaceData = $this->processingOutliers($FaceData,10,1);
-        $detectedFeatures = $this->addPoints('NORM_POINTS_OUTLIER',$FaceData,$detectedFeatures,'outlier_level_percent(10)outlier_neighbors(1)');
+        $detectedFeatures = $this->addPointsToResulrs('NORM_POINTS_OUTLIER',$FaceData,$detectedFeatures,
+            'outlier_level_percent(10)outlier_neighbors(1)');
         $FaceData = $this->processingWithMovingAverage($FaceData,3);
-        $detectedFeatures = $this->addPoints('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3)');
+        $detectedFeatures = $this->addPointsToResulrs('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,
+            'smoth_order(3)');
         $FaceData = $this->processingWithMovingAverage($FaceData,5);
-        $detectedFeatures = $this->addPoints('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3_5)');
+        $detectedFeatures = $this->addPointsToResulrs('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,
+            'smoth_order(3_5)');
 //                $this->saveXY2($FaceData,'m1.json');
  /*         $fd = fopen('_MA.json', "w");
               fwrite($fd,json_encode($FaceData));
               fclose($fd);*/
+        $FaceData = $this->processingRotation($FaceData['normmask']);
+/*                 $fd = fopen('_PP.json', "w");
+                     fwrite($fd,json_encode($FaceData));
+                     fclose($fd);*/
         $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData);
         $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData);
         $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData);
