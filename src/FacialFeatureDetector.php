@@ -228,7 +228,7 @@ class FacialFeatureDetector
      * @param $key - название характеристики
      * @return array|bool - возвращаемое значение
      */
-    public function getFaceDataMaxOnPoints($facialCharacteristics, $pointNum, $key, $point1, $point2)
+    public function getFaceDataMaxOnPoints($facialCharacteristics, $pointNum, $key, $point1, $point2,$delta)
     {
         $facialCharacteristicsNumber = count($facialCharacteristics);
         if ($facialCharacteristicsNumber <= 0)
@@ -240,7 +240,7 @@ class FacialFeatureDetector
                 && isset($facialCharacteristics[$i][$point2][$key])) {
                 $mid6167 = round(($facialCharacteristics[$i][$point2][$key] -
                             $facialCharacteristics[$i][$point1][$key])/2) +
-                            $facialCharacteristics[$i][$point1][$key];
+                            $facialCharacteristics[$i][$point1][$key] - $delta;
                 $relPointValue = $facialCharacteristics[$i][$pointNum][$key] - $mid6167;
                 if ($relPointValue > $max) {
                     $max = $relPointValue;
@@ -256,7 +256,7 @@ class FacialFeatureDetector
      * @param $key - название характеристики
      * @return array|bool - возвращаемое значение
      */
-    public function getFaceDataMinOnPoints($facialCharacteristics, $pointNum, $key, $point1, $point2)
+    public function getFaceDataMinOnPoints($facialCharacteristics, $pointNum, $key, $point1, $point2,$delta)
     {
         $facialCharacteristicsNumber = count($facialCharacteristics);
         if ($facialCharacteristicsNumber <= 0)
@@ -268,7 +268,7 @@ class FacialFeatureDetector
                 && isset($facialCharacteristics[$i][$point2][$key])) {
                 $mid6167 = round(($facialCharacteristics[$i][$point2][$key] -
                             $facialCharacteristics[$i][$point1][$key])/2) +
-                    $facialCharacteristics[$i][$point1][$key];
+                    $facialCharacteristics[$i][$point1][$key] - $delta;
                 $relPointValue = $facialCharacteristics[$i][$pointNum][$key] - $mid6167;
                 if ($relPointValue < $min) {
                     $min = $relPointValue;
@@ -358,9 +358,9 @@ class FacialFeatureDetector
         ) {
              $log = '';
             $midNY3942 = round(($sourceFaceData[0][$point2]['Y'] - $sourceFaceData[0][$point1]['Y'])/2) +
-                $sourceFaceData[0][$point1]['Y'];
+                $sourceFaceData[0][$point1]['Y'] - $delta;
             $midNX3942 = round(($sourceFaceData[0][$point2]['X'] - $sourceFaceData[0][$point1]['X'])/2) +
-                $sourceFaceData[0][$point1]['X'];
+                $sourceFaceData[0][$point1]['X'] - $delta;
 
             $yN37 = $sourceFaceData[0][37]['Y'] - $midNY3942;
             $yN41 = $sourceFaceData[0][41]['Y'] - $midNY3942;
@@ -392,88 +392,88 @@ class FacialFeatureDetector
 
 //            $maxY37 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 37, "Y");
 //            $minY37 = $this->getFaceDataMinForKeyV2($sourceFaceData, 37, "Y");
-            $maxY37 = $this->getFaceDataMaxOnPoints($sourceFaceData, 37, "Y",$point1,$point2);
-            $minY37 = $this->getFaceDataMinOnPoints($sourceFaceData, 37, "Y",$point1,$point2);
+            $maxY37 = $this->getFaceDataMaxOnPoints($sourceFaceData, 37, "Y",$point1,$point2,$delta);
+            $minY37 = $this->getFaceDataMinOnPoints($sourceFaceData, 37, "Y",$point1,$point2,$delta);
             $scaleY37 = $maxY37 - $minY37;
 //            $maxY43 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 43, "Y");
 //            $minY43 = $this->getFaceDataMinForKeyV2($sourceFaceData, 43, "Y");
-            $maxY43 = $this->getFaceDataMaxOnPoints($sourceFaceData, 43, "Y",$point1,$point2);
-            $minY43 = $this->getFaceDataMinOnPoints($sourceFaceData, 43, "Y",$point1,$point2);
+            $maxY43 = $this->getFaceDataMaxOnPoints($sourceFaceData, 43, "Y",$point1,$point2,$delta);
+            $minY43 = $this->getFaceDataMinOnPoints($sourceFaceData, 43, "Y",$point1,$point2,$delta);
             $scaleY43 = $maxY43 - $minY43;
 //            $maxY41 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 41, "Y");
 //            $minY41 = $this->getFaceDataMinForKeyV2($sourceFaceData, 41, "Y");
-            $maxY41 = $this->getFaceDataMaxOnPoints($sourceFaceData, 41, "Y",$point1,$point2);
-            $minY41 = $this->getFaceDataMinOnPoints($sourceFaceData, 41, "Y",$point1,$point2);
+            $maxY41 = $this->getFaceDataMaxOnPoints($sourceFaceData, 41, "Y",$point1,$point2,$delta);
+            $minY41 = $this->getFaceDataMinOnPoints($sourceFaceData, 41, "Y",$point1,$point2,$delta);
             $scaleY41 = $maxY41 - $minY41;
             $maxLeftEyeWidth = $maxY41 - $minY37;
 //            $maxY47 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 47, "Y");
 //            $minY47 = $this->getFaceDataMinForKeyV2($sourceFaceData, 47, "Y");
-            $maxY47 = $this->getFaceDataMaxOnPoints($sourceFaceData, 47, "Y",$point1,$point2);
-            $minY47 = $this->getFaceDataMinOnPoints($sourceFaceData, 47, "Y",$point1,$point2);
+            $maxY47 = $this->getFaceDataMaxOnPoints($sourceFaceData, 47, "Y",$point1,$point2,$delta);
+            $minY47 = $this->getFaceDataMinOnPoints($sourceFaceData, 47, "Y",$point1,$point2,$delta);
             $scaleY47 = $maxY47 - $minY47;
             $maxRightEyeWidth = $maxY47 - $minY43;
             //38 и 40 для левого глаза, для правого - 44 и 46
 //            $maxY38 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 38, "Y");
 //            $minY38 = $this->getFaceDataMinForKeyV2($sourceFaceData, 38, "Y");
-            $maxY38 = $this->getFaceDataMaxOnPoints($sourceFaceData, 38, "Y",$point1,$point2);
-            $minY38 = $this->getFaceDataMinOnPoints($sourceFaceData, 38, "Y",$point1,$point2);
+            $maxY38 = $this->getFaceDataMaxOnPoints($sourceFaceData, 38, "Y",$point1,$point2,$delta);
+            $minY38 = $this->getFaceDataMinOnPoints($sourceFaceData, 38, "Y",$point1,$point2,$delta);
 
             $scaleY38 = $maxY38 - $minY38;
 //            $maxY44 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 44, "Y");
 //            $minY44 = $this->getFaceDataMinForKeyV2($sourceFaceData, 44, "Y");
-            $maxY44 = $this->getFaceDataMaxOnPoints($sourceFaceData, 44, "Y",$point1,$point2);
-            $minY44 = $this->getFaceDataMinOnPoints($sourceFaceData, 44, "Y",$point1,$point2);
+            $maxY44 = $this->getFaceDataMaxOnPoints($sourceFaceData, 44, "Y",$point1,$point2,$delta);
+            $minY44 = $this->getFaceDataMinOnPoints($sourceFaceData, 44, "Y",$point1,$point2,$delta);
             $scaleY44 = $maxY44 - $minY44;
 //            $maxY40 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 40, "Y");
 //            $minY40 = $this->getFaceDataMinForKeyV2($sourceFaceData, 40, "Y");
-            $maxY40 = $this->getFaceDataMaxOnPoints($sourceFaceData, 40, "Y",$point1,$point2);
-            $minY40 = $this->getFaceDataMinOnPoints($sourceFaceData, 40, "Y",$point1,$point2);
+            $maxY40 = $this->getFaceDataMaxOnPoints($sourceFaceData, 40, "Y",$point1,$point2,$delta);
+            $minY40 = $this->getFaceDataMinOnPoints($sourceFaceData, 40, "Y",$point1,$point2,$delta);
             $scaleY40 = $maxY40 - $minY40;
             $maxLeftEyeWidth2 = $maxY40 - $minY38;
 //            $maxY46 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 46, "Y");
 //            $minY46 = $this->getFaceDataMinForKeyV2($sourceFaceData, 46, "Y");
-            $maxY46 = $this->getFaceDataMaxOnPoints($sourceFaceData, 46, "Y",$point1,$point2);
-            $minY46 = $this->getFaceDataMinOnPoints($sourceFaceData, 46, "Y",$point1,$point2);
+            $maxY46 = $this->getFaceDataMaxOnPoints($sourceFaceData, 46, "Y",$point1,$point2,$delta);
+            $minY46 = $this->getFaceDataMinOnPoints($sourceFaceData, 46, "Y",$point1,$point2,$delta);
             $scaleY46 = $maxY46 - $minY46;
             $maxRightEyeWidth2 = $maxY46 - $minY44;
 
 //            $maxX39 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 39, "X");
 //            $minX39 = $this->getFaceDataMinForKeyV2($sourceFaceData, 39, "X");
-            $maxX39 = $this->getFaceDataMaxOnPoints($sourceFaceData, 39, "X",$point1,$point2);
-            $minX39 = $this->getFaceDataMinOnPoints($sourceFaceData, 39, "X",$point1,$point2);
+            $maxX39 = $this->getFaceDataMaxOnPoints($sourceFaceData, 39, "X",$point1,$point2,$delta);
+            $minX39 = $this->getFaceDataMinOnPoints($sourceFaceData, 39, "X",$point1,$point2,$delta);
             $scaleX39 = $maxX39 - $minX39;
 //            $maxX42 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 42, "X");
 //            $minX42 = $this->getFaceDataMinForKeyV2($sourceFaceData, 42, "X");
-            $maxX42 = $this->getFaceDataMaxOnPoints($sourceFaceData, 42, "X",$point1,$point2);
-            $minX42 = $this->getFaceDataMinOnPoints($sourceFaceData, 42, "X",$point1,$point2);
+            $maxX42 = $this->getFaceDataMaxOnPoints($sourceFaceData, 42, "X",$point1,$point2,$delta);
+            $minX42 = $this->getFaceDataMinOnPoints($sourceFaceData, 42, "X",$point1,$point2,$delta);
             $scaleX42 = $maxX42 - $minX42;
  //           $maxY39 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 39, "Y");
 //            $minY39 = $this->getFaceDataMinForKeyV2($sourceFaceData, 39, "Y");
-            $maxY39 = $this->getFaceDataMaxOnPoints($sourceFaceData, 39, "Y",$point1,$point2);
-            $minY39 = $this->getFaceDataMinOnPoints($sourceFaceData, 39, "Y",$point1,$point2);
+            $maxY39 = $this->getFaceDataMaxOnPoints($sourceFaceData, 39, "Y",$point1,$point2,$delta);
+            $minY39 = $this->getFaceDataMinOnPoints($sourceFaceData, 39, "Y",$point1,$point2,$delta);
             $scaleY39 = $maxY39 - $minY39;
 //            $maxY42 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 42, "Y");
 //            $minY42 = $this->getFaceDataMinForKeyV2($sourceFaceData, 42, "Y");
-            $maxY42 = $this->getFaceDataMaxOnPoints($sourceFaceData, 42, "Y",$point1,$point2);
-            $minY42 = $this->getFaceDataMinOnPoints($sourceFaceData, 42, "Y",$point1,$point2);
+            $maxY42 = $this->getFaceDataMaxOnPoints($sourceFaceData, 42, "Y",$point1,$point2,$delta);
+            $minY42 = $this->getFaceDataMinOnPoints($sourceFaceData, 42, "Y",$point1,$point2,$delta);
             $scaleY42 = $maxY42 - $minY42;
 //            $maxY36 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 36, "Y");
 //            $minY36 = $this->getFaceDataMinForKeyV2($sourceFaceData, 36, "Y");
-            $maxY36 = $this->getFaceDataMaxOnPoints($sourceFaceData, 36, "Y",$point1,$point2);
-            $minY36 = $this->getFaceDataMinOnPoints($sourceFaceData, 36, "Y",$point1,$point2);
+            $maxY36 = $this->getFaceDataMaxOnPoints($sourceFaceData, 36, "Y",$point1,$point2,$delta);
+            $minY36 = $this->getFaceDataMinOnPoints($sourceFaceData, 36, "Y",$point1,$point2,$delta);
             $scaleY36 = $maxY36 - $minY36;
 //            $maxY45 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 45, "Y");
 //            $minY45 = $this->getFaceDataMinForKeyV2($sourceFaceData, 45, "Y");
-            $maxY45 = $this->getFaceDataMaxOnPoints($sourceFaceData, 45, "Y",$point1,$point2);
-            $minY45 = $this->getFaceDataMinOnPoints($sourceFaceData, 45, "Y",$point1,$point2);
+            $maxY45 = $this->getFaceDataMaxOnPoints($sourceFaceData, 45, "Y",$point1,$point2,$delta);
+            $minY45 = $this->getFaceDataMinOnPoints($sourceFaceData, 45, "Y",$point1,$point2,$delta);
             $scaleY45 = $maxY45 - $minY45;
 
             for ($i = 0; $i < count($sourceFaceData); $i++) {
                 if (isset($sourceFaceData[$i][$point2]) && isset($sourceFaceData[$i][$point1])){
                 $midY3942 = round(($sourceFaceData[$i][$point2]['Y'] - $sourceFaceData[$i][$point1]['Y'])/2) +
-                    $sourceFaceData[$i][$point1]['Y'];
+                    $sourceFaceData[$i][$point1]['Y'] - $delta;
                 $midX3942 = round(($sourceFaceData[$i][$point2]['X'] - $sourceFaceData[$i][$point1]['X'])/2) +
-                    $sourceFaceData[$i][$point1]['X'];
+                    $sourceFaceData[$i][$point1]['X'] - $delta;
                 }
                 //----------------------------------------------------------------------------------------
                 //Верхнее веко, движение верхнего века (вверх, вниз)
@@ -826,30 +826,30 @@ class FacialFeatureDetector
             && isset($sourceFaceData[0][$point2])
         ) {
             $midNY3942 = round(($sourceFaceData[0][$point2]['Y'] - $sourceFaceData[0][$point1]['Y'])/2) +
-                $sourceFaceData[0][$point1]['Y'];
+                $sourceFaceData[0][$point1]['Y'] - $delta;
             $midNX3942 = round(($sourceFaceData[0][$point2]['X'] - $sourceFaceData[0][$point1]['X'])/2) +
-                $sourceFaceData[0][$point1]['X'];
+                $sourceFaceData[0][$point1]['X'] - $delta;
 
             $yN31 = $sourceFaceData[0][31]['Y'] - $midNY3942;
             $yN35 = $sourceFaceData[0][35]['Y'] - $midNY3942;
 //            $maxY31 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 31, "Y");
 //            $minY31 = $this->getFaceDataMinForKeyV2($sourceFaceData, 31, "Y");
-            $maxY31 = $this->getFaceDataMaxOnPoints($sourceFaceData, 31, "Y",$point1,$point2);
-            $minY31 = $this->getFaceDataMinOnPoints($sourceFaceData, 31, "Y",$point1,$point2);
+            $maxY31 = $this->getFaceDataMaxOnPoints($sourceFaceData, 31, "Y",$point1,$point2,$delta);
+            $minY31 = $this->getFaceDataMinOnPoints($sourceFaceData, 31, "Y",$point1,$point2,$delta);
             $scaleY31 = $maxY31 - $minY31;
  //           $maxY35 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 35, "Y");
 //            $minY35 = $this->getFaceDataMinForKeyV2($sourceFaceData, 35, "Y");
-            $maxY35 = $this->getFaceDataMaxOnPoints($sourceFaceData, 35, "Y",$point1,$point2);
-            $minY35 = $this->getFaceDataMinOnPoints($sourceFaceData, 35, "Y",$point1,$point2);
+            $maxY35 = $this->getFaceDataMaxOnPoints($sourceFaceData, 35, "Y",$point1,$point2,$delta);
+            $minY35 = $this->getFaceDataMinOnPoints($sourceFaceData, 35, "Y",$point1,$point2,$delta);
             $scaleY35 = $maxY35 - $minY35;
 
 
             for ($i = 0; $i < count($sourceFaceData); $i++) {
                 if (isset($sourceFaceData[$i][$point2]) && isset($sourceFaceData[$i][$point1])){
                     $midY3942 = round(($sourceFaceData[$i][$point2]['Y'] - $sourceFaceData[$i][$point1]['Y'])/2) +
-                        $sourceFaceData[$i][$point1]['Y'];
+                        $sourceFaceData[$i][$point1]['Y'] - $delta;
                     $midX3942 = round(($sourceFaceData[$i][$point2]['X'] - $sourceFaceData[$i][$point1]['X'])/2) +
-                        $sourceFaceData[$i][$point1]['X'];
+                        $sourceFaceData[$i][$point1]['X'] - $delta;
                 }
                 if (isset($sourceFaceData[$i][31]) && $sourceFaceData[$i][35]) {
                     $leftNoseWingMovement = $sourceFaceData[$i][31]['Y'] - $yN31 - $midY3942;
@@ -965,17 +965,17 @@ class FacialFeatureDetector
             && (isset($sourceFaceData[0][$point1])) && (isset($sourceFaceData[0][$point2]))
         ) {
             $midNY6167 = round(($sourceFaceData[0][$point2]['Y'] - $sourceFaceData[0][$point1]['Y'])/2) +
-                $sourceFaceData[0][$point1]['Y'];
+                $sourceFaceData[0][$point1]['Y'] - $delta;
             $yN8 = $sourceFaceData[0][8]['Y'] - $midNY6167;
-            $maxY8 = $this->getFaceDataMaxOnPoints($sourceFaceData, 8,"Y",$point1,$point2);
-            $minY8 = $this->getFaceDataMinOnPoints($sourceFaceData,8, "Y",$point1,$point2);
+            $maxY8 = $this->getFaceDataMaxOnPoints($sourceFaceData, 8,"Y",$point1,$point2,$delta);
+            $minY8 = $this->getFaceDataMinOnPoints($sourceFaceData,8, "Y",$point1,$point2,$delta);
             $scaleY8 = $maxY8 - $minY8;
 
             for ($i = 0; $i < count($sourceFaceData); $i++) {
                 if ((isset($sourceFaceData[$i][8]))
                     && (isset($sourceFaceData[$i][$point1])) && (isset($sourceFaceData[$i][$point2]))){
                     $midY6167 = round(($sourceFaceData[$i][$point2]['Y'] - $sourceFaceData[$i][$point1]['Y'])/2) +
-                        $sourceFaceData[$i][$point1]['Y'];
+                        $sourceFaceData[$i][$point1]['Y'] - $delta;
 
                     $chinMovement = $sourceFaceData[$i][8]['Y'] - $yN8 - $midY6167;
                     $chinMovementForce = $this->getForce($scaleY8, abs($chinMovement));
@@ -1010,24 +1010,24 @@ class FacialFeatureDetector
             && isset($sourceFaceData[0][$point1])
 
         ) {
-            $yN19 = $sourceFaceData[0][$point1]['Y'] - $sourceFaceData[0][19]['Y'];
-            $yN24 = $sourceFaceData[0][$point1]['Y'] - $sourceFaceData[0][24]['Y'];
+            $yN19 = $sourceFaceData[0][$point1]['Y'] - $sourceFaceData[0][19]['Y'] - $delta;
+            $yN24 = $sourceFaceData[0][$point1]['Y'] - $sourceFaceData[0][24]['Y'] - $delta;
 //            $maxY19 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 19,"Y");
 //            $minY19 = $this->getFaceDataMinForKeyV2($sourceFaceData,19, "Y");
-            $maxY19 = $this->getFaceDataMaxOnPoints($sourceFaceData, 19,"Y",$point1,$point2);
-            $minY19 = $this->getFaceDataMinOnPoints($sourceFaceData,19, "Y",$point1,$point2);
+            $maxY19 = $this->getFaceDataMaxOnPoints($sourceFaceData, 19,"Y",$point1,$point2,$delta);
+            $minY19 = $this->getFaceDataMinOnPoints($sourceFaceData,19, "Y",$point1,$point2,$delta);
             $scaleY19 = $maxY19 - $minY19;
 //            $maxY24 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 24,"Y");
 //            $minY24 = $this->getFaceDataMinForKeyV2($sourceFaceData,24, "Y");
-            $maxY24 = $this->getFaceDataMaxOnPoints($sourceFaceData, 24,"Y",$point1,$point2);
-            $minY24 = $this->getFaceDataMinOnPoints($sourceFaceData,24, "Y",$point1,$point2);
+            $maxY24 = $this->getFaceDataMaxOnPoints($sourceFaceData, 24,"Y",$point1,$point2,$delta);
+            $minY24 = $this->getFaceDataMinOnPoints($sourceFaceData,24, "Y",$point1,$point2,$delta);
             $scaleY24 = $maxY24 - $minY24;
 
 
         for ($i = 0; $i < count($sourceFaceData); $i++) {
             if (isset($sourceFaceData[$i][19]) && $sourceFaceData[$i][24] && $sourceFaceData[$i][$point1]){
-                $leftEyebrowMovement = $sourceFaceData[$i][$point1]['Y'] - $sourceFaceData[$i][19]['Y'] - $yN19;
-                $rightEyebrowMovement = $sourceFaceData[$i][$point1]['Y'] - $sourceFaceData[$i][24]['Y'] - $yN24;
+                $leftEyebrowMovement = $sourceFaceData[$i][$point1]['Y'] - $sourceFaceData[$i][19]['Y'] - $yN19 - $delta;
+                $rightEyebrowMovement = $sourceFaceData[$i][$point1]['Y'] - $sourceFaceData[$i][24]['Y'] - $yN24 - $delta;
 
                 $leftEyebrowMovementForce = $this->getForce($scaleY19, abs($leftEyebrowMovement));
                 $rightEyebrowMovementForce = $this->getForce($scaleY24, abs($rightEyebrowMovement));
@@ -1071,9 +1071,9 @@ class FacialFeatureDetector
             && isset($sourceFaceData[0][$point2])
         ) {
             $midNY3942 = round(($sourceFaceData[0][$point2]['Y'] - $sourceFaceData[0][$point1]['Y'])/2) +
-                $sourceFaceData[0][$point1]['Y'];
+                $sourceFaceData[0][$point1]['Y'] - $delta;
             $midNX3942 = round(($sourceFaceData[0][$point2]['X'] - $sourceFaceData[0][$point1]['X'])/2) +
-                $sourceFaceData[0][$point1]['X'];
+                $sourceFaceData[0][$point1]['X'] - $delta;
 
             $yN17 = $sourceFaceData[0][17]['Y'] - $midNY3942;
             $xN17 = $sourceFaceData[0][17]['X'] - $midNX3942;
@@ -1090,76 +1090,76 @@ class FacialFeatureDetector
 
 //            $maxY17 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 17, "Y");
 //            $minY17 = $this->getFaceDataMinForKeyV2($sourceFaceData, 17, "Y");
-            $maxY17 = $this->getFaceDataMaxOnPoints($sourceFaceData, 17, "Y",$point1,$point2);
-            $minY17 = $this->getFaceDataMinOnPoints($sourceFaceData, 17, "Y",$point1,$point2);
+            $maxY17 = $this->getFaceDataMaxOnPoints($sourceFaceData, 17, "Y",$point1,$point2,$delta);
+            $minY17 = $this->getFaceDataMinOnPoints($sourceFaceData, 17, "Y",$point1,$point2,$delta);
 //            $maxX17 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 17, "X");
 //            $minX17 = $this->getFaceDataMinForKeyV2($sourceFaceData, 17, "X");
-            $maxX17 = $this->getFaceDataMaxOnPoints($sourceFaceData, 17, "X",$point1,$point2);
-            $minX17 = $this->getFaceDataMinOnPoints($sourceFaceData, 17, "X",$point1,$point2);
+            $maxX17 = $this->getFaceDataMaxOnPoints($sourceFaceData, 17, "X",$point1,$point2,$delta);
+            $minX17 = $this->getFaceDataMinOnPoints($sourceFaceData, 17, "X",$point1,$point2,$delta);
             $scaleY17 = $maxY17 - $minY17;
             $scaleX17 = $maxX17 - $minX17;
 
 //            $maxY21 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 21, "Y");
 //            $minY21 = $this->getFaceDataMinForKeyV2($sourceFaceData, 21, "Y");
-            $maxY21 = $this->getFaceDataMaxOnPoints($sourceFaceData, 21, "Y",$point1,$point2);
-            $minY21 = $this->getFaceDataMinOnPoints($sourceFaceData, 21, "Y",$point1,$point2);
+            $maxY21 = $this->getFaceDataMaxOnPoints($sourceFaceData, 21, "Y",$point1,$point2,$delta);
+            $minY21 = $this->getFaceDataMinOnPoints($sourceFaceData, 21, "Y",$point1,$point2,$delta);
 //            $maxX21 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 21, "X");
 //            $minX21 = $this->getFaceDataMinForKeyV2($sourceFaceData, 21, "X");
-            $maxX21 = $this->getFaceDataMaxOnPoints($sourceFaceData, 21, "X",$point1,$point2);
-            $minX21 = $this->getFaceDataMinOnPoints($sourceFaceData, 21, "X",$point1,$point2);
+            $maxX21 = $this->getFaceDataMaxOnPoints($sourceFaceData, 21, "X",$point1,$point2,$delta);
+            $minX21 = $this->getFaceDataMinOnPoints($sourceFaceData, 21, "X",$point1,$point2,$delta);
             $scaleY21 = $maxY21 - $minY21;
             $scaleX21 = $maxX21 - $minX21;
 
 //            $maxY22 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 22, "Y");
 //            $minY22 = $this->getFaceDataMinForKeyV2($sourceFaceData, 22, "Y");
-            $maxY22 = $this->getFaceDataMaxOnPoints($sourceFaceData, 22, "Y",$point1,$point2);
-            $minY22 = $this->getFaceDataMinOnPoints($sourceFaceData, 22, "Y",$point1,$point2);
+            $maxY22 = $this->getFaceDataMaxOnPoints($sourceFaceData, 22, "Y",$point1,$point2,$delta);
+            $minY22 = $this->getFaceDataMinOnPoints($sourceFaceData, 22, "Y",$point1,$point2,$delta);
 //            $maxX22 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 22, "X");
 //            $minX22 = $this->getFaceDataMinForKeyV2($sourceFaceData, 22, "X");
-            $maxX22 = $this->getFaceDataMaxOnPoints($sourceFaceData, 22, "X",$point1,$point2);
-            $minX22 = $this->getFaceDataMinOnPoints($sourceFaceData, 22, "X",$point1,$point2);
+            $maxX22 = $this->getFaceDataMaxOnPoints($sourceFaceData, 22, "X",$point1,$point2,$delta);
+            $minX22 = $this->getFaceDataMinOnPoints($sourceFaceData, 22, "X",$point1,$point2,$delta);
             $scaleY22 = $maxY22 - $minY22;
             $scaleX22 = $maxX22 - $minX22;
 
 //            $maxY26 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 26, "Y");
 //            $minY26 = $this->getFaceDataMinForKeyV2($sourceFaceData, 26, "Y");
-            $maxY26 = $this->getFaceDataMaxOnPoints($sourceFaceData, 26, "Y",$point1,$point2);
-            $minY26 = $this->getFaceDataMinOnPoints($sourceFaceData, 26, "Y",$point1,$point2);
+            $maxY26 = $this->getFaceDataMaxOnPoints($sourceFaceData, 26, "Y",$point1,$point2,$delta);
+            $minY26 = $this->getFaceDataMinOnPoints($sourceFaceData, 26, "Y",$point1,$point2,$delta);
 //            $maxX26 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 26, "X");
 //            $minX26 = $this->getFaceDataMinForKeyV2($sourceFaceData, 26, "X");
-            $maxX26 = $this->getFaceDataMaxOnPoints($sourceFaceData, 26, "X",$point1,$point2);
-            $minX26 = $this->getFaceDataMinOnPoints($sourceFaceData, 26, "X",$point1,$point2);
+            $maxX26 = $this->getFaceDataMaxOnPoints($sourceFaceData, 26, "X",$point1,$point2,$delta);
+            $minX26 = $this->getFaceDataMinOnPoints($sourceFaceData, 26, "X",$point1,$point2,$delta);
             $scaleY26 = $maxY26 - $minY26;
             $scaleX26 = $maxX26 - $minX26;
 
 //            $maxY19 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 19, "Y");
 //            $minY19 = $this->getFaceDataMinForKeyV2($sourceFaceData, 19, "Y");
-            $maxY19 = $this->getFaceDataMaxOnPoints($sourceFaceData, 19, "Y",$point1,$point2);
-            $minY19 = $this->getFaceDataMinOnPoints($sourceFaceData, 19, "Y",$point1,$point2);
+            $maxY19 = $this->getFaceDataMaxOnPoints($sourceFaceData, 19, "Y",$point1,$point2,$delta);
+            $minY19 = $this->getFaceDataMinOnPoints($sourceFaceData, 19, "Y",$point1,$point2,$delta);
 //            $maxX19 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 19, "X");
 //            $minX19 = $this->getFaceDataMinForKeyV2($sourceFaceData, 19, "X");
-            $maxX19 = $this->getFaceDataMaxOnPoints($sourceFaceData, 19, "X",$point1,$point2);
-            $minX19 = $this->getFaceDataMinOnPoints($sourceFaceData, 19, "X",$point1,$point2);
+            $maxX19 = $this->getFaceDataMaxOnPoints($sourceFaceData, 19, "X",$point1,$point2,$delta);
+            $minX19 = $this->getFaceDataMinOnPoints($sourceFaceData, 19, "X",$point1,$point2,$delta);
             $scaleY19 = $maxY19 - $minY19;
             $scaleX19 = $maxX19 - $minX19;
 
 //            $maxY24 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 24, "Y");
 //            $minY24 = $this->getFaceDataMinForKeyV2($sourceFaceData, 24, "Y");
-            $maxY24 = $this->getFaceDataMaxOnPoints($sourceFaceData, 24, "Y",$point1,$point2);
-            $minY24 = $this->getFaceDataMinOnPoints($sourceFaceData, 24, "Y",$point1,$point2);
+            $maxY24 = $this->getFaceDataMaxOnPoints($sourceFaceData, 24, "Y",$point1,$point2,$delta);
+            $minY24 = $this->getFaceDataMinOnPoints($sourceFaceData, 24, "Y",$point1,$point2,$delta);
 //            $maxX24 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 24, "X");
 //            $minX24 = $this->getFaceDataMinForKeyV2($sourceFaceData, 24, "X");
-            $maxX24 = $this->getFaceDataMaxOnPoints($sourceFaceData, 24, "X",$point1,$point2);
-            $minX24 = $this->getFaceDataMinOnPoints($sourceFaceData, 24, "X",$point1,$point2);
+            $maxX24 = $this->getFaceDataMaxOnPoints($sourceFaceData, 24, "X",$point1,$point2,$delta);
+            $minX24 = $this->getFaceDataMinOnPoints($sourceFaceData, 24, "X",$point1,$point2,$delta);
             $scaleY24 = $maxY24 - $minY24;
             $scaleX24 = $maxX24 - $minX24;
 
             for ($i = 0; $i < count($sourceFaceData); $i++) {
                 if (isset($sourceFaceData[$i][$point2]) && isset($sourceFaceData[$i][$point1])){
                     $midY3942 = round(($sourceFaceData[$i][$point2]['Y'] - $sourceFaceData[$i][$point1]['Y'])/2) +
-                        $sourceFaceData[$i][$point1]['Y'];
+                        $sourceFaceData[$i][$point1]['Y'] - $delta;
                     $midX3942 = round(($sourceFaceData[$i][$point2]['X'] - $sourceFaceData[$i][$point1]['X'])/2) +
-                        $sourceFaceData[$i][$point1]['X'];
+                        $sourceFaceData[$i][$point1]['X'] - $delta;
                 }
                 //eyebrow_line
                 //Линия брови – отрезок [внешний уголок брови-XY, внутренний уголок брови-XY]
@@ -1328,9 +1328,9 @@ class FacialFeatureDetector
         ) {
             $log = '';
             $midNY3942 = round(($sourceFaceData[0][$point2]['Y'] - $sourceFaceData[0][$point1]['Y'])/2) +
-                $sourceFaceData[0][$point1]['Y'];
+                $sourceFaceData[0][$point1]['Y'] - $delta;
             $midNX3942 = round(($sourceFaceData[0][$point2]['X'] - $sourceFaceData[0][$point1]['X'])/2) +
-                $sourceFaceData[0][$point1]['X'];
+                $sourceFaceData[0][$point1]['X'] - $delta;
 
             $xN48 = $sourceFaceData[$normFrameIndex][48]['X'] - $midNX3942;
             $xN54 = $sourceFaceData[$normFrameIndex][54]['X'] - $midNX3942;
@@ -1345,23 +1345,23 @@ class FacialFeatureDetector
 
 //            $maxX48 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 48, "X");
 //            $minX48 = $this->getFaceDataMinForKeyV2($sourceFaceData, 48, "X");
-            $maxX48 = $this->getFaceDataMaxOnPoints($sourceFaceData, 48, "X", $point1,$point2);
-            $minX48 = $this->getFaceDataMinOnPoints($sourceFaceData, 48, "X",$point1,$point2);
+            $maxX48 = $this->getFaceDataMaxOnPoints($sourceFaceData, 48, "X", $point1,$point2,$delta);
+            $minX48 = $this->getFaceDataMinOnPoints($sourceFaceData, 48, "X",$point1,$point2,$delta);
             $scaleX48 = $maxX48 - $minX48;
 //            $maxY48 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 48, "Y");
 //            $minY48 = $this->getFaceDataMinForKeyV2($sourceFaceData, 48, "Y");
-            $maxY48 = $this->getFaceDataMaxOnPoints($sourceFaceData, 48, "Y",$point1,$point2);
-            $minY48 = $this->getFaceDataMinOnPoints($sourceFaceData, 48, "Y",$point1,$point2);
+            $maxY48 = $this->getFaceDataMaxOnPoints($sourceFaceData, 48, "Y",$point1,$point2,$delta);
+            $minY48 = $this->getFaceDataMinOnPoints($sourceFaceData, 48, "Y",$point1,$point2,$delta);
             $scaleY48 = $maxY48 - $minY48;
 //            $maxX54 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 54, "X");
 //            $minX54 = $this->getFaceDataMinForKeyV2($sourceFaceData, 54, "X");
-            $maxX54 = $this->getFaceDataMaxOnPoints($sourceFaceData, 54, "X",$point1,$point2);
-            $minX54 = $this->getFaceDataMinOnPoints($sourceFaceData, 54, "X",$point1,$point2);
+            $maxX54 = $this->getFaceDataMaxOnPoints($sourceFaceData, 54, "X",$point1,$point2,$delta);
+            $minX54 = $this->getFaceDataMinOnPoints($sourceFaceData, 54, "X",$point1,$point2,$delta);
             $scaleX54 = $maxX54 - $minX54;
 //            $maxY54 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 54, "Y");
 //            $minY54 = $this->getFaceDataMinForKeyV2($sourceFaceData, 54, "Y");
-            $maxY54 = $this->getFaceDataMaxOnPoints($sourceFaceData, 54, "Y",$point1,$point2);
-            $minY54 = $this->getFaceDataMinOnPoints($sourceFaceData, 54, "Y",$point1,$point2);
+            $maxY54 = $this->getFaceDataMaxOnPoints($sourceFaceData, 54, "Y",$point1,$point2,$delta);
+            $minY54 = $this->getFaceDataMinOnPoints($sourceFaceData, 54, "Y",$point1,$point2,$delta);
             $scaleY54 = $maxY54 - $minY54;
             $maxMouthLength = $maxX54 - $minX48;
             $minMouthLength = $minX54 - $maxX48;
@@ -1369,13 +1369,13 @@ class FacialFeatureDetector
 
 //            $maxY51 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 51, "Y");
 //            $minY51 = $this->getFaceDataMinForKeyV2($sourceFaceData, 51, "Y");
-            $maxY51 = $this->getFaceDataMaxOnPoints($sourceFaceData, 51, "Y",$point1,$point2);
-            $minY51 = $this->getFaceDataMinOnPoints($sourceFaceData, 51, "Y",$point1,$point2);
+            $maxY51 = $this->getFaceDataMaxOnPoints($sourceFaceData, 51, "Y",$point1,$point2,$delta);
+            $minY51 = $this->getFaceDataMinOnPoints($sourceFaceData, 51, "Y",$point1,$point2,$delta);
             $scaleY51 = $maxY51 - $minY51;
 //            $maxY57 = $this->getFaceDataMaxForKeyV2($sourceFaceData, 57, "Y");
 //            $minY57 = $this->getFaceDataMinForKeyV2($sourceFaceData, 57, "Y");
-            $maxY57 = $this->getFaceDataMaxOnPoints($sourceFaceData, 57, "Y",$point1,$point2);
-            $minY57 = $this->getFaceDataMinOnPoints($sourceFaceData, 57, "Y",$point1,$point2);
+            $maxY57 = $this->getFaceDataMaxOnPoints($sourceFaceData, 57, "Y",$point1,$point2,$delta);
+            $minY57 = $this->getFaceDataMinOnPoints($sourceFaceData, 57, "Y",$point1,$point2,$delta);
             $scaleY57 = $maxY57 - $minY57;
             $maxMouthWidth = $maxY57 - $minY51;
             $minMouthWidth = $minY57 - $maxY51;
@@ -1387,9 +1387,9 @@ class FacialFeatureDetector
             for ($i = 0; $i < count($sourceFaceData); $i++) {
                 if (isset($sourceFaceData[$i][$point1]) && isset($sourceFaceData[$i][$point2])){
                     $midY3942 = round(($sourceFaceData[$i][$point2]['Y'] - $sourceFaceData[$i][$point1]['Y'])/2) +
-                        $sourceFaceData[$i][$point1]['Y'];
+                        $sourceFaceData[$i][$point1]['Y'] - $delta;
                     $midX3942 = round(($sourceFaceData[$i][$point2]['X'] - $sourceFaceData[$i][$point1]['X'])/2) +
-                        $sourceFaceData[$i][$point1]['X'];
+                        $sourceFaceData[$i][$point1]['X'] - $delta;
                 }
 
                 if ((isset($sourceFaceData[$i][48]))
@@ -2212,15 +2212,14 @@ class FacialFeatureDetector
 /*                 $fd = fopen('_PP.json', "w");
                      fwrite($fd,json_encode($FaceData));
                      fclose($fd);*/
-        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['normmask'],'eye',39,42,100);
-        $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['normmask'],'mouth',39,42,100);
-        $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['normmask'],'brow',39,42,100);
-        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['normmask'],'eyebrow',39,42,100);
-        $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['normmask'],'nose', 39,42,100);
-        $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['normmask'],'chin',39,42,100);
+        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['normmask'],'eye',39,42,150);
+        $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['normmask'],'mouth',39,42,150);
+        $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['normmask'],'brow',39,42,150);
+        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['normmask'],'eyebrow',39,42,150);
+        $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['normmask'],'nose', 39,42,150);
+        $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['normmask'],'chin',39,42,150);
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalFeatures($detectedFeaturesWithTrends);
-  //      $detectedFeaturesWithTrends = $this->addMAPoints($FaceData,$detectedFeaturesWithTrends,'3_5');
 
         return $detectedFeaturesWithTrends;
     }
