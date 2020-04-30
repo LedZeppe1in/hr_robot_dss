@@ -1692,6 +1692,7 @@ class FacialFeatureDetector
                                 }
 
                                 if ($v1[$i - 1]["val"] !== $v1[$i]["val"]) { //если значения отличаются
+                                    $trenfVal = 'none';
                                     //это либо числовое значение
                                     if (is_numeric($v1[$i]["val"])) {
                                         if ($v1[$i - 1]["val"] > $v1[$i]["val"]) $trenfVal = '-';
