@@ -2226,17 +2226,17 @@ class FacialFeatureDetector
             fclose($fd);*/
         $detectedFeatures = array();
         $FaceData = $this->processingOutliers($FaceData,10,1);
-//        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER',$FaceData,$detectedFeatures,'outlier_level_percent(10)outlier_neighbors(1)');
+        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER',$FaceData,$detectedFeatures,'outlier_level_percent(10)outlier_neighbors(1)');
         $FaceData = $this->processingWithMovingAverage($FaceData,3);
-//        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3)');
+        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3)');
         $FaceData = $this->processingWithMovingAverage($FaceData,5);
-//        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3_5)');
+        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3_5)');
 //                $this->saveXY2($FaceData,'m1.json');
  /*         $fd = fopen('_MA.json', "w");
               fwrite($fd,json_encode($FaceData));
               fclose($fd);*/
         $this->rotationAndStabilization($FaceData['normmask']);
-//        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER_MA_ROTAITED',$FaceData,$detectedFeatures,'pp.3942');
+        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER_MA_ROTAITED',$FaceData,$detectedFeatures,'pp.3942');
 /*                 $fd = fopen('_PP.json', "w");
                      fwrite($fd,json_encode($FaceData));
                      fclose($fd);*/
