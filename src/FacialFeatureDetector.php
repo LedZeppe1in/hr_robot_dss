@@ -560,15 +560,15 @@ class FacialFeatureDetector
 
     }
 
-    public function addPointsToResults($pointsName,$sourceFaceData,$resFaceData,$info)
+    public function addPointsToResults($pointsName,$sectionName,$sourceFaceData,$resFaceData,$info)
     {
-        if (isset($sourceFaceData['normmask'])) {
-            $resFaceData['MASK_NAMES'][] = $pointsName . '(' . $info . ')';
-            for ($i = 0; $i < count($sourceFaceData['normmask']); $i++) {
-                if (isset($sourceFaceData['normmask'][$i]))
-                    foreach ($sourceFaceData['normmask'][$i] as $k1 => $v1) { //points
-                        $resFaceData['frame_#' . $i][$pointsName . '(' . $info . ')'][$k1][0] = $sourceFaceData['normmask'][$i][$k1]['X'];
-                        $resFaceData['frame_#' . $i][$pointsName . '(' . $info . ')'][$k1][1] = $sourceFaceData['normmask'][$i][$k1]['Y'];
+        if (isset($sourceFaceData[$pointsName])) {
+            $resFaceData['MASK_NAMES'][] = $sectionName . '(' . $info . ')';
+            for ($i = 0; $i < count($sourceFaceData[$pointsName]); $i++) {
+                if (isset($sourceFaceData[$pointsName][$i]))
+                    foreach ($sourceFaceData[$pointsName][$i] as $k1 => $v1) { //points
+                        $resFaceData['frame_#' . $i][$sectionName . '(' . $info . ')'][$k1][0] = $sourceFaceData[$pointsName][$i][$k1]['X'];
+                        $resFaceData['frame_#' . $i][$sectionName . '(' . $info . ')'][$k1][1] = $sourceFaceData[$pointsName][$i][$k1]['Y'];
                     }
             }
         }
@@ -1535,14 +1535,14 @@ class FacialFeatureDetector
                     $leftMouthCornerXMov = $sourceFaceData[$i][48]['X'] - $xN48 - $midX3942;
                     $leftMouthCornerYMov = $sourceFaceData[$i][48]['Y'] - $yN48 - $midY3942;
 
-                    $leftMouthCornerXMovForce = $this->getForce($scaleX48, abs($leftMouthCornerXMov));
-                    $leftMouthCornerYMovForce = $this->getForce($scaleY48, abs($leftMouthCornerYMov));
+                    $leftMouthCornerXMovForce = $this->getForce($scaleMouthLength, abs($leftMouthCornerXMov));
+                    $leftMouthCornerYMovForce = $this->getForce($scaleMouthWidth, abs($leftMouthCornerYMov));
 
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["max"] = $maxX48;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["min"] = $minX48;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["max"] = $scaleMouthLength;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["min"] = 0;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"][$i]["delta"] = $leftMouthCornerXMov;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["max"] = $maxY48;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["min"] = $minY48;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["max"] = $scaleMouthWidth;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["min"] = 0;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"][$i]["delta"] = $leftMouthCornerYMov;
 
 //                    $leftMouthCornerYMovAvForce = round(($leftMouthCornerXMovForce + $leftMouthCornerYMovForce) / 2);
@@ -1577,14 +1577,14 @@ class FacialFeatureDetector
                     $rightMouthCornerXMov = $sourceFaceData[$i][54]['X'] - $xN54 - $midX3942;
                     $rightMouthCornerYMov = $sourceFaceData[$i][54]['Y'] - $yN54 - $midY3942;
 
-                    $rightMouthCornerXMovForce = $this->getForce($scaleX54, abs($rightMouthCornerXMov));
-                    $rightMouthCornerYMovForce = $this->getForce($scaleY54, abs($rightMouthCornerYMov));
+                    $rightMouthCornerXMovForce = $this->getForce($scaleMouthLength, abs($rightMouthCornerXMov));
+                    $rightMouthCornerYMovForce = $this->getForce($scaleMouthWidth, abs($rightMouthCornerYMov));
 
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["max"] = $maxX54;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["min"] = $minX54;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["max"] = $scaleMouthLength;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["min"] = 0;
                     $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"][$i]["delta"] = $rightMouthCornerXMov;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["max"] = $maxY54;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["min"] = $minY54;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["max"] = $scaleMouthWidth;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["min"] = 0;
                     $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"][$i]["delta"] = $rightMouthCornerYMov;
 
 //                    $rightMouthCornerYMovAvForce = round(($rightMouthCornerXMovForce + $rightMouthCornerYMovForce) / 2);
@@ -2370,17 +2370,21 @@ class FacialFeatureDetector
             fclose($fd);*/
         $detectedFeatures = array();
         $FaceData = $this->processingOutliers($FaceData,10,1);
-        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER',$FaceData,$detectedFeatures,'outlier_level_percent(10)outlier_neighbors(1)');
+        $detectedFeatures = $this->addPointsToResults('normmask',
+            'NORM_POINTS_OUTLIER',$FaceData,$detectedFeatures,'outlier_level_percent(10)outlier_neighbors(1)');
         $FaceData = $this->processingWithMovingAverage($FaceData,3);
-        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3)');
+        $detectedFeatures = $this->addPointsToResults('normmask',
+            'NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3)');
         $FaceData = $this->processingWithMovingAverage($FaceData,5);
-        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3_5)');
+        $detectedFeatures = $this->addPointsToResults('normmask',
+            'NORM_POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3_5)');
 //                $this->saveXY2($FaceData,'m1.json');
  /*         $fd = fopen('_MA.json', "w");
               fwrite($fd,json_encode($FaceData));
               fclose($fd);*/
         $this->rotationAndStabilization($FaceData['normmask']);
-        $detectedFeatures = $this->addPointsToResults('NORM_POINTS_OUTLIER_MA_ROTAITED',$FaceData,$detectedFeatures,'pp.3942');
+        $detectedFeatures = $this->addPointsToResults('normmask',
+            'NORM_POINTS_OUTLIER_MA_ROTAITED',$FaceData,$detectedFeatures,'pp.3942');
 /*                 $fd = fopen('_PP.json', "w");
                      fwrite($fd,json_encode($FaceData));
                      fclose($fd);*/
