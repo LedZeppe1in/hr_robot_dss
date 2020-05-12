@@ -30,7 +30,7 @@ class FacialFeatureDetector
         $facialCharacteristicsNumber = count($facialCharacteristics);
         if ($facialCharacteristicsNumber <= 0)
             return false;
-        $max = 0;
+        $max = -1000;
         if (isset($facialCharacteristics[0][$pointNum][$key]))
             $max = $facialCharacteristics[0][$pointNum][$key];
         $maxFrame = 0;
@@ -57,7 +57,7 @@ class FacialFeatureDetector
         $facialCharacteristicsNumber = count($facialCharacteristics);
         if ($facialCharacteristicsNumber <= 0)
             return false;
-        $max = 0;
+        $max = -1000;
         for ($i = 0; $i < $facialCharacteristicsNumber; $i++)
             if (isset($facialCharacteristics[$i][$pointNum]) && isset($facialCharacteristics[$i][$pointNum][$key])
                 && isset($facialCharacteristics[$i][$point1][$key])
@@ -113,7 +113,7 @@ class FacialFeatureDetector
         $facialCharacteristicsNumber = count($facialCharacteristics);
         if ($facialCharacteristicsNumber <= 0)
             return false;
-        $min = 0;
+        $min = 1000;
         if (isset($facialCharacteristics[0][$pointNum][$key]))
             $min = $facialCharacteristics[0][$pointNum][$key];
         $minFrame = 0;
@@ -921,27 +921,33 @@ class FacialFeatureDetector
      * @param $sourceFaceData - входной массив с лицевыми точками (landmarks)
      * @return array - выходной массив с обработанным массивом для лба
      */
-    public function detectIrises($targetFaceData, $sourceFaceData0, $sourceFaceData, $facePart,$point1,$point2,$delta){
+    public function detectIrises($targetFaceData, $sourceFaceData0, $sourceFaceData, $facePart){
         //анализируемые точки:
         // 0 (left),
         // 1 (right),
+        //на основе абсолютных значений, т.к. они не привязаны к точкам маски
 
         // получение нормированного значения по кадру 0
 //        echo '$sourceFaceData0[0][0] /'.$sourceFaceData0[0][0].' $sourceFaceData0[0][1]/'.$sourceFaceData0[0][1].' /'.
 //            $sourceFaceData[0][$point1].'<br>';
         if (isset($sourceFaceData0[0][0])
             && isset($sourceFaceData0[0][1])
-            && isset($sourceFaceData[0][$point1])
-            && isset($sourceFaceData[0][$point2])
+//            && isset($sourceFaceData[0][$point1])
+//            && isset($sourceFaceData[0][$point2])
         ) {
-            $midNY = round(($sourceFaceData[0][$point2]['Y'] - $sourceFaceData[0][$point1]['Y'])/2) +
-                $sourceFaceData[0][$point1]['Y'] - $delta;
-            $midNX = round(($sourceFaceData[0][$point2]['X'] - $sourceFaceData[0][$point1]['X'])/2) +
-                $sourceFaceData[0][$point1]['X'] - $delta;
-            $yN0 = $sourceFaceData0[0][0]['Y'] - $midNY;
-            $xN0 = $sourceFaceData0[0][0]['X'] - $midNX;
-            $yN1 = $sourceFaceData0[0][1]['Y'] - $midNY;
-            $xN1 = $sourceFaceData0[0][1]['X'] - $midNX;
+//            $midNY = round(($sourceFaceData[0][$point2]['Y'] - $sourceFaceData[0][$point1]['Y'])/2) +
+//                $sourceFaceData[0][$point1]['Y'] - $delta;
+//            $midNX = round(($sourceFaceData[0][$point2]['X'] - $sourceFaceData[0][$point1]['X'])/2) +
+//                $sourceFaceData[0][$point1]['X'] - $delta;
+            if (isset($targetFaceData[$facePart]['VALUES_REL']["left_eye_width"][0]["val"]))
+                $leftEyeNWidthForIrises = round($targetFaceData[$facePart]['VALUES_REL']["left_eye_width"][0]["val"]/2);
+            if (isset($targetFaceData[$facePart]['VALUES_REL']["right_eye_width"][0]["val"]))
+                $rightEyeNWidthForIrises = round($targetFaceData[$facePart]['VALUES_REL']["right_eye_width"][0]["val"]/2);
+
+            $yN0 = $sourceFaceData0[0][0]['Y'];
+            $xN0 = $sourceFaceData0[0][0]['X'];
+            $yN1 = $sourceFaceData0[0][1]['Y'];
+            $xN1 = $sourceFaceData0[0][1]['X'];
 
             $maxY0 = $this->getFaceDataMaxForKeyV2($sourceFaceData0, 0, "Y");
             $minY0 = $this->getFaceDataMinForKeyV2($sourceFaceData0, 0, "Y");
@@ -957,68 +963,77 @@ class FacialFeatureDetector
             $scaleX1 = $maxX1 - $minX1;
 
             for ($i = 0; $i < count($sourceFaceData0); $i++) {
-                if (isset($sourceFaceData[$i][$point2]) && isset($sourceFaceData[$i][$point1])) {
-                    $midY = round(($sourceFaceData[$i][$point2]['Y'] - $sourceFaceData[$i][$point1]['Y']) / 2) +
+/*                    $midY = round(($sourceFaceData[$i][$point2]['Y'] - $sourceFaceData[$i][$point1]['Y']) / 2) +
                         $sourceFaceData[$i][$point1]['Y'] - $delta;
                     $midX = round(($sourceFaceData[$i][$point2]['X'] - $sourceFaceData[$i][$point1]['X']) / 2) +
-                        $sourceFaceData[$i][$point1]['X'] - $delta;
+                        $sourceFaceData[$i][$point1]['X'] - $delta;*/
                     if (isset($sourceFaceData0[$i][0])) {
-                        $leftEyePupilYMov = $sourceFaceData0[$i][0]['Y'] - $yN0 - $midY;
-                        $leftEyePupilXMov = $sourceFaceData0[$i][0]['X'] - $xN0 - $midX;
+                        $leftEyePupilYMov = $sourceFaceData0[$i][0]['Y'] - $yN0;
+                        $leftEyePupilXMov = $sourceFaceData0[$i][0]['X'] - $xN0;
                     }
                     if (isset($sourceFaceData0[$i][1])) {
-                        $rightEyePupilYMov = $sourceFaceData0[$i][1]['Y'] - $yN1 - $midY;
-                        $rightEyePupilXMov = $sourceFaceData0[$i][1]['X'] - $xN1 - $midX;
+                        $rightEyePupilYMov = $sourceFaceData0[$i][1]['Y'] - $yN1;
+                        $rightEyePupilXMov = $sourceFaceData0[$i][1]['X'] - $xN1;
                     }
-                    $leftEyePupilYMovForce = $this->getForce($scaleY0, abs($leftEyePupilYMov));
+ /*                   $leftEyePupilYMovForce = $this->getForce($scaleY0, abs($leftEyePupilYMov));
                     $leftEyePupilXMovForce = $this->getForce($scaleX0, abs($leftEyePupilXMov));
                     $rightEyePupilYMovForce = $this->getForce($scaleY1, abs($rightEyePupilYMov));
-                    $rightEyePupilXMovForce = $this->getForce($scaleX1, abs($rightEyePupilXMov));
+                    $rightEyePupilXMovForce = $this->getForce($scaleX1, abs($rightEyePupilXMov));*/
+                    $leftEyePupilYMovForce = $this->getForce($leftEyeNWidthForIrises, abs($leftEyePupilYMov));
+                    $leftEyePupilXMovForce = $this->getForce($leftEyeNWidthForIrises, abs($leftEyePupilXMov));
+                    $rightEyePupilYMovForce = $this->getForce($rightEyeNWidthForIrises, abs($rightEyePupilYMov));
+                    $rightEyePupilXMovForce = $this->getForce($rightEyeNWidthForIrises, abs($rightEyePupilXMov));
 
-                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_x"]["max"] = $maxX0;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_x"]["min"] = $minX0;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_x"]["max"] = $leftEyeNWidthForIrises;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_x"]["min"] = 0;
                     $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_x"][$i]["delta"] = $leftEyePupilXMov;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_y"]["max"] = $maxY0;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_y"]["min"] = $minY0;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_y"]["max"] = $leftEyeNWidthForIrises;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_y"]["min"] = 0;
                     $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_y"][$i]["delta"] = $leftEyePupilYMov;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil_movement_x"]["max"] = $maxX1;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil_movement_x"]["min"] = $minX1;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil_movement_x"]["max"] = $rightEyeNWidthForIrises;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil_movement_x"]["min"] = 0;
                     $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil_movement_x"][$i]["delta"] = $rightEyePupilXMov;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil_movement_y"]["max"] = $maxY1;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil_movement_y"]["min"] = $minY1;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil_movement_y"]["max"] = $rightEyeNWidthForIrises;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil_movement_y"]["min"] = 0;
                     $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil_movement_y"][$i]["delta"] = $rightEyePupilYMov;
 
                     $targetFaceData[$facePart]["left_eye_pupil_movement_x"][$i]["force"] = $leftEyePupilXMovForce;
                     $targetFaceData[$facePart]["left_eye_pupil_movement_y"][$i]["force"] = $leftEyePupilYMovForce;
+                    $targetFaceData[$facePart]["left_eye_pupil_movement_d"][$i]["force"] =
+                        round(($leftEyePupilXMovForce + $leftEyePupilYMovForce)/2);
                     $targetFaceData[$facePart]["right_eye_pupil_movement_x"][$i]["force"] = $rightEyePupilXMovForce;
                     $targetFaceData[$facePart]["right_eye_pupil_movement_y"][$i]["force"] = $rightEyePupilYMovForce;
+                    $targetFaceData[$facePart]["right_eye_pupil_movement_d"][$i]["force"] =
+                        round(($rightEyePupilYMovForce + $rightEyePupilXMovForce)/2);
 
                     $xMov = 'none';
                     if ($leftEyePupilYMov > 0) $yMov = 'down';
                     if ($leftEyePupilYMov < 0) $yMov = 'up';
                     if ($leftEyePupilYMov == 0) $yMov = 'none';
-                    if ($leftEyePupilXMov > 0) $xMov = 'to center';
-                    if ($leftEyePupilXMov < 0) $xMov = 'from center';
+                    if ($leftEyePupilXMov > 0) $xMov = 'right';
+                    if ($leftEyePupilXMov < 0) $xMov = 'left';
 //                if ($yMov == 'none') $yMov = '';
 //                if (($xMov != '') && ($yMov != '')) $yMov = ' and ' . $yMov;
 //                if (($xMov == '') && ($yMov == '')) $yMov = 'none';
 
                     $targetFaceData[$facePart]["left_eye_pupil_movement_x"][$i]["val"] = $xMov;
                     $targetFaceData[$facePart]["left_eye_pupil_movement_y"][$i]["val"] = $yMov;
+                    $targetFaceData[$facePart]["left_eye_pupil_movement_d"][$i]["val"] = $yMov.' and '.$xMov;
 
                     $xMov = 'none';
                     if ($rightEyePupilYMov > 0) $yMov = 'down';
                     if ($rightEyePupilYMov < 0) $yMov = 'up';
                     if ($rightEyePupilYMov == 0) $yMov = 'none';
-                    if ($rightEyePupilXMov > 0) $xMov = 'to center';
-                    if ($rightEyePupilXMov < 0) $xMov = 'from center';
+                    if ($rightEyePupilXMov > 0) $xMov = 'left';
+                    if ($rightEyePupilXMov < 0) $xMov = 'right';
 //                if ($yMov == 'none') $yMov = '';
 //                if (($xMov != '') && ($yMov != '')) $yMov = ' and ' . $yMov;
 //                if (($xMov == '') && ($yMov == '')) $yMov = 'none';
 
                     $targetFaceData[$facePart]["right_eye_pupil_movement_x"][$i]["val"] = $xMov;
                     $targetFaceData[$facePart]["right_eye_pupil_movement_y"][$i]["val"] = $yMov;
-                }
+                    $targetFaceData[$facePart]["right_eye_pupil_movement_d"][$i]["val"] = $yMov.' and '.$xMov;
+
                 }
                        return $targetFaceData;
         } else return false;
@@ -2396,7 +2411,7 @@ class FacialFeatureDetector
         $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['normmask'],'chin',39,42,150);
 
         $detectedFeatures = $this->detectIrises($detectedFeatures,
-            $FaceData['normirises'], $FaceData['normmask'], 'eye',39,42,150);
+            $FaceData['normirises'], $FaceData['normmask'], 'eye');
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalFeatures($detectedFeaturesWithTrends);
@@ -2669,31 +2684,59 @@ class FacialFeatureDetector
             $targetValues['changeDirection'] = 'Вниз';
         }
         // Зрачки
-        if ($sourceFeatureName == 'left_eye_pupil_movement')
+        if (($sourceFeatureName == 'left_eye_pupil_movement_x') || ($sourceFeatureName == 'left_eye_pupil_movement_y')
+            || ($sourceFeatureName == 'left_eye_pupil_movement_d'))
             $targetValues['targetFacePart'] = 'Левый зрачок';
-        if ($sourceFeatureName == 'right_eye_pupil_movement')
+        if (($sourceFeatureName == 'right_eye_pupil_movement_x') || ($sourceFeatureName == 'right_eye_pupil_movement_y')
+            || ($sourceFeatureName == 'right_eye_pupil_movement_d'))
             $targetValues['targetFacePart'] = 'Правый зрачок';
-        if ((($sourceFeatureName == 'left_eye_pupil_movement') || ($sourceFeatureName == 'right_eye_pupil_movement')) &&
-            ($sourceValue == 'straight ahead')) {
+
+        if ((($sourceFeatureName == 'left_eye_pupil_movement_d') || ($sourceFeatureName == 'right_eye_pupil_movement_d')) &&
+            ($sourceValue == 'none and none')) {
             $targetValues['featureChangeType'] = 'Отсутствие типа';
             $targetValues['changeDirection'] = 'Прямо перед собой';
         }
-        if ((($sourceFeatureName == 'left_eye_pupil_movement') || ($sourceFeatureName == 'right_eye_pupil_movement')) &&
-            ($sourceValue == 'straight left')) {
+        if ((($sourceFeatureName == 'left_eye_pupil_movement_x') || ($sourceFeatureName == 'right_eye_pupil_movement_x')) &&
+            ($sourceValue == 'left')) {
             $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
             $targetValues['changeDirection'] = 'Влево';
         }
-/*        if ((($sourceFeatureName == 'left_eye_pupil_movement') || ($sourceFeatureName == 'right_eye_pupil_movement')) &&
-            ($sourceValue == 'down right')) {
+        if ((($sourceFeatureName == 'left_eye_pupil_movement_x') || ($sourceFeatureName == 'right_eye_pupil_movement_x')) &&
+            ($sourceValue == 'right')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
+            $targetValues['changeDirection'] = 'Вправо';
+        }
+        if ((($sourceFeatureName == 'left_eye_pupil_movement_y') || ($sourceFeatureName == 'right_eye_pupil_movement_y')) &&
+            ($sourceValue == 'up')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
+            $targetValues['changeDirection'] = 'Вверх';
+        }
+        if ((($sourceFeatureName == 'left_eye_pupil_movement_y') || ($sourceFeatureName == 'right_eye_pupil_movement_y')) &&
+            ($sourceValue == 'down')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
+            $targetValues['changeDirection'] = 'Вниз';
+        }
+        if ((($sourceFeatureName == 'left_eye_pupil_movement_d') || ($sourceFeatureName == 'right_eye_pupil_movement_d')) &&
+            ($sourceValue == 'up and right')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
+            $targetValues['changeDirection'] = 'Вверх и вправо';
+        }
+        if ((($sourceFeatureName == 'left_eye_pupil_movement_d') || ($sourceFeatureName == 'right_eye_pupil_movement_d')) &&
+            ($sourceValue == 'down and right')) {
             $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
             $targetValues['changeDirection'] = 'Вниз и вправо';
         }
-        if ((($sourceFeatureName == 'left_eye_pupil_movement') || ($sourceFeatureName == 'right_eye_pupil_movement')) &&
-            ($sourceValue == 'up left')) {
+        if ((($sourceFeatureName == 'left_eye_pupil_movement_d') || ($sourceFeatureName == 'right_eye_pupil_movement_d')) &&
+            ($sourceValue == 'up and left')) {
             $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
             $targetValues['changeDirection'] = 'Вверх и влево';
         }
-        */
+        if ((($sourceFeatureName == 'left_eye_pupil_movement_d') || ($sourceFeatureName == 'right_eye_pupil_movement_d')) &&
+            ($sourceValue == 'down and left')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
+            $targetValues['changeDirection'] = 'Вниз и влево';
+        }
+
         // Уголки глаз
         if ($sourceFeatureName == 'left_eye_inner_movement')
             $targetValues['targetFacePart'] = 'Внутренний уголок левого глаза';
