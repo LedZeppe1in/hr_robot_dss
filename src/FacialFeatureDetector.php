@@ -1933,6 +1933,8 @@ class FacialFeatureDetector
       return $sourceFaceData2;
     }
 
+    //сохранение координат точек в csv файл
+    //вход - массив с точками; имя файла
     public function saveXY($sourceFaceData2,$fileName)
     {
         // load data
@@ -2001,7 +2003,8 @@ class FacialFeatureDetector
  //       return $sourceFaceData2;
     }
 
-    //input data is array
+    //сохранение координат точек в csv файл
+    //вход - массив с точками; имя файла
     public function saveXY2($sourceFaceData3,$fileName)
     {
         //
@@ -2202,6 +2205,9 @@ class FacialFeatureDetector
         return $sourceFaceData1;
     }
 
+    //масштабирование точек маски
+    //вход - массив с точками; точки, относительно которых происходит масштабирование
+    //выход - отмасштабированные точки
     public function scaling($sourceFaceData1,$point1,$point2){
         // input data from the points levels
         if ($sourceFaceData1 != null) {
@@ -2219,8 +2225,8 @@ class FacialFeatureDetector
                         }else { //process frames? get the current frame values
                             $curXVal =  abs($sourceFaceData1[$i][$point1]['X'] - $sourceFaceData1[$i][$point2]['X']);
                             $curYVal =  abs($sourceFaceData1[$i][$point1]['Y'] - $sourceFaceData1[$i][$point2]['Y']);
-                            $scKX = $curXVal/$baseXVal;
-                            $scKY = $curYVal/$baseYVal;
+ //                           $scKX = $baseXVal/$curXVal;
+                            $scKY = $baseYVal/$curYVal;
 
                             foreach ($sourceFaceData1[$i] as $k1 => $v1) { //points
                                 if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
@@ -2229,8 +2235,8 @@ class FacialFeatureDetector
                                 }
                             }
                         }
-//                        echo $sourceFaceData1[$i][42]['Y'] .'/'.$sourceFaceData1[$i][39]['Y'] .'<br>';
-//             echo $i.' :: $curXVal/$baseXVal '.$curXVal.'/'.$baseXVal.' = '. $scKX.'  $curYVal/$baseYVal '.$curYVal.'/'.$baseYVal.' = '.$scKY.' <br>';
+//             echo $i.' : $baseYVal/$curYVal '.$baseYVal.'/'.$curYVal.' = '.$scKY.
+//                 ' afterY: '.abs($sourceFaceData1[$i][$point1]['Y'] - $sourceFaceData1[$i][$point2]['Y']).' <br>';
                     }
                 //---------------------------------------------------------------------------------------------------
             }
@@ -2238,6 +2244,9 @@ class FacialFeatureDetector
         return $sourceFaceData1;
     }
 
+    //поворот точек маски (горизонтирование)
+    //вход - массив с точками; точки, относительно которых происходит поворот на горизонталь
+    //выход - отнивилированные точки точки
     public function rotating($sourceFaceData1,$point1,$point2){
         // input data from the points levels
         if ($sourceFaceData1 != null) {
@@ -2250,14 +2259,18 @@ class FacialFeatureDetector
                         //get  the equation of a linear function by 2 (39 and 42) points for each frame
                         //(y39-y42)x+(x42-x39)y+(x39*y42-x42*y39)=0
                         //when x=0 then y= - (x39*y42-x42*y39) / (x42-x39);
-                        $deltaY = abs(round(($sourceFaceData1[$i][$point1]['X'] * $sourceFaceData1[$i][$point2]['Y'] -
+ /*                       $deltaY = abs(round(($sourceFaceData1[$i][$point1]['X'] * $sourceFaceData1[$i][$point2]['Y'] -
                                 $sourceFaceData1[$i][$point2]['X'] * $sourceFaceData1[$i][$point1]['Y']) /
                             ($sourceFaceData1[$i][$point2]['X'] - $sourceFaceData1[$i][$point1]['X'])));
 
                         //get rotation angle, coordibates of 39 and 42 points are used
                         $rotationAngle = acos(abs($sourceFaceData1[$i][$point2]['X']) /
                             (sqrt(pow($sourceFaceData1[$i][$point2]['X'], 2) +
-                                pow($sourceFaceData1[$i][$point2]['Y'] - $deltaY, 2))));
+                                pow($sourceFaceData1[$i][$point2]['Y'] - $deltaY, 2))));*/
+                        $distX = abs($sourceFaceData1[$i][$point2]['X'] - $sourceFaceData1[$i][$point1]['X']);
+                        $distY = abs($sourceFaceData1[$i][$point2]['Y'] - $sourceFaceData1[$i][$point1]['Y']);
+
+                        $rotationAngle = acos( $distX / (sqrt(pow($distX, 2) + pow($distY, 2))));
 
                         foreach ($sourceFaceData1[$i] as $k1 => $v1) { //points
                             if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
@@ -2267,7 +2280,7 @@ class FacialFeatureDetector
                                     $sourceFaceData1[$i][$k1]['Y'] * cos($rotationAngle));
                             }
                         }
-//                        echo $sourceFaceData1[$i][39]['Y'].'/'.$sourceFaceData1[$i][39]['Y'].'<br>';
+//                        echo $i.': '.$sourceFaceData1[$i][39]['Y'].'/'.$sourceFaceData1[$i][39]['Y'].'<br>';
                     }
                 //---------------------------------------------------------------------------------------------------
             }
@@ -2275,6 +2288,9 @@ class FacialFeatureDetector
         return $sourceFaceData1;
     }
 
+    //стабилизация точек маски относительно инварианта (неизменной точки)
+    //вход - массив с точками; точки, относительно которых происходит определение инварианта
+    //выход - стабилизированные точки
     public function stabilizating($sourceFaceData1,$point1,$point2){
         // input data from the points levels
         if ($sourceFaceData1 != null) {
@@ -2302,7 +2318,7 @@ class FacialFeatureDetector
                                 }
                             }
 
- /*                       echo $i.' $baseX-Y: '.$baseX.'/'.$baseY.' $deltaX-Y:'.$deltaX.'/'.$deltaY.' Y-39-42:'.
+/*                        echo $i.' $baseX-Y: '.$baseX.'/'.$baseY.' $deltaX-Y:'.$deltaX.'/'.$deltaY.' Y-39-42:'.
                             $sourceFaceData1[$i][39]['Y'].'/'.$sourceFaceData1[$i][42]['Y'].' cur3942X-Y'.
                             ($sourceFaceData1[$i][39]['X']+round(($sourceFaceData1[$i][42]['X']-$sourceFaceData1[$i][39]['X'])/2)).'/'.
                             ($sourceFaceData1[$i][39]['Y']+round(($sourceFaceData1[$i][42]['Y']-$sourceFaceData1[$i][39]['Y'])/2)).'<br>';*/
@@ -2427,9 +2443,6 @@ class FacialFeatureDetector
         else
             $FaceData =  $FaceData_; // use the AB format
 
-  /*      $fd = fopen('_AB.json', "w");
-            fwrite($fd,json_encode($FaceData));
-            fclose($fd);*/
         $detectedFeatures = array();
 
         $FaceData['normmask'] = $this->rotating($FaceData['normmask'],39,42);
@@ -2444,9 +2457,6 @@ class FacialFeatureDetector
         $detectedFeatures = $this->addPointsToResults('normmask',
             'NORM_POINTS_STABILIZED',$FaceData,$detectedFeatures,'pp.3942');
 
-//        $FaceData = $this->scaling($FaceData['points'],27,28);
-        $FaceData = $this->processingOutliers($FaceData,10,1);
-
         $FaceData = $this->processingOutliers($FaceData,10,1);
         $detectedFeatures = $this->addPointsToResults('normmask',
             'NORM_POINTS_OUTLIER',$FaceData,$detectedFeatures,'outlier_level_percent(10)outlier_neighbors(1)');
@@ -2460,12 +2470,7 @@ class FacialFeatureDetector
  /*         $fd = fopen('_MA.json', "w");
               fwrite($fd,json_encode($FaceData));
               fclose($fd);*/
-//        $this->rotationAndStabilization($FaceData['normmask']);
-//        $detectedFeatures = $this->addPointsToResults('normmask',
-//            'NORM_POINTS_OUTLIER_MA_ROTAITED',$FaceData,$detectedFeatures,'pp.3942');
-/*                 $fd = fopen('_PP.json', "w");
-                     fwrite($fd,json_encode($FaceData));
-                     fclose($fd);*/
+
         $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['normmask'],'eye',39,42,150);
         $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['normmask'],'mouth',39,42,150);
         $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['normmask'],'brow',39,42,150);
