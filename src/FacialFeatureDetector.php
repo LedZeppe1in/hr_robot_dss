@@ -3175,14 +3175,14 @@ class FacialFeatureDetector
                             $curXVal =  abs($sourceFaceData1[$i][$point1]['X'] - $sourceFaceData1[$i][$point2]['X']);
                             $curYVal =  abs($sourceFaceData1[$i][$point1]['Y'] - $sourceFaceData1[$i][$point2]['Y']);
  //                           $scKX = $baseXVal/$curXVal;
-                            if ($curYVal != 0)
-                                $scKY = $baseYVal / $curYVal;
-                            else
-                                $scKY = 0;
+                            if ($curYVal != 0) $scKY = $baseYVal / $curYVal;
+                             else $scKY = 1;
+                            if ($curXVal != 0) $scKX = $baseXVal / $curXVal;
+                             else $scKX = 1;
                             if ($scKY != 0)
                                 foreach ($sourceFaceData1[$i] as $k1 => $v1) //points
                                     if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
-                                        $sourceFaceData1[$i][$k1]['X'] = round($scKY * $sourceFaceData1[$i][$k1]['X']);
+                                        $sourceFaceData1[$i][$k1]['X'] = round($scKX * $sourceFaceData1[$i][$k1]['X']);
                                         $sourceFaceData1[$i][$k1]['Y'] = round($scKY * $sourceFaceData1[$i][$k1]['Y']);
                                     }
                         }
@@ -3399,6 +3399,10 @@ class FacialFeatureDetector
         $detectedFeatures = $this->addPointsToResults('normmask',
             'NORM_POINTS_ORIGIN',$FaceData,$detectedFeatures,'');
 
+        $FaceData['normmask'] = $this->stabilizating($FaceData['normmask'],39,42);
+        $detectedFeatures = $this->addPointsToResults('normmask',
+            'NORM_POINTS_STABILIZED',$FaceData,$detectedFeatures,'pp.3942');
+
         $FaceData['normmask'] = $this->rotating($FaceData['normmask'],39,42);
         $detectedFeatures = $this->addPointsToResults('normmask',
             'NORM_POINTS_ROTAITED',$FaceData,$detectedFeatures,'pp.3942');
@@ -3407,14 +3411,10 @@ class FacialFeatureDetector
         $detectedFeatures = $this->addPointsToResults('normmask',
             'NORM_POINTS_SCALED',$FaceData,$detectedFeatures,'pp.2728');
 
-        $FaceData['normmask'] = $this->stabilizating($FaceData['normmask'],39,42);
-        $detectedFeatures = $this->addPointsToResults('normmask',
-            'NORM_POINTS_STABILIZED',$FaceData,$detectedFeatures,'pp.3942');
-
         // ------------------------ зрачки ----------------------------------------
+        $FaceData['normirises'] = $this->stabilizating($FaceData['normirises'],0,1);
         $FaceData['normirises'] = $this->rotating($FaceData['normirises'],0,1);
         $FaceData['normirises'] = $this->scaling($FaceData['normirises'],0,1);
-        $FaceData['normirises'] = $this->stabilizating($FaceData['normirises'],0,1);
         //---------------------------------------------------------------------------
 
         $FaceData = $this->processingOutliers($FaceData,10,1);
