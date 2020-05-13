@@ -3174,15 +3174,16 @@ class FacialFeatureDetector
                             $curXVal =  abs($sourceFaceData1[$i][$point1]['X'] - $sourceFaceData1[$i][$point2]['X']);
                             $curYVal =  abs($sourceFaceData1[$i][$point1]['Y'] - $sourceFaceData1[$i][$point2]['Y']);
  //                           $scKX = $baseXVal/$curXVal;
-                            $scKY = $baseYVal/$curYVal;
-
-                            if ($scKY !=0){
-                            foreach ($sourceFaceData1[$i] as $k1 => $v1) { //points
-                                if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
-                                    $sourceFaceData1[$i][$k1]['X'] = round($scKY*$sourceFaceData1[$i][$k1]['X']);
-                                    $sourceFaceData1[$i][$k1]['Y'] = round($scKY*$sourceFaceData1[$i][$k1]['Y']);
-                                }
-                            }}
+                            if ($curYVal != 0)
+                                $scKY = $baseYVal / $curYVal;
+                            else
+                                $scKY = 0;
+                            if ($scKY != 0)
+                                foreach ($sourceFaceData1[$i] as $k1 => $v1) //points
+                                    if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
+                                        $sourceFaceData1[$i][$k1]['X'] = round($scKY * $sourceFaceData1[$i][$k1]['X']);
+                                        $sourceFaceData1[$i][$k1]['Y'] = round($scKY * $sourceFaceData1[$i][$k1]['Y']);
+                                    }
                         }
 //             echo $i.' : $baseYVal/$curYVal '.$baseYVal.'/'.$curYVal.' = '.$scKY.
 //                 ' afterY: '.abs($sourceFaceData1[$i][$point1]['Y'] - $sourceFaceData1[$i][$point2]['Y']).' <br>';
