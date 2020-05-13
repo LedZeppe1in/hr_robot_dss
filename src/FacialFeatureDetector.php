@@ -875,13 +875,14 @@ class FacialFeatureDetector
 
     public function addPointsToResults($pointsName,$sectionName,$sourceFaceData,$resFaceData,$info)
     {
+        if($info != '') $info = '(' . $info . ')';
         if (isset($sourceFaceData[$pointsName])) {
-            $resFaceData['MASK_NAMES'][] = $sectionName . '(' . $info . ')';
+            $resFaceData['MASK_NAMES'][] = $sectionName . $info;
             for ($i = 0; $i < count($sourceFaceData[$pointsName]); $i++) {
                 if (isset($sourceFaceData[$pointsName][$i]))
                     foreach ($sourceFaceData[$pointsName][$i] as $k1 => $v1) { //points
-                        $resFaceData['frame_#' . $i][$sectionName . '(' . $info . ')'][$k1][0] = $sourceFaceData[$pointsName][$i][$k1]['X'];
-                        $resFaceData['frame_#' . $i][$sectionName . '(' . $info . ')'][$k1][1] = $sourceFaceData[$pointsName][$i][$k1]['Y'];
+                        $resFaceData['frame_#' . $i][$sectionName . $info][$k1][0] = $sourceFaceData[$pointsName][$i][$k1]['X'];
+                        $resFaceData['frame_#' . $i][$sectionName . $info][$k1][1] = $sourceFaceData[$pointsName][$i][$k1]['Y'];
                     }
             }
         }
@@ -3395,6 +3396,8 @@ class FacialFeatureDetector
             $FaceData =  $FaceData_; // use the AB format
 
         $detectedFeatures = array();
+        $detectedFeatures = $this->addPointsToResults('normmask',
+            'NORM_POINTS_ORIGIN',$FaceData,$detectedFeatures,'');
 
         $FaceData['normmask'] = $this->rotating($FaceData['normmask'],39,42);
         $detectedFeatures = $this->addPointsToResults('normmask',
