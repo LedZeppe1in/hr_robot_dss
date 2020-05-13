@@ -3182,7 +3182,7 @@ class FacialFeatureDetector
                             if ($scKY != 0)
                                 foreach ($sourceFaceData1[$i] as $k1 => $v1) //points
                                     if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
-                                        $sourceFaceData1[$i][$k1]['X'] = round($scKX * $sourceFaceData1[$i][$k1]['X']);
+ //                                       $sourceFaceData1[$i][$k1]['X'] = round($scKX * $sourceFaceData1[$i][$k1]['X']);
                                         $sourceFaceData1[$i][$k1]['Y'] = round($scKY * $sourceFaceData1[$i][$k1]['Y']);
                                     }
                         }
