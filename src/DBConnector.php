@@ -148,7 +148,8 @@ class DBConnector
      *
      * @param $connection - соединение с БД
      * @param $id - идентификатор цифровой маски (PK)
-     * @param $fileName - название json-файла с лицевыми точками сохраняемого на Object Storage
+     * @param $fileName - название json-файла с лицевыми точками,
+     * сохраняемого на Object Storage (с указанием расширения файла)
      * @param $description - описание цифровой маски
      * @param $videoInterviewId - обновляемое значение для поля идентификатора видеоинтервью (дочернего ключа, FK)
      */
@@ -160,6 +161,27 @@ class DBConnector
         $sql = "UPDATE hrrobot_advanced_landmark
             SET updated_at = '$currentTime', file_name = '$fileName', description = '$description', 
                 video_interview_id = '$videoInterviewId'
+            WHERE id = '$id'";
+        // Выполнение SQL-запроса
+        pg_query($connection, $sql) or die("Ошибка в запросе: " .
+            iconv('UTF-8', 'CP1251', $sql) . " " . pg_last_error($connection));
+    }
+
+    /**
+     * Обновление таблицы "hrrobot_analysis_result" - обновление поля с названием файла результатов интерпретации.
+     *
+     * @param $connection - соединение с БД
+     * @param $id - идентификатор результата анализа (PK)
+     * @param $interpretationResultFileName - название json-файла с результатами интерпретации,
+     * сохраняемого на Object Storage (с указанием расширения файла)
+     */
+    public function updateAnalysisResult($connection, $id, $interpretationResultFileName)
+    {
+        // Получение текущего времени
+        $currentTime = time();
+        // SQL-запрос
+        $sql = "UPDATE hrrobot_analysis_result
+            SET updated_at = '$currentTime', interpretation_result_file_name = '$interpretationResultFileName'
             WHERE id = '$id'";
         // Выполнение SQL-запроса
         pg_query($connection, $sql) or die("Ошибка в запросе: " .
