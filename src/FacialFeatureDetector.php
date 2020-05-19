@@ -2604,7 +2604,7 @@ class FacialFeatureDetector
             //Максимум по оси Y (максимальное перемещение вниз) =
             //((отрезок между т.0 и средней точкой рта н.т. 62 (66)) - отрезок тт.48-54* 20%) + отрезок тт.48-54 + 25%
             $yN66 = $sourceFaceData[$normFrameIndex][66]['Y'] - $midNY3942;
-            $lowerLipMax = $yN66 - $mouthLengthN*0.05;
+            $lowerLipMax = $yN66 + $mouthLengthN*0.05;
             // Минимальные значения Ось Y – длина отрезка (57-66)  близкая к 0
             $lowerLipMin = $sourceFaceData[$normFrameIndex][57]['Y'] - $sourceFaceData[$normFrameIndex][66]['Y'];
             $scaleLowerLip = $lowerLipMax - $lowerLipMin;
@@ -2615,10 +2615,10 @@ class FacialFeatureDetector
             $rightCornerYMax = $yN54 - $mouthLengthN*0.2;
             //Минимальные значения
             //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) + длина рта в нормальном состоянии (48-54) * 20%.
-            $leftCornerYMin = $yN48; // - $mouthLengthN*0.2;
-            $rightCornerYMin = $yN54; // - $mouthLengthN*0.2;
-            $scaleLeftCornerY = $leftCornerYMax - $leftCornerYMin;
-            $scaleRightCornerY = $rightCornerYMax - $rightCornerYMin;
+            $leftCornerYMin = $yN48 + $mouthLengthN*0.2;
+            $rightCornerYMin = $yN54 + $mouthLengthN*0.2;
+            $scaleLeftCornerY = abs($leftCornerYMax - $leftCornerYMin);
+            $scaleRightCornerY = abs($rightCornerYMax - $rightCornerYMin);
             //Максимальные значения
             //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) + (длина рта в нормальном состоянии (48-54) * 25%.
             $leftCornerXMax = $yN48 - $mouthLengthN*0.25;
@@ -2627,8 +2627,8 @@ class FacialFeatureDetector
             //Ось X – (отрезок между т.0 и  уголком рта н.т. 48 (54)) – (н. длина рта (48-54) * 30%)
             $leftCornerXMin = $yN48 - $mouthLengthN*0.3;
             $rightCornerXMin = $yN54 - $mouthLengthN*0.3;
-            $scaleLeftCornerX = $leftCornerXMax - $leftCornerXMin;
-            $scaleRightCornerX = $rightCornerXMax - $rightCornerXMin;
+            $scaleLeftCornerX = abs ($leftCornerXMax - $leftCornerXMin);
+            $scaleRightCornerX = abs($rightCornerXMax - $rightCornerXMin);
 
             // изменение длины рта
             // NORM_POINTS 48 54
@@ -3504,11 +3504,11 @@ class FacialFeatureDetector
             'POINTS_ROTAITED',$FaceData,$detectedFeatures,'pp.3942');*/
 
         // ------------------------ зрачки ----------------------------------------
-        $FaceData['normirises'] = $this->stabilizating($FaceData['normirises'],0,1);
+//        $FaceData['normirises'] = $this->stabilizating($FaceData['normirises'],0,1);
         $FaceData['normirises'] = $this->rotating($FaceData['normirises'],0,1);
  //       $FaceData['normirises'] = $this->scaling($FaceData['normirises'],0,1);
 
-        $FaceData['origirises'] = $this->stabilizating($FaceData['origirises'],0,1);
+//        $FaceData['origirises'] = $this->stabilizating($FaceData['origirises'],0,1);
         $FaceData['origirises'] = $this->rotating($FaceData['origirises'],0,1);
 //        $FaceData['origirises'] = $this->scaling($FaceData['origirises'],0,1);
         //---------------------------------------------------------------------------
