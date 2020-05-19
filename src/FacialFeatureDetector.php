@@ -382,11 +382,11 @@ class FacialFeatureDetector
                         $rightEyeWidthScaleByCircle, abs($rightEyeWidth - $rightEyeWidthN));
                     $targetFaceData[$facePart]["right_eye_width"][$i]["val"] = $rightEyeWidth;
 
-                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_width"]["max"] = $leftEyeWidthScaleByCircle;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_width"]["max"] = $leftEyeWidthMaxByCircle;
                     $targetFaceData[$facePart]['VALUES_REL']["left_eye_width"]["min"] = $leftEyeWidthN;
                     $targetFaceData[$facePart]['VALUES_REL']["left_eye_width"][$i]["delta"] = $leftEyeWidth - $leftEyeWidthN;
                     $targetFaceData[$facePart]['VALUES_REL']["left_eye_width"][$i]["val"] = $leftEyeWidth;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_width"]["max"] = $rightEyeWidthScaleByCircle;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_width"]["max"] = $rightEyeWidthMaxByCircle;
                     $targetFaceData[$facePart]['VALUES_REL']["right_eye_width"]["min"] = $rightEyeWidthN;
                     $targetFaceData[$facePart]['VALUES_REL']["right_eye_width"][$i]["delta"] = $rightEyeWidth - $rightEyeWidthN;
                     $targetFaceData[$facePart]['VALUES_REL']["right_eye_width"][$i]["val"] = $rightEyeWidth;
@@ -765,11 +765,11 @@ class FacialFeatureDetector
                         $rightEyeWidthScaleByCircle, abs($rightEyeWidth - $rightEyeWidthN));
                     $targetFaceData[$facePart]["right_eye_width"][$i]["val"] = $rightEyeWidth;
 
-                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_width"]["max"] = $leftEyeWidthScaleByCircle;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_eye_width"]["max"] = $leftEyeWidthMaxByCircle;
                     $targetFaceData[$facePart]['VALUES_REL']["left_eye_width"]["min"] = $leftEyeWidthN;
                     $targetFaceData[$facePart]['VALUES_REL']["left_eye_width"][$i]["delta"] = $leftEyeWidth - $leftEyeWidthN;
                     $targetFaceData[$facePart]['VALUES_REL']["left_eye_width"][$i]["val"] = $leftEyeWidth;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_width"]["max"] = $rightEyeWidthScaleByCircle;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_eye_width"]["max"] = $rightEyeWidthMaxByCircle;
                     $targetFaceData[$facePart]['VALUES_REL']["right_eye_width"]["min"] = $rightEyeWidthN;
                     $targetFaceData[$facePart]['VALUES_REL']["right_eye_width"][$i]["delta"] = $rightEyeWidth - $rightEyeWidthN;
                     $targetFaceData[$facePart]['VALUES_REL']["right_eye_width"][$i]["val"] = $rightEyeWidth;
@@ -2015,7 +2015,7 @@ class FacialFeatureDetector
             // интенсивность брови по вертикали – 100% - это длина отрезка от внешнего века глаза до середины брови.
             $maxLeftEyeBrow = ($sourceFaceData[0][38]['Y'] - $sourceFaceData[0][20]['Y']);
             $maxRightEyeBrow = ($sourceFaceData[0][43]['Y'] - $sourceFaceData[0][23]['Y']);
-            // интенсивность брови по вертикали – 30% длины отрезка, соединяющего  внутренние точки бровей
+            // интенсивность брови по горизонтали – 30% длины отрезка, соединяющего  внутренние точки бровей
             $maxXEyeBrow = round(0.3*($sourceFaceData[0][22]['X'] - $sourceFaceData[0][21]['X']));
             //min - нормальное положение
             $scaleLeftEyeBrow = $maxLeftEyeBrow - ($yN20 - $yN38);
@@ -2353,11 +2353,11 @@ class FacialFeatureDetector
                     $leftMouthCornerXMovForce = $this->getForce($scaleMouthLength, abs($leftMouthCornerXMov));
                     $leftMouthCornerYMovForce = $this->getForce($scaleMouthWidth, abs($leftMouthCornerYMov));
 
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["max"] = $scaleMouthLength;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["min"] = 0;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["max"] = $maxMouthLength;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["min"] = $mouthLengthN;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"][$i]["delta"] = $leftMouthCornerXMov;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["max"] = $scaleMouthWidth;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["min"] = 0;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["max"] = $maxMouthLength;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["min"] = $mouthWidthN;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"][$i]["delta"] = $leftMouthCornerYMov;
 
                     $targetFaceData[$facePart]["left_corner_mouth_movement_x"][$i]["force"] = $leftMouthCornerXMovForce;
@@ -2384,11 +2384,11 @@ class FacialFeatureDetector
                     $rightMouthCornerXMovForce = $this->getForce($scaleMouthLength, abs($rightMouthCornerXMov));
                     $rightMouthCornerYMovForce = $this->getForce($scaleMouthWidth, abs($rightMouthCornerYMov));
 
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["max"] = $scaleMouthLength;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["min"] = 0;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["max"] = $maxMouthLength;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["min"] = $mouthLengthN;
                     $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"][$i]["delta"] = $rightMouthCornerXMov;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["max"] = $scaleMouthWidth;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["min"] = 0;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["max"] = $maxMouthLength;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["min"] = $mouthWidthN;
                     $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"][$i]["delta"] = $rightMouthCornerYMov;
 
                     $targetFaceData[$facePart]["right_corner_mouth_movement_x"][$i]["force"] = $rightMouthCornerXMovForce;
@@ -2576,8 +2576,10 @@ class FacialFeatureDetector
             $scaleY54 = $maxY54 - $minY54;
 //            $maxMouthLength = $maxX54 - $minX48;
 //            $minMouthLength = $minX54 - $maxX48;
-//            $scaleMouthLength = $maxMouthLength - $minMouthLength;
-            $scaleMouthLength = $maxMouthLength - $mouthLengthN;
+//            $scaleMouthLength = $maxMouthLength - $minMouthLength; //initial version
+//            $scaleMouthLength = $maxMouthLength - $mouthLengthN; //2020-05-06
+            $minMouthLength = $mouthLengthN*0.70; //2020-05-19
+            $scaleMouthLength = $maxMouthLength - $minMouthLength; //2020-05-19
 
             $maxY51 = $this->getFaceDataMaxOnPoints($sourceFaceData, 51, "Y",$point1,$point2,$delta);
             $minY51 = $this->getFaceDataMinOnPoints($sourceFaceData, 51, "Y",$point1,$point2,$delta);
@@ -2588,7 +2590,45 @@ class FacialFeatureDetector
 //            $maxMouthWidth = $maxY57 - $minY51;
 //            $minMouthWidth = $minY57 - $maxY51;
 //            $scaleMouthWidth = $maxMouthWidth - $minMouthWidth;
-            $scaleMouthWidth = $maxMouthLength - $mouthWidthN;
+            $scaleMouthWidth = $maxMouthLength - $mouthWidthN; //2020-05-19
+
+            //2020-05-19
+            //Максимум по оси Y (максимальное перемещение вверх) =
+            //(отрезок между т.0 и  верхней точкой рта н.т. 62 (66)) - отрезок тт.48-54* 20%
+            $yN62 = $sourceFaceData[$normFrameIndex][62]['Y'] - $midNY3942;
+            $upperLipMax = $yN62 - $mouthLengthN*0.2;
+            //Минимальные значения Ось Y – длина отрезка (51-62)  близкая к 0
+            $upperLipMin = $sourceFaceData[$normFrameIndex][62]['Y'] - $sourceFaceData[$normFrameIndex][51]['Y'];
+            $scaleUpperLip = $upperLipMax - $upperLipMin;
+
+            //Максимум по оси Y (максимальное перемещение вниз) =
+            //((отрезок между т.0 и средней точкой рта н.т. 62 (66)) - отрезок тт.48-54* 20%) + отрезок тт.48-54 + 25%
+            $yN66 = $sourceFaceData[$normFrameIndex][66]['Y'] - $midNY3942;
+            $lowerLipMax = $yN66 - $mouthLengthN*0.05;
+            // Минимальные значения Ось Y – длина отрезка (57-66)  близкая к 0
+            $lowerLipMin = $sourceFaceData[$normFrameIndex][57]['Y'] - $sourceFaceData[$normFrameIndex][66]['Y'];
+            $scaleLowerLip = $lowerLipMax - $lowerLipMin;
+
+            //Уголки рта, Ось Y, Максимальные значения
+            //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) - длина рта в нормальном состоянии (48-54) * 20%.
+            $leftCornerYMax = $yN48 - $mouthLengthN*0.2;
+            $rightCornerYMax = $yN54 - $mouthLengthN*0.2;
+            //Минимальные значения
+            //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) + длина рта в нормальном состоянии (48-54) * 20%.
+            $leftCornerYMin = $yN48; // - $mouthLengthN*0.2;
+            $rightCornerYMin = $yN54; // - $mouthLengthN*0.2;
+            $scaleLeftCornerY = $leftCornerYMax - $leftCornerYMin;
+            $scaleRightCornerY = $rightCornerYMax - $rightCornerYMin;
+            //Максимальные значения
+            //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) + (длина рта в нормальном состоянии (48-54) * 25%.
+            $leftCornerXMax = $yN48 - $mouthLengthN*0.25;
+            $rightCornerXMax = $yN54 - $mouthLengthN*0.25;
+            //Минимальные значения
+            //Ось X – (отрезок между т.0 и  уголком рта н.т. 48 (54)) – (н. длина рта (48-54) * 30%)
+            $leftCornerXMin = $yN48 - $mouthLengthN*0.3;
+            $rightCornerXMin = $yN54 - $mouthLengthN*0.3;
+            $scaleLeftCornerX = $leftCornerXMax - $leftCornerXMin;
+            $scaleRightCornerX = $rightCornerXMax - $rightCornerXMin;
 
             // изменение длины рта
             // NORM_POINTS 48 54
@@ -2606,15 +2646,15 @@ class FacialFeatureDetector
                     $leftMouthCornerXMov = $sourceFaceData[$i][48]['X'] - $xN48 - $midX3942;
                     $leftMouthCornerYMov = $sourceFaceData[$i][48]['Y'] - $yN48 - $midY3942;
 
-                    $leftMouthCornerXMovForce = $this->getForce($scaleMouthLength, abs($leftMouthCornerXMov));
-                    $leftMouthCornerYMovForce = $this->getForce($scaleMouthWidth, abs($leftMouthCornerYMov));
+                    $leftMouthCornerXMovForce = $this->getForce($scaleLeftCornerX, abs($leftMouthCornerXMov));
+                    $leftMouthCornerYMovForce = $this->getForce($scaleLeftCornerY, abs($leftMouthCornerYMov));
 
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["max"] = $scaleMouthLength;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["min"] = 0;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["max"] = $leftCornerXMax;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["min"] = $leftCornerXMin;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"][$i]["delta"] = $leftMouthCornerXMov;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"][$i]["val"] = $sourceFaceData[$i][48]['X'] - $midX3942;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["max"] = $scaleMouthWidth;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["min"] = 0;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["max"] = $leftCornerYMax;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["min"] = $leftCornerYMin;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"][$i]["delta"] = $leftMouthCornerYMov;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"][$i]["val"] = $sourceFaceData[$i][48]['Y'] - $midY3942;
 
@@ -2639,15 +2679,15 @@ class FacialFeatureDetector
                     $rightMouthCornerXMov = $sourceFaceData[$i][54]['X'] - $xN54 - $midX3942;
                     $rightMouthCornerYMov = $sourceFaceData[$i][54]['Y'] - $yN54 - $midY3942;
 
-                    $rightMouthCornerXMovForce = $this->getForce($scaleMouthLength, abs($rightMouthCornerXMov));
-                    $rightMouthCornerYMovForce = $this->getForce($scaleMouthWidth, abs($rightMouthCornerYMov));
+                    $rightMouthCornerXMovForce = $this->getForce($scaleRightCornerX, abs($rightMouthCornerXMov));
+                    $rightMouthCornerYMovForce = $this->getForce($scaleRightCornerY, abs($rightMouthCornerYMov));
 
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["max"] = $scaleMouthLength;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["min"] = 0;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["max"] = $rightCornerXMax;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"]["min"] = $rightCornerXMin;
                     $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"][$i]["delta"] = $rightMouthCornerXMov;
                     $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_x"][$i]["val"] = $sourceFaceData[$i][54]['X'] - $midX3942;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["max"] = $scaleMouthWidth;
-                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["min"] = 0;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["max"] = $rightCornerYMax;
+                    $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"]["min"] = $rightCornerYMin;
                     $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"][$i]["delta"] = $rightMouthCornerYMov;
                     $targetFaceData[$facePart]['VALUES_REL']["right_corner_mouth_movement_y"][$i]["val"] = $sourceFaceData[$i][54]['Y'] - $midY3942;
 
@@ -2679,10 +2719,10 @@ class FacialFeatureDetector
                 }
                 $targetFaceData[$facePart]["mouth_corners_movement"][$i]["val"] = $xMov;
 
-                $mouthLengthX = abs($mouthLength - $mouthLengthN*0.7);
+                $mouthLengthX = abs($mouthLength - $mouthLengthN);
 
                 $targetFaceData[$facePart]['VALUES_REL']["mouth_length"]["max"] = $maxMouthLength;
-                $targetFaceData[$facePart]['VALUES_REL']["mouth_length"]["min"] = $mouthLengthN*0.7;
+                $targetFaceData[$facePart]['VALUES_REL']["mouth_length"]["min"] = $minMouthLength;
                 $targetFaceData[$facePart]['VALUES_REL']["mouth_length"][$i]["delta"] = $mouthLengthX;
                 $targetFaceData[$facePart]['VALUES_REL']["mouth_length"][$i]["val"] = $mouthLength;
 
@@ -2702,13 +2742,13 @@ class FacialFeatureDetector
                 if (isset($sourceFaceData[$i][51])) {
                     $upperLipYMov = $sourceFaceData[$i][51]['Y'] - $yN51 - $midY3942;
 
-                    $targetFaceData[$facePart]['VALUES_REL']["mouth_upper_lip_outer_center_movement"]["max"] = $maxMouthLength;
-                    $targetFaceData[$facePart]['VALUES_REL']["mouth_upper_lip_outer_center_movement"]["min"] = 0;
+                    $targetFaceData[$facePart]['VALUES_REL']["mouth_upper_lip_outer_center_movement"]["max"] = $upperLipMax;
+                    $targetFaceData[$facePart]['VALUES_REL']["mouth_upper_lip_outer_center_movement"]["min"] = $upperLipMin;
                     $targetFaceData[$facePart]['VALUES_REL']["mouth_upper_lip_outer_center_movement"][$i]["delta"] = $upperLipYMov;
                     $targetFaceData[$facePart]['VALUES_REL']["mouth_upper_lip_outer_center_movement"][$i]["val"] = $sourceFaceData[$i][51]['Y'] - $midY3942;
 
                     $targetFaceData[$facePart]["mouth_upper_lip_outer_center_movement"][$i]["force"] = $this->getForce(
-                        $maxMouthLength, abs($upperLipYMov));
+                        $scaleUpperLip, abs($upperLipYMov));
                 }
 
                 if (isset($targetFaceData[$facePart]["mouth_upper_lip_outer_center_movement"][$i]))
@@ -2727,13 +2767,13 @@ class FacialFeatureDetector
                         $mouthWidth = $sourceFaceData[$i][57]['Y'] - $sourceFaceData[$i][51]['Y'];
                     }
                 }
-                $targetFaceData[$facePart]['VALUES_REL']["mouth_lower_lip_outer_center_movement"]["max"] = $maxMouthLength;
-                $targetFaceData[$facePart]['VALUES_REL']["mouth_lower_lip_outer_center_movement"]["min"] = 0;
+                $targetFaceData[$facePart]['VALUES_REL']["mouth_lower_lip_outer_center_movement"]["max"] = $lowerLipMax;
+                $targetFaceData[$facePart]['VALUES_REL']["mouth_lower_lip_outer_center_movement"]["min"] = $lowerLipMin;
                 $targetFaceData[$facePart]['VALUES_REL']["mouth_lower_lip_outer_center_movement"][$i]["delta"] = $lowerLipYMov;
                 $targetFaceData[$facePart]['VALUES_REL']["mouth_lower_lip_outer_center_movement"][$i]["val"] = $sourceFaceData[$i][57]['Y'] - $midY3942;
 
                 $targetFaceData[$facePart]["mouth_lower_lip_outer_center_movement"][$i]["force"] =
-                    $this->getForce($maxMouthLength, abs($lowerLipYMov));
+                    $this->getForce($scaleLowerLip, abs($lowerLipYMov));
 
                 if ($targetFaceData[$facePart]["mouth_lower_lip_outer_center_movement"][$i]["force"] == 0)
                     $targetFaceData[$facePart]["mouth_lower_lip_outer_center_movement"][$i]["val"] = 'none';
@@ -3512,11 +3552,12 @@ class FacialFeatureDetector
         $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['normmask'],'nose', 39,42,150);
         $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['normmask'],'chin',39,42,150);
 
-        $detectedFeatures = $this->detectIrises($detectedFeatures,
-            $FaceData['normirises'], $FaceData['normmask'], 'eye','');
+        if (isset($FaceData['normirises']))
+            $detectedFeatures = $this->detectIrises($detectedFeatures,
+                $FaceData['normirises'], $FaceData['normmask'], 'eye','');
         if (isset($FaceData['origirises']))
-        $detectedFeatures = $this->detectIrises($detectedFeatures,
-            $FaceData['origirises'], $FaceData['normmask'], 'eye','_orig');
+            $detectedFeatures = $this->detectIrises($detectedFeatures,
+                $FaceData['origirises'], $FaceData['normmask'], 'eye','_orig');
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalFeatures($detectedFeaturesWithTrends);
