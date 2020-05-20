@@ -2597,10 +2597,11 @@ class FacialFeatureDetector
             //(отрезок между т.0 и  верхней точкой рта н.т. 62 (66)) - отрезок тт.48-54* 20%
             $yN62 = $sourceFaceData[$normFrameIndex][62]['Y'] - $midNY3942;
             $upperLipMax = $yN62 - $mouthLengthN*0.2;
+
             //Минимальные значения Ось Y – длина отрезка (51-62)  близкая к 0
             $upperLipMin = $sourceFaceData[$normFrameIndex][62]['Y'] - $sourceFaceData[$normFrameIndex][51]['Y'];
             $scaleUpperLip = $upperLipMax - $upperLipMin;
-
+ //           echo $sourceFaceData[$normFrameIndex][62]['Y'].'-'.$midNY3942.'='.$yN62.'/'.$mouthLengthN.'/'.$upperLipMax.'/'.$upperLipMin.'/'.$scaleUpperLip.'<br>';
             //Максимум по оси Y (максимальное перемещение вниз) =
             //((отрезок между т.0 и средней точкой рта н.т. 62 (66)) - отрезок тт.48-54* 20%) + отрезок тт.48-54 + 25%
             $yN66 = $sourceFaceData[$normFrameIndex][66]['Y'] - $midNY3942;
@@ -3533,24 +3534,24 @@ class FacialFeatureDetector
         $detectedFeatures = $this->addPointsToResults('points',
             'POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order(3_5)');
 
-        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['points'],'eye',39,42,150);
-        $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['points'],'mouth',39,42,150);
-        $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['points'],'brow',39,42,150);
-        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['points'],'eyebrow',39,42,150);
-        $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['points'],'nose', 39,42,150);
-        $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['points'],'chin',39,42,150);
+        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['points'],'eye',39,42,0);
+        $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['points'],'mouth',39,42,0);
+        $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['points'],'brow',39,42,0);
+        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['points'],'eyebrow',39,42,0);
+        $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['points'],'nose', 39,42,0);
+        $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['points'],'chin',39,42,0);
         */
 //                $this->saveXY2($FaceData,'m1.json');
         /*         $fd = fopen('_MA.json', "w");
                      fwrite($fd,json_encode($FaceData));
                      fclose($fd);*/
 
-        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['normmask'],'eye',39,42,150);
-        $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['normmask'],'mouth',39,42,150);
-        $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['normmask'],'brow',39,42,150);
-        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['normmask'],'eyebrow',39,42,150);
-        $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['normmask'],'nose', 39,42,150);
-        $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['normmask'],'chin',39,42,150);
+        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['normmask'],'eye',39,42,0);
+        $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['normmask'],'mouth',39,42,0);
+        $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['normmask'],'brow',39,42,0);
+        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['normmask'],'eyebrow',39,42,0);
+        $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['normmask'],'nose', 39,42,0);
+        $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['normmask'],'chin',39,42,0);
 
         if (isset($FaceData['normirises']))
             $detectedFeatures = $this->detectIrises($detectedFeatures,
