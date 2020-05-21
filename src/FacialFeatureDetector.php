@@ -2619,11 +2619,11 @@ class FacialFeatureDetector
 //            $scaleMouthWidth = $maxMouthWidth - $minMouthWidth;
             $scaleMouthWidth = $maxMouthLength - $mouthWidthN; //2020-05-19
 
-            //2020-05-19
-            //Максимум по оси Y (максимальное перемещение вверх) =
-            //(отрезок между т.0 и  верхней точкой рта н.т. 62 (66)) - отрезок тт.48-54* 20%
+            //2020-05-20
+            //Максимум по оси Y (максимальное перемещение вверх) = отрезок тт.48-54* 20% (длина рта)
             $yN62 = $sourceFaceData[$normFrameIndex][62]['Y'] - $midNY3942;
-            $upperLipMax = $yN62 - $mouthLengthN*0.2;
+            $upperLipMax = $mouthLengthN*0.2;
+
 
             //Минимальные значения Ось Y – длина отрезка (51-62)  близкая к 0
             $upperLipMin = $sourceFaceData[$normFrameIndex][62]['Y'] - $sourceFaceData[$normFrameIndex][51]['Y'];
@@ -2631,9 +2631,9 @@ class FacialFeatureDetector
 
  //           echo $sourceFaceData[$normFrameIndex][62]['Y'].'-'.$midNY3942.'='.$yN62.'/'.$mouthLengthN.'/'.$upperLipMax.'/'.$upperLipMin.'/'.$scaleUpperLip.'<br>';
             //Максимум по оси Y (максимальное перемещение вниз) =
-            //((отрезок между т.0 и средней точкой рта н.т. 62 (66)) - отрезок тт.48-54* 20%) + отрезок тт.48-54 + 25%
+            //(отрезок тт.48-54* 20%) + отрезок тт.48-54 + 5% (125% от длины рта)
             $yN66 = $sourceFaceData[$normFrameIndex][66]['Y'] - $midNY3942;
-            $lowerLipMax = $yN66 + $mouthLengthN*0.05;
+            $lowerLipMax = $upperLipMax + $mouthLengthN*1.05; //2020-05-20
 
             // Минимальные значения Ось Y – длина отрезка (57-66)  близкая к 0
             $lowerLipMin = $sourceFaceData[$normFrameIndex][57]['Y'] - $sourceFaceData[$normFrameIndex][66]['Y'];
