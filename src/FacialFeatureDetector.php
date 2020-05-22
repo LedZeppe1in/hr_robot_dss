@@ -2644,6 +2644,7 @@ class FacialFeatureDetector
             //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) - длина рта в нормальном состоянии (48-54) * 20%.
 //            $leftCornerYMax = $yN48 - $mouthLengthN*0.2;
 //            $rightCornerYMax = $yN54 - $mouthLengthN*0.2;
+            //длина рта в нормальном состяонии по 20% при движении вверх и вниз
             $leftCornerYMax = $mouthLengthN*0.4; //2020-05-21
             $rightCornerYMax = $mouthLengthN*0.4; //2020-05-21
 
@@ -2651,8 +2652,8 @@ class FacialFeatureDetector
             //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) + длина рта в нормальном состоянии (48-54) * 20%.
 //            $leftCornerYMin = $yN48 + $mouthLengthN*0.2;
 //            $rightCornerYMin = $yN54 + $mouthLengthN*0.2;
-            $leftCornerYMin = 0;
-            $rightCornerYMin = 0;
+            $leftCornerYMin = 0; //2020-05-21
+            $rightCornerYMin = 0; //2020-05-21
             $scaleLeftCornerY = abs($leftCornerYMax - $leftCornerYMin);
             $scaleRightCornerY = abs($rightCornerYMax - $rightCornerYMin);
 
@@ -2660,6 +2661,7 @@ class FacialFeatureDetector
             //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) + (длина рта в нормальном состоянии (48-54) * 25%.
 //            $leftCornerXMax = $xN48 + $mouthLengthN*0.25;
 //            $rightCornerXMax = $xN54 + $mouthLengthN*0.25;
+            //длина рта в нормальном состяонии*25% при движении в одну сторону и + 30% длины рта при движении в другую
             $leftCornerXMax =$mouthLengthN*0.55; //2020-05-21
             $rightCornerXMax =$mouthLengthN*0.55; //2020-05-21
 
