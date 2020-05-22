@@ -2626,7 +2626,8 @@ class FacialFeatureDetector
 
 
             //Минимальные значения Ось Y – длина отрезка (51-62)  близкая к 0
-            $upperLipMin = $sourceFaceData[$normFrameIndex][62]['Y'] - $sourceFaceData[$normFrameIndex][51]['Y'];
+//            $upperLipMin = $sourceFaceData[$normFrameIndex][62]['Y'] - $sourceFaceData[$normFrameIndex][51]['Y'];
+            $upperLipMin = 0; //2020-05-21
             $scaleUpperLip = $upperLipMax - $upperLipMin;
 
  //           echo $sourceFaceData[$normFrameIndex][62]['Y'].'-'.$midNY3942.'='.$yN62.'/'.$mouthLengthN.'/'.$upperLipMax.'/'.$upperLipMin.'/'.$scaleUpperLip.'<br>';
@@ -2641,24 +2642,33 @@ class FacialFeatureDetector
 
             //Уголки рта, Ось Y, Максимальные значения
             //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) - длина рта в нормальном состоянии (48-54) * 20%.
-            $leftCornerYMax = $yN48 - $mouthLengthN*0.2;
-            $rightCornerYMax = $yN54 - $mouthLengthN*0.2;
+//            $leftCornerYMax = $yN48 - $mouthLengthN*0.2;
+//            $rightCornerYMax = $yN54 - $mouthLengthN*0.2;
+            $leftCornerYMax = $mouthLengthN*0.4; //2020-05-21
+            $rightCornerYMax = $mouthLengthN*0.4; //2020-05-21
+
             //Минимальные значения
             //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) + длина рта в нормальном состоянии (48-54) * 20%.
-            $leftCornerYMin = $yN48 + $mouthLengthN*0.2;
-            $rightCornerYMin = $yN54 + $mouthLengthN*0.2;
+//            $leftCornerYMin = $yN48 + $mouthLengthN*0.2;
+//            $rightCornerYMin = $yN54 + $mouthLengthN*0.2;
+            $leftCornerYMin = 0;
+            $rightCornerYMin = 0;
             $scaleLeftCornerY = abs($leftCornerYMax - $leftCornerYMin);
             $scaleRightCornerY = abs($rightCornerYMax - $rightCornerYMin);
 
             //Максимальные значения
             //100% - (отрезок между т.0 и  уголком рта н.т. 48 (54)) + (длина рта в нормальном состоянии (48-54) * 25%.
-            $leftCornerXMax = $xN48 + $mouthLengthN*0.25;
-            $rightCornerXMax = $xN54 + $mouthLengthN*0.25;
+//            $leftCornerXMax = $xN48 + $mouthLengthN*0.25;
+//            $rightCornerXMax = $xN54 + $mouthLengthN*0.25;
+            $leftCornerXMax =$mouthLengthN*0.55; //2020-05-21
+            $rightCornerXMax =$mouthLengthN*0.55; //2020-05-21
 
             //Минимальные значения
             //Ось X – (отрезок между т.0 и  уголком рта н.т. 48 (54)) – (н. длина рта (48-54) * 30%)
-            $leftCornerXMin = $xN48 - $mouthLengthN*0.3;
-            $rightCornerXMin = $xN54 - $mouthLengthN*0.3;
+//            $leftCornerXMin = $xN48 - $mouthLengthN*0.3;
+//            $rightCornerXMin = $xN54 - $mouthLengthN*0.3;
+            $leftCornerXMin = 0; //2020-05-21
+            $rightCornerXMin = 0; //2020-05-21
             $scaleLeftCornerX = abs ($leftCornerXMax - $leftCornerXMin);
             $scaleRightCornerX = abs($rightCornerXMax - $rightCornerXMin);
 
