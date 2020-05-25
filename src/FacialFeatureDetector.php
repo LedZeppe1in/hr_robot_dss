@@ -1234,6 +1234,11 @@ class FacialFeatureDetector
 
             $yN31 = $sourceFaceData[0][31]['Y'] - $midNY3942;
             $yN35 = $sourceFaceData[0][35]['Y'] - $midNY3942;
+            $xN33 = $sourceFaceData[0][33]['X'] - $midNY3942;
+            $noseWidthN = $sourceFaceData[0][35]['X']  - $sourceFaceData[0][31]['X'];
+            $maxNoseMov = $noseWidthN*0.3;
+            $minNoseMov = 0;
+            $scaleNoseCenterMovement = $maxNoseMov - $minNoseMov;
 //            $scaleLeftWing = $maxLeftWing - $yN31;
 //            $scaleRightWing = $maxRightWing - $yN35;
 
@@ -1253,7 +1258,7 @@ class FacialFeatureDetector
                     $midX3942 = round(($sourceFaceData[$i][$point2]['X'] - $sourceFaceData[$i][$point1]['X'])/2) +
                         $sourceFaceData[$i][$point1]['X'];
                 }
-                if (isset($sourceFaceData[$i][31]) && $sourceFaceData[$i][35]) {
+                if (isset($sourceFaceData[$i][31]) && isset($sourceFaceData[$i][33]) && isset($sourceFaceData[$i][35])) {
                     $leftNoseWingMovement = $sourceFaceData[$i][31]['Y'] - $yN31 - $midY3942;
                     $rightNoseWingMovement = $sourceFaceData[$i][35]['Y'] - $yN35 - $midY3942;
 
@@ -1279,6 +1284,44 @@ class FacialFeatureDetector
                     $targetFaceData[$facePart]["nose_wing_movement"][$i]["force"] = 0;
                     $targetFaceData[$facePart]["nose_wing_movement"][$i]["val"] = 'none';
                 }
+
+                //nose movement
+                $noseCenterMovement = $sourceFaceData[$i][33]['X'] - $xN33 - $midY3942;
+                $noseCenterMovementForce = $this->getForce($scaleNoseCenterMovement, abs($noseCenterMovement));
+                $targetFaceData[$facePart]["nose_movement"][$i]["force"] = $noseCenterMovementForce;
+//                $targetFaceData[$facePart]["nose_movement"][$i]["val"] = 'none';
+                if ($noseCenterMovement < 0) $targetFaceData[$facePart]["nose_movement"][$i]["val"] = 'up';
+                if ($noseCenterMovement > 0) $targetFaceData[$facePart]["nose_movement"][$i]["val"] = 'down';
+                if (($noseCenterMovement == 0)) {
+                    $targetFaceData[$facePart]["nose_movement"][$i]["force"] = 0;
+                    $targetFaceData[$facePart]["nose_movement"][$i]["val"] = 'none';
+                }
+
+                $targetFaceData[$facePart]['VALUES_REL']["nose_movement"]["max"] = $maxNoseMov;
+                $targetFaceData[$facePart]['VALUES_REL']["nose_movement"]["min"] = $minNoseMov;
+                $targetFaceData[$facePart]['VALUES_REL']["nose_movement"][$i]["delta"] = $noseCenterMovement;
+                $targetFaceData[$facePart]['VALUES_REL']["nose_movement"][$i]["val"] = $sourceFaceData[$i][33]['X'] - $midY3942;
+
+                //nose width
+                $curNoseWidth = $sourceFaceData[$i][35]['X'] - $sourceFaceData[$i][31]['X'];
+                $noseWidth = $curNoseWidth - $noseWidthN;
+                $noseWidthForce = $this->getForce($scaleNoseCenterMovement, abs($noseWidth));
+                $targetFaceData[$facePart]["nose_width"][$i]["force"] = $noseWidthForce;
+                $targetFaceData[$facePart]["nose_width"][$i]["val"] = $curNoseWidth;
+                $targetFaceData[$facePart]["nose_width_changing"][$i]["force"] = $noseWidthForce;
+
+                if ($noseWidth < 0) $targetFaceData[$facePart]["nose_width_changing"][$i]["val"] = '-';
+                if ($noseWidth > 0) $targetFaceData[$facePart]["nose_width_changing"][$i]["val"] = '+';
+                if (($noseWidth == 0)) {
+                    $targetFaceData[$facePart]["nose_width"][$i]["force"] = 0;
+                    $targetFaceData[$facePart]["nose_width_changing"][$i]["force"] = 0;
+                    $targetFaceData[$facePart]["nose_width_changing"][$i]["val"] = 'none';
+                }
+
+                $targetFaceData[$facePart]['VALUES_REL']["nose_width"]["max"] = $maxNoseMov;
+                $targetFaceData[$facePart]['VALUES_REL']["nose_width"]["min"] = $minNoseMov;
+                $targetFaceData[$facePart]['VALUES_REL']["nose_width"][$i]["delta"] = $noseWidth;
+                $targetFaceData[$facePart]['VALUES_REL']["nose_width"][$i]["val"] = $curNoseWidth;
             }
 
 //        echo json_encode($sourceFaceData['letf_nasolabial_fold'][0][0]);
@@ -4146,13 +4189,37 @@ class FacialFeatureDetector
         }
         /* Соответствия для носа */
         // Крылья носа
-        if ($sourceFacePart == 'nose')
+        if (($sourceFacePart == 'nose') || ($sourceFacePart == 'nose_movement') || ($sourceFacePart == 'nose_width_changing'))
             $targetValues['targetFacePart'] = 'Нос';
         if ($sourceFeatureName == 'nose_wing_movement')
             $targetValues['targetFacePart'] = 'Крылья носа';
         if (($sourceFeatureName == 'nose_wing_movement') && ($sourceValue == 'none')) {
             $targetValues['featureChangeType'] = 'Отсутствие типа';
             $targetValues['changeDirection'] = 'Отсутствие направления';
+        }
+        if (($sourceFeatureName == 'nose_movement') && ($sourceValue == 'none')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
+            $targetValues['changeDirection'] = 'Отсутствие направления';
+        }
+        if (($sourceFeatureName == 'nose_movement') && ($sourceValue == 'up')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
+            $targetValues['changeDirection'] = 'Вверх';
+        }
+        if (($sourceFeatureName == 'nose_movement') && ($sourceValue == 'down')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
+            $targetValues['changeDirection'] = 'Вниз';
+        }
+        if (($sourceFeatureName == 'nose_width_changing') && ($sourceValue == 'none')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
+            $targetValues['changeDirection'] = 'Отсутствие направления';
+        }
+        if (($sourceFeatureName == 'nose_width_changing') && ($sourceValue == '+')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
+            $targetValues['changeDirection'] = 'Увеличение';
+        }
+        if (($sourceFeatureName == 'nose_width_changing') && ($sourceValue == '-')) {
+            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
+            $targetValues['changeDirection'] = 'Уменьшение';
         }
         if (($sourceFeatureName == 'nose_wing_movement') && ($sourceValue == 'up')) {
             $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
