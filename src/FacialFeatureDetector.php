@@ -1479,8 +1479,9 @@ class FacialFeatureDetector
 
             $minX48 = $this->getFaceDataMinOnPoints($sourceFaceData, 48, "X", $point1,$point2);
             $maxX54 = $this->getFaceDataMaxOnPoints($sourceFaceData, 54, "X",$point1,$point2);
-            $mouthLengthMax = $maxX54 - $minX48;
-            $maxChinForce = round($mouthLengthMax/2);
+//            $mouthLengthMax = $maxX54 - $minX48;
+            $scaleChin = ($sourceFaceData[0][54]['X'] - $sourceFaceData[0][48]['X'])/2;
+//           $maxChinForce = round($mouthLengthMax/2);
 //            $scaleChinForce = $maxChinForce - $yN8;
 
             $maxY8 = $this->getFaceDataMaxOnPoints($sourceFaceData, 8,"Y",$point1,$point2);
@@ -1495,10 +1496,10 @@ class FacialFeatureDetector
 
                     $chinMovement = $sourceFaceData[$i][8]['Y'] - $yN8 - $midY6167;
 //                    $chinMovementForce = $this->getForce($scaleY8, abs($chinMovement));
-                    $chinMovementForce = $this->getForce($maxChinForce, abs($chinMovement));
+                    $chinMovementForce = $this->getForce($scaleChin, abs($chinMovement));
 
                 }
-                $targetFaceData[$facePart]['VALUES_REL']["chin_movement"]["max"] = $maxChinForce;
+                $targetFaceData[$facePart]['VALUES_REL']["chin_movement"]["max"] = $scaleChin;
                 $targetFaceData[$facePart]['VALUES_REL']["chin_movement"]["min"] = 0;
                 $targetFaceData[$facePart]['VALUES_REL']["chin_movement"][$i]["delta"] = $chinMovement;
                 $targetFaceData[$facePart]['VALUES_REL']["chin_movement"][$i]["val"] = $sourceFaceData[$i][8]['Y'] - $midY6167;
