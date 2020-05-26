@@ -2734,13 +2734,15 @@ class FacialFeatureDetector
                     $leftMouthCornerXMov = abs($sourceFaceData[$i][48]['X'] - $midX3942) - $xN48;
                     $leftMouthCornerYMov = abs($sourceFaceData[$i][48]['Y'] - $midY3942) - $yN48;
 
+//                    echo $leftMouthCornerXMov.' '.abs($sourceFaceData[$i][48]['X'] - $midX3942) .' '. $xN48.'<br>';
+
                     $leftMouthCornerXMovForce = $this->getForce($scaleLeftCornerX, abs($leftMouthCornerXMov));
                     $leftMouthCornerYMovForce = $this->getForce($scaleLeftCornerY, abs($leftMouthCornerYMov));
 
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["max"] = $leftCornerXMax;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"]["min"] = $leftCornerXMin;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"][$i]["delta"] = $leftMouthCornerXMov;
-                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"][$i]["val"] = $sourceFaceData[$i][48]['X'] - $midX3942;
+                    $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_x"][$i]["val"] = abs($sourceFaceData[$i][48]['X'] - $midX3942);
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["max"] = $leftCornerYMax;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"]["min"] = $leftCornerYMin;
                     $targetFaceData[$facePart]['VALUES_REL']["left_corner_mouth_movement_y"][$i]["delta"] = $leftMouthCornerYMov;
@@ -2752,7 +2754,7 @@ class FacialFeatureDetector
                     $yMov = '';
                     if ($leftMouthCornerYMov < 0) $yMov = 'up';
                     if ($leftMouthCornerYMov > 0) $yMov = 'down';
-                    if ($leftMouthCornerXMov < 0) $xMov = 'from center';
+                    if ($leftMouthCornerXMov > 0) $xMov = 'from center';
                     else $xMov = 'to center';
 
                     $targetFaceData[$facePart]["left_corner_mouth_movement_x"][$i]["val"] = $xMov;
