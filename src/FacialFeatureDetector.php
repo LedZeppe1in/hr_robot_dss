@@ -1477,10 +1477,11 @@ class FacialFeatureDetector
                 $sourceFaceData[0][$point1]['Y'];
             $yN8 = $sourceFaceData[0][8]['Y'] - $midNY6167;
 
-            $minX48 = $this->getFaceDataMinOnPoints($sourceFaceData, 48, "X", $point1,$point2);
+            $maxX48 = $this->getFaceDataMaxOnPoints($sourceFaceData, 48, "X", $point1,$point2);
             $maxX54 = $this->getFaceDataMaxOnPoints($sourceFaceData, 54, "X",$point1,$point2);
-//            $mouthLengthMax = $maxX54 - $minX48;
-            $scaleChin = ($sourceFaceData[0][54]['X'] - $sourceFaceData[0][48]['X'])/2;
+            $mouthLengthMax = $maxX54 + $maxX48;
+//            $scaleChin = ($sourceFaceData[0][54]['X'] - $sourceFaceData[0][48]['X'])/2;
+            $scaleChin = $mouthLengthMax*0.65; //2020-05-27
 //           $maxChinForce = round($mouthLengthMax/2);
 //            $scaleChinForce = $maxChinForce - $yN8;
 
