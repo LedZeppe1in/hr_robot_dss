@@ -1533,7 +1533,7 @@ class FacialFeatureDetector
                 $eyePupilYMov = $sourceFaceData0[$i]['Y'];
                 $eyePupilXMov = $sourceFaceData0[$i]['X'];
 //               echo $eyePupilXMov.' '.$eyePupilYMov.'<br>';
-                print_r($eyePupilYMov);
+ //               print_r($eyePupilYMov);
                 $eyePupilYMovForce = $this->getForce((3.14/2), abs($eyePupilYMov));
                 $eyePupilXMovForce = $this->getForce((3.14/2), abs($eyePupilXMov));
 
