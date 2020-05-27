@@ -919,6 +919,12 @@ class FacialFeatureDetector
                             $FaceData_['points'][$ii][$i2]['X'] = $v[$i2]['x'];
                             $FaceData_['points'][$ii][$i2]['Y'] = $v[$i2]['y'];
                         }
+                    //gaze angle
+                    if ($k == "gaze angle")
+                        {
+                            $FaceData_["gaze angle"][$ii]['X'] = $v['x'];
+                            $FaceData_["gaze angle"][$ii]['Y'] = $v['y'];
+                        }
                 }
             }
     }
@@ -1512,6 +1518,55 @@ class FacialFeatureDetector
             }
             return $targetFaceData[$facePart];
         } else return false;
+    }
+
+    /**
+     * Обнаружение направление взгляда по данным Кулижского.
+     *
+     */
+    public function detectIrisesA($targetFaceData, $sourceFaceData0, $sourceFaceData, $facePart, $postFix){
+        // получение нормированного значения по кадру 0
+//        echo '$sourceFaceData0[0][0] /'.$sourceFaceData0[0][0].' $sourceFaceData0[0][1]/'.$sourceFaceData0[0][1].' /'.
+//            $sourceFaceData[0][$point1].'<br>';
+            for ($i = 0; $i < count($sourceFaceData0); $i++) {
+
+                $eyePupilYMov = $sourceFaceData0[$i]['Y'];
+                $eyePupilXMov = $sourceFaceData0[$i]['X'];
+//               echo $eyePupilXMov.' '.$eyePupilYMov.'<br>';
+                print_r($eyePupilYMov);
+                $eyePupilYMovForce = $this->getForce((3.14/2), abs($eyePupilYMov));
+                $eyePupilXMovForce = $this->getForce((3.14/2), abs($eyePupilXMov));
+
+                $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_x".$postFix]["max"] = (3.14/2);
+                $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_x".$postFix]["min"] = 0;
+                $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_x".$postFix][$i]["val"] = $eyePupilXMov;
+                $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil_movement_y".$postFix][$i]["val"] = $eyePupilYMov;
+
+                $targetFaceData[$facePart]["left_eye_pupil_movement_x".$postFix][$i]["force"] = $eyePupilXMovForce;
+                $targetFaceData[$facePart]["left_eye_pupil_movement_y".$postFix][$i]["force"] = $eyePupilYMovForce;
+                $targetFaceData[$facePart]["left_eye_pupil_movement_d".$postFix][$i]["force"] =
+                    round(($eyePupilXMovForce + $eyePupilYMovForce)/2);
+                $targetFaceData[$facePart]["right_eye_pupil_movement_x".$postFix][$i]["force"] = $eyePupilXMovForce;
+                $targetFaceData[$facePart]["right_eye_pupil_movement_y".$postFix][$i]["force"] = $eyePupilYMovForce;
+                $targetFaceData[$facePart]["right_eye_pupil_movement_d".$postFix][$i]["force"] =
+                    round(($eyePupilXMovForce + $eyePupilYMovForce)/2);
+
+                $xMov = 'none';
+                if ($eyePupilYMovForce > 0) $yMov = 'up';
+                if ($eyePupilYMovForce < 0) $yMov = 'down';
+                if ($eyePupilYMovForce == 0) $yMov = 'none';
+                if ($eyePupilXMovForce < 0) $xMov = 'right';
+                if ($eyePupilXMovForce > 0) $xMov = 'left';
+
+                $targetFaceData[$facePart]["left_eye_pupil_movement_x".$postFix][$i]["val"] = $xMov;
+                $targetFaceData[$facePart]["left_eye_pupil_movement_y".$postFix][$i]["val"] = $yMov;
+                $targetFaceData[$facePart]["left_eye_pupil_movement_d".$postFix][$i]["val"] = $yMov.' and '.$xMov;
+
+                $targetFaceData[$facePart]["right_eye_pupil_movement_x".$postFix][$i]["val"] = $xMov;
+                $targetFaceData[$facePart]["right_eye_pupil_movement_y".$postFix][$i]["val"] = $yMov;
+                $targetFaceData[$facePart]["right_eye_pupil_movement_d".$postFix][$i]["val"] = $yMov.' and '.$xMov;
+            }
+            return $targetFaceData;
     }
 
     /**
@@ -3576,7 +3631,7 @@ class FacialFeatureDetector
         $detectedFeatures = array();
         //----------------------------------------------------------------------------
         //----------------- norm points processing -----------------------------------
-        if (isset($FaceData['normmask'])) {
+   /*     if (isset($FaceData['normmask'])) {
             $detectedFeatures = $this->addPointsToResults('normmask',
                 'NORM_POINTS_ORIGIN', $FaceData, $detectedFeatures, '');
 
@@ -3591,7 +3646,8 @@ class FacialFeatureDetector
 //        $FaceData['normmask'] = $this->scaling($FaceData['normmask'],27,28);
 //        $detectedFeatures = $this->addPointsToResults('normmask',
 //            'NORM_POINTS_SCALED',$FaceData,$detectedFeatures,'pp.2728');
-        } else {
+        } else */
+        if (isset($FaceData['points'])) {
             //-------------------------- orig points processing ----------------------
              $detectedFeatures = $this->addPointsToResults('points',
                  'POINTS_ORIGIN',$FaceData,$detectedFeatures,'');
@@ -3615,7 +3671,7 @@ class FacialFeatureDetector
          $FaceData['origirises'] = $this->rotating($FaceData['origirises'],0,1);
 //        $FaceData['origirises'] = $this->scaling($FaceData['origirises'],0,1);
         //---------------------------------------------------------------------------
-        if (isset($FaceData['normmask'])) {
+     /*   if (isset($FaceData['normmask'])) {
             $FaceData = $this->processingOutliers($FaceData, 10, 1);
             $detectedFeatures = $this->addPointsToResults('normmask',
                 'NORM_POINTS_OUTLIER', $FaceData, $detectedFeatures, 'outlier_level_percent(10)outlier_neighbors(1)');
@@ -3632,7 +3688,8 @@ class FacialFeatureDetector
             $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['normmask'],'eyebrow',39,42);
             $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['normmask'],'nose', 39,42);
             $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['normmask'],'chin',39,42);
-        } else {
+        } else */
+        if (isset($FaceData['points'])){
             //------------------- origin points processing ------------------------------
            $detectedFeatures = $this->addPointsToResults('points',
                'POINTS_OUTLIER',$FaceData,$detectedFeatures,'outlier_level_percent(10)outlier_neighbors(1)');
@@ -3661,6 +3718,9 @@ class FacialFeatureDetector
         if (isset($FaceData['origirises']))
             $detectedFeatures = $this->detectIrises($detectedFeatures,
                 $FaceData['origirises'], $FaceData['normmask'], 'eye','_orig');
+        if (isset($FaceData['gaze angle']))
+            $detectedFeatures = $this->detectIrisesA($detectedFeatures,
+                $FaceData['gaze angle'], $FaceData['normmask'], 'eye','');
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalFeatures($detectedFeaturesWithTrends);
