@@ -922,12 +922,13 @@ class FacialFeatureDetector
                     //gaze angle
                     if ($k == "gaze angle")
                         {
-                            $FaceData_["gaze angle"][$ii]['X'] = $v['x'];
-                            $FaceData_["gaze angle"][$ii]['Y'] = $v['y'];
+                            $FaceData_["gazeangle"][$ii]['X'] = $v['x'];
+                            $FaceData_["gazeangle"][$ii]['Y'] = $v['y'];
                         }
                 }
             }
     }
+//        echo json_encode($FaceData_["gazeangle"]).'<br>';
         return $FaceData_;
     }
 
@@ -1525,13 +1526,12 @@ class FacialFeatureDetector
      *
      */
     public function detectIrisesA($targetFaceData, $sourceFaceData0, $sourceFaceData, $facePart, $postFix){
-        // получение нормированного значения по кадру 0
-//        echo '$sourceFaceData0[0][0] /'.$sourceFaceData0[0][0].' $sourceFaceData0[0][1]/'.$sourceFaceData0[0][1].' /'.
-//            $sourceFaceData[0][$point1].'<br>';
+
+ //       echo json_encode($sourceFaceData0).'<br>';
             for ($i = 0; $i < count($sourceFaceData0); $i++) {
 
-                $eyePupilYMov = $sourceFaceData0[$i]['Y'];
-                $eyePupilXMov = $sourceFaceData0[$i]['X'];
+                $eyePupilYMov = $sourceFaceData0[$i+1]['Y'];
+                $eyePupilXMov = $sourceFaceData0[$i+1]['X'];
 //               echo $eyePupilXMov.' '.$eyePupilYMov.'<br>';
  //               print_r($eyePupilYMov);
                 $eyePupilYMovForce = $this->getForce((3.14/2), abs($eyePupilYMov));
@@ -3553,7 +3553,7 @@ class FacialFeatureDetector
      $resFaceData = array();
      if ($sourceFaceData1 != null)
          foreach ($sourceFaceData1 as $k => $v) //normpoints and triangles
-             if ($v != null) {
+             if (($v != null)and($k != 'gazeangle')) {
 //        echo $k.' '.$v.'<br>';
                  for ($i = 0; $i < count($sourceFaceData1[$k]); $i++) {
                      if (isset($sourceFaceData1[$k][$i])) //frames
@@ -3601,6 +3601,8 @@ class FacialFeatureDetector
                      if (is_array($resFaceData[$k]))
                       array_push($resFaceData[$k], $sourceFaceData1[$k][$i1]);
                  }
+             } else{ //for gazeangle
+                 $resFaceData[$k] = $v;
              }
      return $resFaceData;
     }
@@ -3627,6 +3629,8 @@ class FacialFeatureDetector
             $FaceData = $this->convertAJson($FaceData_);
         else
             $FaceData =  $FaceData_; // use the AB format
+
+//        echo json_encode($FaceData['gazeangle']).'<br>';
 
         $detectedFeatures = array();
         //----------------------------------------------------------------------------
@@ -3718,9 +3722,10 @@ class FacialFeatureDetector
         if (isset($FaceData['origirises']))
             $detectedFeatures = $this->detectIrises($detectedFeatures,
                 $FaceData['origirises'], $FaceData['normmask'], 'eye','_orig');
-        if (isset($FaceData['gaze angle']))
+
+        if (isset($FaceData['gazeangle']))
             $detectedFeatures = $this->detectIrisesA($detectedFeatures,
-                $FaceData['gaze angle'], $FaceData['normmask'], 'eye','');
+                $FaceData["gazeangle"], $FaceData['normmask'], 'eye','');
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalFeatures($detectedFeaturesWithTrends);
