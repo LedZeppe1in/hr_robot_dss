@@ -915,10 +915,10 @@ class FacialFeatureDetector
                     //points processing
                     if ($k == 'landmarks_2D')
                         for ($i2 = 0; $i2 < count($v); $i2++)
-                        if($v[$i2] != 'count'){
-                            $FaceData_['points'][$ii][$i2]['X'] = $v[$i2]['x'];
-                            $FaceData_['points'][$ii][$i2]['Y'] = $v[$i2]['y'];
-                        }
+                            if(isset($v[$i2]) && ($v[$i2] != 'count')) {
+                                $FaceData_['points'][$ii][$i2]['X'] = $v[$i2]['x'];
+                                $FaceData_['points'][$ii][$i2]['Y'] = $v[$i2]['y'];
+                            }
                     //gaze angle
                     if ($k == "gaze angle")
                         {
@@ -3477,22 +3477,23 @@ class FacialFeatureDetector
                     if (isset($sourceFaceData1[$i][$point1])
                         && isset($sourceFaceData1[$i][$point2])
                     ) {
+                        $baseX = 0;
+                        $baseY = 0;
                         //precise positioning (stabilization) the 39 point is used
                         if($i == 0) {
                             $baseX = $sourceFaceData1[$i][$point1]['X'] +
                                 round(($sourceFaceData1[$i][$point2]['X'] - $sourceFaceData1[$i][$point1]['X'])/2);
                             $baseY = $sourceFaceData1[$i][$point1]['Y'];
                         }
-                        $deltaX = $sourceFaceData1[$i][$point1]['X'] +
-                            round(($sourceFaceData1[$i][$point2]['X'] - $sourceFaceData1[$i][$point1]['X'])/2) - $baseX;
+                        $deltaX = $sourceFaceData1[$i][$point1]['X'] + round(($sourceFaceData1[$i][$point2]['X'] -
+                                    $sourceFaceData1[$i][$point1]['X'])/2) - $baseX;
                         $deltaY = $sourceFaceData1[$i][$point1]['Y'] - $baseY;
-
-                            foreach ($sourceFaceData1[$i] as $k1 => $v1) { //points
-                                if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
-                                    $sourceFaceData1[$i][$k1]['X'] = round($sourceFaceData1[$i][$k1]['X'] - $deltaX);
-                                    $sourceFaceData1[$i][$k1]['Y'] = round($sourceFaceData1[$i][$k1]['Y'] - $deltaY);
-                                }
+                        foreach ($sourceFaceData1[$i] as $k1 => $v1) { //points
+                            if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
+                                $sourceFaceData1[$i][$k1]['X'] = round($sourceFaceData1[$i][$k1]['X'] - $deltaX);
+                                $sourceFaceData1[$i][$k1]['Y'] = round($sourceFaceData1[$i][$k1]['Y'] - $deltaY);
                             }
+                        }
 
                   /*      echo $i.' $baseX-Y: '.$baseX.'/'.$baseY.' $deltaX-Y:'.$deltaX.'/'.$deltaY.' Y-39-42:'.
                             $sourceFaceData1[$i][$point1]['Y'].'/'.$sourceFaceData1[$i][$point2]['Y'].' cur3942X-Y'.
@@ -3715,15 +3716,13 @@ class FacialFeatureDetector
         /*         $fd = fopen('_MA.json', "w");
                      fwrite($fd,json_encode($FaceData));
                      fclose($fd);*/
-
         if (isset($FaceData['normirises']))
             $detectedFeatures = $this->detectIrises($detectedFeatures,
                 $FaceData['normirises'], $FaceData['normmask'], 'eye','');
         if (isset($FaceData['origirises']))
             $detectedFeatures = $this->detectIrises($detectedFeatures,
                 $FaceData['origirises'], $FaceData['normmask'], 'eye','_orig');
-
-        if (isset($FaceData['gazeangle']))
+        if (isset($FaceData['gazeangle']) && isset($FaceData['normmask']))
             $detectedFeatures = $this->detectIrisesA($detectedFeatures,
                 $FaceData["gazeangle"], $FaceData['normmask'], 'eye','');
 
@@ -4371,5 +4370,37 @@ class FacialFeatureDetector
         }
 
         return $facts;
+    }
+
+    /**
+     * Преобразование массива с action units в массив фактов.
+     *
+     * @param stdClass $actionUnits - массив AUs (action units)
+     * @param $frameIndex - номер кадра
+     * @return array - массив факта
+     */
+    public function convertActionUnitsToFacts(stdClass $actionUnits, $frameIndex) {
+        $replacementTable = array_combine(json_decode('["AU00","AU01","AU02","AU04","AU05","AU06","AU07","AU08","AU09","AU10","AU11","AU12","AU13","AU14","AU15","AU16","AU17","AU18","AU19","AU20","AU21","AU22","AU23","AU24","AU25","AU26","AU27","AU28","AU29","AU30","AU31","AU32","AU33","AU34","AU35","AU36","AU37","AU38","AU39","AU41","AU42","AU43","AU44","AU45","AU46","AU51","AU52","AU53","AU54","AU55","AU","AU56","AU","AU57","AU","AU58","AU","AU","AU","AU61","AU","AU62","AU","AU63","AU64","AU65","AU66","AU","AU69","AU","AU70","AU71","AU72","AU73","AU74","AU40","AU50","AU80","AU81","AU82","AU84","AU85"]'),
+            json_decode('["AU0 - Нейтральное лицо","AU1 - Подниматель внутренней части брови","AU2 - Подниматель внешней части брови","AU4 - Опускатель брови","AU5 - Подниматель верхнего века","AU6 - Подниматель щеки","AU7 - Натягиватель века","AU8 - Губы навстречу друг другу","AU9 - Сморщиватель носа","AU10 - Подниматель верхней губы","AU11 - Углубитель носогубной складки","AU12 - Подниматель уголка губы","AU13 - Острый подниматель уголка губы","AU14 - Ямочка","AU15 - Опускатель уголка губы","AU16 - Опускатель нижней губы","AU17 - Подниматель подбородка","AU18 - Сморщиватель губ","AU19 - Показ языка","AU20 - Растягиватель губ","AU21 - Натягиватель шеи","AU22 - Губы воронкой","AU23 - Натягиватель губ","AU24 - Сжиматель губ","AU25 - Губы разведены","AU26 - Челюсть опущена","AU27 - Рот широко открыт","AU28 - Втягивание губ","AU29 - Нижняя челюсть вперёд","AU30 - Челюсть в бок","AU31 - Сжиматель челюстей","AU32 - Покусывание губы","AU33 - Выдувание","AU34 - Раздувание щёк","AU35 - Втягивание щёк","AU36 - Язык высунут","AU37 - Облизывание губ","AU38 - Расширитель ноздрей","AU39 - Суживатель ноздрей","AU41 - Опускатель надпереносья","AU42 - Опускатель внутренней части брови","AU43 - Глаза закрыты","AU44 - Сведение бровей","AU45 - Моргание","AU46 - Подмигивание","AU51 - Поворот головы влево","AU52 - Поворот головы вправо","AU53 - Голова вверх","AU54 - Голова вниз","AU55 - Наклон головы влево","AU M55 - Наклон головы влево","AU56 - Наклон головы вправо","AU M56 - Наклон головы вправо","AU57 - Голова вперёд","AU M57 - Толчок головы вперёд","AU58 - Голова назад","AU M59 - Кивок головой","AU M60 - Голова из стороны в сторону","AU M83 - Голова вверх и в сторону","AU61 - Отведение глаз влево","AU M61 - Глаза влево","AU62 - Отведение глаз вправо","AU M62 - Глаза вправо","AU63 - Глаза вверх","AU64 - Глаза вниз","AU65 - Расходящееся косоглазие","AU66 - Сходящееся косоглазие","AU M68 - Закатывание глаз","AU69 - Глаза на другом человеке","AU M69 - Голова и/или глаза на другом человеке","AU70 - Брови и лоб не видны","AU71 - Глаза не видны","AU72 - Нижняя часть лица не видна","AU73 - Всё лицо не видно","AU74 - Оценивание невозможно","AU40 - Втягивание носом","AU50 - Речь","AU80 - Глотание","AU81 - Жевание","AU82 - Пожатие плечом","AU84 - Движение головой назад и вперёд","AU85 - Кивок головой вверх и вниз"]'));
+        $result = array();
+        foreach ($actionUnits as $name => $actionUnit) {
+            if ($actionUnit -> presence === 1) {
+                $fact = new stdClass;
+                // Имя шаблона: Признаки эмоций (Action units)
+                $fact -> {'NameOfTemplate'} = 'T2045';
+                // Имя слота: "Название" Описание слота: "Название action unit'а"
+                $fact -> {'s900'} = $replacementTable[$name];
+                // [Нет данных - пропускаем] Имя слота: "Проявление" Описание слота: "Описание проявления action unit'а:
+                // левая часть лица, правая или обе стороны"
+                // $fact -> {'s901'} = Null;
+                // [+ Преобразование в %] Имя слота: "Интенсивность" Описание слота: ""
+                $fact -> {'s902'} = $actionUnit -> intensity * 100;
+                // Имя слота: "Номер кадра" Описание слота: ""
+                $fact -> {'s903'} = $frameIndex;
+                $result[] = $fact;
+            };
+        }
+
+        return $result;
     }
 }
