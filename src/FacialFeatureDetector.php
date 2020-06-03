@@ -3251,36 +3251,45 @@ class FacialFeatureDetector
     public function stabilizating($sourceFaceData1,$point1,$point2){
         // input data from the points levels
         if ($sourceFaceData1 != null) {
-            $normX = 0; $normY = 0;
+
+//            $baseX = 0;
+//            $baseY = 0;
             for ($i = 0; $i < count($sourceFaceData1); $i++) {
                 //--------------------------------------------------------------------------------------------------
                 if (isset($sourceFaceData1[$i])) //frames
                     if (isset($sourceFaceData1[$i][$point1])
                         && isset($sourceFaceData1[$i][$point2])
                     ) {
-                        $baseX = 0;
-                        $baseY = 0;
                         //precise positioning (stabilization) the 39 point is used
-                        if($i == 0) {
+                        if(($i == 0) && (isset($sourceFaceData1[$i]))) {
+                            $baseX = $sourceFaceData1[$i][$point1]['X'] +
+                                round(($sourceFaceData1[$i][$point2]['X'] - $sourceFaceData1[$i][$point1]['X'])/2);
+                            $baseY = $sourceFaceData1[$i][$point1]['Y'];
+                        } elseif (($i == 1) && (isset($sourceFaceData1[$i]))) {
                             $baseX = $sourceFaceData1[$i][$point1]['X'] +
                                 round(($sourceFaceData1[$i][$point2]['X'] - $sourceFaceData1[$i][$point1]['X'])/2);
                             $baseY = $sourceFaceData1[$i][$point1]['Y'];
                         }
-                        $deltaX = $sourceFaceData1[$i][$point1]['X'] + round(($sourceFaceData1[$i][$point2]['X'] -
-                                    $sourceFaceData1[$i][$point1]['X'])/2) - $baseX;
-                        $deltaY = $sourceFaceData1[$i][$point1]['Y'] - $baseY;
+
+                        $curX = $sourceFaceData1[$i][$point1]['X'] +
+                            round(($sourceFaceData1[$i][$point2]['X'] - $sourceFaceData1[$i][$point1]['X'])/2);
+                        $curY = $sourceFaceData1[$i][$point1]['Y'];
+                        $deltaX = $curX - $baseX;
+                        $deltaY = $curY - $baseY;
+
                         foreach ($sourceFaceData1[$i] as $k1 => $v1) { //points
                             if (isset($sourceFaceData1[$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
                                 $sourceFaceData1[$i][$k1]['X'] = round($sourceFaceData1[$i][$k1]['X'] - $deltaX);
                                 $sourceFaceData1[$i][$k1]['Y'] = round($sourceFaceData1[$i][$k1]['Y'] - $deltaY);
                             }
                         }
+/*                        $curX1 = $sourceFaceData1[$i][$point1]['X'] +
+                            round(($sourceFaceData1[$i][$point2]['X'] - $sourceFaceData1[$i][$point1]['X'])/2);
+                        $curY1 = $sourceFaceData1[$i][$point1]['Y'];
+                        echo $i.' $baseX-Y: '.$baseX.'/'.$baseY.' $deltaX-Y: '.$deltaX.'/'.$deltaY.' Y-39-42: '.
+                            $sourceFaceData1[$i][$point1]['Y'].'/'.$sourceFaceData1[$i][$point2]['Y'].' cur3942_X-Y: '.
+                            $curX.'/'.$curY.'=>'.$curX1.'/'.$curY1.'<br>';*/
 
-                  /*      echo $i.' $baseX-Y: '.$baseX.'/'.$baseY.' $deltaX-Y:'.$deltaX.'/'.$deltaY.' Y-39-42:'.
-                            $sourceFaceData1[$i][$point1]['Y'].'/'.$sourceFaceData1[$i][$point2]['Y'].' cur3942X-Y'.
-                            ($sourceFaceData1[$i][$point1]['X']+round(($sourceFaceData1[$i][$point2]['X']-$sourceFaceData1[$i][$point1]['X'])/2)).'/'.
-                            ($sourceFaceData1[$i][$point1]['Y']+round(($sourceFaceData1[$i][$point2]['Y']-$sourceFaceData1[$i][$point1]['Y'])/2)).'<br>';
-                    */
                     }
                 //---------------------------------------------------------------------------------------------------
             }
