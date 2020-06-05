@@ -867,6 +867,7 @@ class FacialFeatureDetector
                             //31x48x74 31x40x74  - left_nasolabial_fold
                             //35x54x75 35x47x75 - right_nasolabial_fold
                             //27x35x42 и 27x31x39 - right and left nose wrinkle zones
+                            //21х22х28 - central nose wrinkle zone
                             foreach ($v1 as $k2 => $v2){
                               $sWrinkles = $sWrinkles + $v2[2];
                               $s2Wrinkles = $s2Wrinkles + $v2[3];
@@ -1486,6 +1487,7 @@ class FacialFeatureDetector
             && (isset($sourceFaceData0[0]['35x47x75']))
             && (isset($sourceFaceData0[0]['27x35x42']))
             && (isset($sourceFaceData0[0]['27x31x39']))
+            && (isset($sourceFaceData0[0]['21x22x28']))
         ) {
             $nLNF1 = $sourceFaceData0[0]['31x48x74']['s_wrinkles'];
             $nLNF2 = $sourceFaceData0[0]['31x40x74']['s_wrinkles'];
@@ -1493,6 +1495,7 @@ class FacialFeatureDetector
             $nRNF2 = $sourceFaceData0[0]['35x47x75']['s_wrinkles'];
             $nLNWZ = $sourceFaceData0[0]['27x31x39']['s_wrinkles'];
             $nRNWZ = $sourceFaceData0[0]['27x35x42']['s_wrinkles'];
+            $nCNWZ = $sourceFaceData0[0]['21x22x28']['s_wrinkles'];
 
             $maxLNF1 = $this->getFaceDataMaxForKeyV2($sourceFaceData0, '31x48x74', 's_wrinkles');
             $minLNF1 = $this->getFaceDataMinForKeyV2($sourceFaceData0, '31x48x74', 's_wrinkles');
@@ -1512,6 +1515,9 @@ class FacialFeatureDetector
             $maxLNWZ = $this->getFaceDataMaxForKeyV2($sourceFaceData0, '27x31x39', 's_wrinkles');
             $minLNWZ = $this->getFaceDataMinForKeyV2($sourceFaceData0, '27x31x39', 's_wrinkles');
             $scaleLNWZ = $maxLNWZ - $minLNWZ;
+            $maxCNWZ = $this->getFaceDataMaxForKeyV2($sourceFaceData0, '21x22x28', 's_wrinkles');
+            $minCNWZ = $this->getFaceDataMinForKeyV2($sourceFaceData0, '21x22x28', 's_wrinkles');
+            $scaleCNWZ = $maxCNWZ - $minCNWZ;
 
         for ($i = 0; $i < count($sourceFaceData0); $i++) {
 
@@ -1521,6 +1527,7 @@ class FacialFeatureDetector
             $cRNF2 = $sourceFaceData0[$i]['35x47x75']['s_wrinkles'] - $nRNF2;
             $cLNWZ = $sourceFaceData0[$i]['27x31x39']['s_wrinkles'] - $nLNWZ;
             $cRNWZ = $sourceFaceData0[$i]['27x35x42']['s_wrinkles'] - $nRNWZ;
+            $cCNWZ = $sourceFaceData0[$i]['21x22x28']['s_wrinkles'] - $nCNWZ;
 
             $forceLNF1 = $this->getForce($scaleLNF1, abs($cLNF1));
             $forceLNF2 = $this->getForce($scaleLNF2, abs($cLNF2));
@@ -1528,6 +1535,7 @@ class FacialFeatureDetector
             $forceRNF2 = $this->getForce($scaleRNF2, abs($cRNF2));
             $forceLNWZ = $this->getForce($scaleLNWZ, abs($cLNWZ));
             $forceRNWZ = $this->getForce($scaleRNWZ, abs($cRNWZ));
+            $forceCNWZ = $this->getForce($scaleCNWZ, abs($cCNWZ));
 
             $targetFaceData[$facePart]['VALUES_REL']["left_nasolabial_fold_movement".$postFix]["max"] = $maxLNF1;
             $targetFaceData[$facePart]['VALUES_REL']["left_nasolabial_fold_movement".$postFix]["min"] = $minLNF1;
@@ -1594,6 +1602,17 @@ class FacialFeatureDetector
             if ($cRNWZ > 0) $val = '+';
             if ($cRNWZ < 0) $val = '-';
             $targetFaceData[$facePart]["right_nose_wrinkle_zone".$postFix][$i]["val"] = $val;
+
+            $targetFaceData[$facePart]['VALUES_REL']["central_nose_wrinkle_zone".$postFix]["max"] = $maxCNWZ;
+            $targetFaceData[$facePart]['VALUES_REL']["central_nose_wrinkle_zone".$postFix]["min"] = $minCNWZ;
+            $targetFaceData[$facePart]['VALUES_REL']["central_nose_wrinkle_zone".$postFix][$i]["val"] = $sourceFaceData0[$i]['21x22x28']['s_wrinkles'];
+            $targetFaceData[$facePart]['VALUES_REL']["central_nose_wrinkle_zone".$postFix][$i]["delta"] = $cCNWZ;
+
+            $targetFaceData[$facePart]["central_nose_wrinkle_zone".$postFix][$i]["force"] = $forceCNWZ;
+            $val = 'none';
+            if ($cCNWZ > 0) $val = '+';
+            if ($cCNWZ < 0) $val = '-';
+            $targetFaceData[$facePart]["central_nose_wrinkle_zone".$postFix][$i]["val"] = $val;
         }
         return $targetFaceData;
         } else return false;
