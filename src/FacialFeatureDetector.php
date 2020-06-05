@@ -3475,7 +3475,8 @@ class FacialFeatureDetector
                     for ($i = $neighborsCnt; $i < count($sourceFaceData1[$k]) - $neighborsCnt; $i++) {
                         if (isset($sourceFaceData1[$k][$i])) //frames
                             foreach ($sourceFaceData1[$k][$i] as $k1 => $v1) { //points
-                                if (isset($sourceFaceData1[$k][$i-1][$k1]) && isset($sourceFaceData1[$k][$i+1][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
+                                if (isset($sourceFaceData1[$k][$i-1][$k1]) && isset($sourceFaceData1[$k][$i+1][$k1]) &&
+                                    isset($sourceFaceData1[$k][$i-1][$k1]['X'])) { //points $sourceFaceData3['normmask'][0][43]['X']
                                     $neighborLeftValueX = ($sourceFaceData1[$k][$i-1][$k1]['X']+
                                         $sourceFaceData1[$k][$i-1][$k1]['X']*$level);
                                     $neighborRightValueX = ($sourceFaceData1[$k][$i+1][$k1]['X']+
@@ -3519,27 +3520,32 @@ class FacialFeatureDetector
                          foreach ($sourceFaceData1[$k][$i] as $k1 => $v1) { //points
      //       if ($k!='normmask')              print_r($sourceFaceData1[$k][$i][$k1]);
             //                echo  '<br>';
-                             if (isset($sourceFaceData1[$k][$i][$k1])) { //points $sourceFaceData3['normmask'][0][43]['X']
-            //                  print_r($sourceFaceData1[$k][$i][$k1]); echo  '<br>';
-                               $avSumX = 0;
-                               $avSumY = 0;
-                               $i2 = $i - $cnt + 1;
-                               if ($i2 < 0) $i2 = 0;
+                             if (isset($sourceFaceData1[$k][$i][$k1])) {
+                                 //points $sourceFaceData3['normmask'][0][43]['X']
+                                 ////print_r($sourceFaceData1[$k][$i][$k1]); echo  '<br>';
+                                 $avSumX = 0;
+                                 $avSumY = 0;
+                                 $i2 = $i - $cnt + 1;
+                                 if ($i2 < 0) $i2 = 0;
             //                   if($k1 == 61) $s = $i.'('.$i2.'/'.($i - $i2 + 1).')';
-                               if ($i > 0) {
-                                   for ($i1 = $i; $i1 >= $i2; $i1--) {
-                                       if (isset($sourceFaceData1[$k][$i1][$k1])) {
-                                           $avSumX = $avSumX + $sourceFaceData1[$k][$i1][$k1]['X'];
-                                           $avSumY = $avSumY + $sourceFaceData1[$k][$i1][$k1]['Y'];
+                                 if ($i > 0) {
+                                     for ($i1 = $i; $i1 >= $i2; $i1--) {
+                                         if (isset($sourceFaceData1[$k][$i1][$k1]) &&
+                                             isset($sourceFaceData1[$k][$i1][$k1]['X']) &&
+                                             isset($sourceFaceData1[$k][$i1][$k1]['Y'])) {
+                                             $avSumX = $avSumX + $sourceFaceData1[$k][$i1][$k1]['X'];
+                                             $avSumY = $avSumY + $sourceFaceData1[$k][$i1][$k1]['Y'];
             //                              if($k1 == 61) $s .= '['.$sourceFaceData1[$k][$i1][$k1]['X'].'/'.$sourceFaceData1[$k][$i1][$k1]['Y'].']';
-                                       }
-                                   }
-                                   $avSumX = round($avSumX / ($i - $i2 + 1));
-                                   $avSumY = round($avSumY / ($i - $i2 + 1));
-                                } else {
-                                    $avSumX = $sourceFaceData1[$k][$i][$k1]['X'];
-                                    $avSumY = $sourceFaceData1[$k][$i][$k1]['Y'];
-                                }
+                                         }
+                                     }
+                                     $avSumX = round($avSumX / ($i - $i2 + 1));
+                                     $avSumY = round($avSumY / ($i - $i2 + 1));
+                                 } else {
+                                     if (isset($sourceFaceData1[$k][$i][$k1]['X']))
+                                        $avSumX = $sourceFaceData1[$k][$i][$k1]['X'];
+                                     if (isset($sourceFaceData1[$k][$i][$k1]['Y']))
+                                        $avSumY = $sourceFaceData1[$k][$i][$k1]['Y'];
+                                 }
             //                     if($k1 == 61) $s .= ' :'.$avSumX.'/'.$avSumY.'<br>';
             //                   if($k1 == 61) echo $s;
                                  $resFaceData[$k][$i][$k1]['X'] = $avSumX;
@@ -3590,7 +3596,7 @@ class FacialFeatureDetector
         else
             $FaceData =  $FaceData_; // use the AB format
 
-        echo json_encode($FaceData['contours']).'<br>';
+        //echo json_encode($FaceData['contours']).'<br>';
 
         $detectedFeatures = array();
         //----------------------------------------------------------------------------
@@ -3687,9 +3693,9 @@ class FacialFeatureDetector
             $detectedFeatures = $this->detectIrisesA($detectedFeatures,
                 $FaceData["gazeangle"], 'eye','');
 
-        if (isset($FaceData['contours']))
-            $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
-                $FaceData["contours"], 'nose','');
+//        if (isset($FaceData['contours']))
+//            $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
+//                $FaceData["contours"], 'nose','');
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalFeatures($detectedFeaturesWithTrends);
