@@ -4468,8 +4468,8 @@ class FacialFeatureDetector
                                             $fact['s862'] = $targetValues['featureChangeType'];
                                             $fact['s863'] = $targetValues['changeDirection'];
                                             $fact['s864'] = $frames[$j]["force"];
-                                            $fact['s869'] = count($frames);
-                                            $fact['s870'] = 1;
+                                            $fact['s869'] = $j;
+                                            $fact['s870'] = $j;
                                             $fact['s871'] = count($frames);
                                             $fact['s874'] = $j;
                                             // Добавление факта одного признака для текущего кадра в набор фактов
