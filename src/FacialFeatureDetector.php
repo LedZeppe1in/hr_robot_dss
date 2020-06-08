@@ -3387,7 +3387,7 @@ class FacialFeatureDetector
                                         if (($v1[$i]["val"] === '-')&&($eyeStartClosingFrame === '-1')
                                         && (strpos($v1[$i]["trend"],'+') == true)){
                                             $eyeStartClosingFrame = $i;
-                                            //                                    $eyeStartOpeningFrame = '-1';
+                                            $eyeStartOpeningFrame = '-1';
                                             //                                    $eyeClosedFrame = '-1';
                                         }
                                         //если глаз не закрывается, и не закрывался, то обнуляем
@@ -3404,18 +3404,36 @@ class FacialFeatureDetector
 //                                             echo $i.'<br>';
                                         }
 
-                                        //если глаз открыт и ранее фиксировалось его закрытие, то возможно моргание
+                                        //если глаз открыт и ранее фиксировалось его закрытие, то фиксируем его окрывание
                                         if (isset($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"]) &&
                                             ($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'no') &&
                                             ($eyeClosedFrame != '-1')) {
+                                            $eyeStartOpeningFrame = $i;
+                                            $eyeEndOpeningFrame = -1;
+                                        }
+
+                                        //если глаз перестал открываться, то фиксируем
+                                        if (($eyeStartOpeningFrame != '-1')
+                                            && ((strpos($v1[$i]["trend"],'=') == true) || ($v1[$i]["val"] === '+'))){
+                                            $eyeEndOpeningFrame = $i;
+                                        }
+
+                                        //если глаз открыт и ранее фиксировалось его закрытие, то возможно моргание
+                                        //открытие глаза также зафиксировано
+                                        if (isset($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"]) &&
+                                            ($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'no') &&
+                                            ($eyeClosedFrame != '-1') &&
+                                            ($eyeStartOpeningFrame != '-1') && ($eyeEndOpeningFrame != '-1')) {
                                             //processing
                                             //открытие глаза считается по закрытию
                                             if(($eyeStartClosingFrame != '-1') ) {
-//                                                echo '$eyeStartClosingFrame: '.$eyeStartClosingFrame.' $eyeClosedFrame: '.$eyeClosedFrame.'<br>';
-                                                //изменить значения свойств в диапазоне от $eyeStartClosingFrame
+//                                                echo '$eyeStartClosingFrame: '.$eyeStartClosingFrame.' $eyeClosedFrame: '.$eyeClosedFrame.
+//                                                    ' $eyeStartOpeningFrame:'.$eyeStartOpeningFrame.' $eyeEndOpeningFrame: '. $eyeEndOpeningFrame.'<br>';
+                                                //изменить значения свойств в диапазоне от $eyeStartClosingFrame до $eyeEndOpeningFrame
                                                 $sourceFaceData1[$k][$prefix . "eye_blink"] =
                                                     $this->updateValues($sourceFaceData1[$k][$prefix . "eye_blink"], 'val',
-                                                        'yes', $eyeStartClosingFrame, ($i + ($eyeClosedFrame - $eyeStartClosingFrame - 1)));
+ //                                                       'yes', $eyeStartClosingFrame, ($i + ($eyeClosedFrame - $eyeStartClosingFrame - 1)));
+                                                'yes', $eyeStartClosingFrame, $eyeEndOpeningFrame);
                                             }
 
                                             /*
