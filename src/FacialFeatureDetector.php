@@ -1482,8 +1482,9 @@ class FacialFeatureDetector
         //27x35x42 и 27x31x39 - right and left nose wrinkle zones
         //21x22x28 central nose wrinkle zones
 
-        if ((isset($sourceFaceData0[0]['31x48x74']))
-            && isset($sourceFaceData0[0]['31x40x74'])
+        if (//(isset($sourceFaceData0[0]['31x48x74']))
+//            &&
+            isset($sourceFaceData0[0]['31x40x74'])
             && isset($sourceFaceData0[0]['35x54x75'])
             && (isset($sourceFaceData0[0]['35x47x75']))
 //            && (isset($sourceFaceData0[0]['27x35x42']))
@@ -3340,9 +3341,9 @@ class FacialFeatureDetector
                 if ($k === 'eye') {
                     if ($v != null)
                         foreach ($v as $k1 => $v1) {
-                            // анализируем движение зрачков по Ивану - left_eye_pupil_movement_x
+                            // анализируем движение зрачков по Ивану - left_eye_pupil_movement_y
                             //закрытие глаза
-                            if (($k1 === 'left_eye_pupil_movement_x')||($k1 === 'right_eye_pupil_movement_x')) {
+                            if (($k1 === 'left_eye_pupil_movement_y')||($k1 === 'right_eye_pupil_movement_y')) {
                                 if(strpos($k1,'right')>-1) $prefix = 'right_';
                                  else $prefix = 'left_';
                                 //---------------------------------------------------------------------------------------
@@ -3350,7 +3351,7 @@ class FacialFeatureDetector
                                     //определение закрытие глаза, когда интенсивность выше 100
                                     $val = 100; //!!!
                                     if (isset($v1[$i]["force"])) {
-                                        if($sourceFaceData1[$k][$prefix."eye_pupil_movement_x"][$i]["force"] >= $val)
+                                        if($sourceFaceData1[$k][$prefix."eye_pupil_movement_y"][$i]["force"] >= $val)
                                          $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'yes';
                                         else
                                             $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'no';
@@ -3399,7 +3400,8 @@ class FacialFeatureDetector
                                         //если глаз закрыт и ранее это не фиксировалось, то фиксируем
                                         if (isset($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"]) &&
                                             ($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'yes') &&
-                                            ($eyeClosedFrame === '-1')) {
+                                            ($eyeClosedFrame === '-1') && ($eyeStartClosingFrame != '-1')
+                                        ) {
                                             $eyeClosedFrame = $i;
 //                                             echo $i.'<br>';
                                         }
@@ -3463,6 +3465,115 @@ class FacialFeatureDetector
         return $sourceFaceData1;
     }
 
+    /**
+     * Определение дополнительных проявлений, в частности
+     * говорение
+     * @param $sourceFaceData1 - входной массив с лицевыми точками (landmarks)
+     * @return array - выходной массив с обработанным массивом
+     */
+    public function detectAdditionalMouthFeatures($sourceFaceData1)
+    {
+        if ($sourceFaceData1 != null)
+            foreach ($sourceFaceData1 as $k=>$v) {
+                if ($k === 'mouth') {
+                    if ($v != null)
+                        foreach ($v as $k1 => $v1) {
+                            if ($k1 === 'mouth_width') {
+                                $mouthStartClosingFrame = '-1';
+                                $mouthOpenedFrame = '-1';
+                                $mouthStartOpeningFrame = '-1';
+                                $mouthEndOpeningFrame = '-1';
+                                $mouthEndClosingFrame = '-1';
+//                                $mouthOpenedCnt = 0;
+
+                                for ($i = 0; $i < count($v1); $i++) $sourceFaceData1[$k]["speaking"][$i]["val"] = 'no';
+                                //---------------------------------------------------------------------------------------
+                                for ($i = 1; $i < count($v1); $i++) {
+
+                                    if (isset($v1[$i]["trend"]) &&
+                                        isset($v1[$i]["val"])
+                                    ) {
+                                        //если рот начинает открываться, то фиксируем
+                                        if (($v1[$i]["val"] === '+') && ($mouthStartOpeningFrame == '-1')
+                                            && (strpos($v1[$i]["trend"], '+') == true)) {
+                                            $mouthStartOpeningFrame = $i;
+                                            $mouthStartClosingFrame = '-1';
+//                                            $mouthOpenedCnt = 0;
+                                            $mouthEndOpeningFrame = '-1';
+                                            $mouthEndClosingFrame = '-1';
+                                            //                                    $eyeClosedFrame = '-1';
+                                        }
+
+                                        //если рот не открывался, и не открывается, то обнуляем
+  /*                                      if (($v1[$i]["val"] !== '+') && ($mouthOpenedFrame === '-1')) {
+                                            $mouthStartClosingFrame = '-1';
+                                            $mouthStartOpeningFrame = '-1';
+                                            $mouthOpenedCnt = 0;
+                                        }*/
+
+                                        //если рот открыт и ранее это не фиксировалось, то фиксируем
+                                        if ((((strpos($v1[$i]["trend"], '-') == true) && (strpos($v1[$i]["trend"], '+') == true))
+                                            || (strpos($v1[$i]["trend"], '=') == true)) &&
+                                            ($v1[$i]["val"] === '+') &&
+                                            ($mouthOpenedFrame == '-1') &&
+                                            ($mouthStartOpeningFrame != '-1')) {
+                                            $mouthOpenedFrame = $i;
+                                            $mouthEndOpeningFrame = $i;
+//                                            $mouthOpenedCnt = 1;
+//                                             echo $i.'<br>';
+                                        }
+
+                                        //если рот открыт и ранее фиксировалось его открытие, то фиксируем его закрывание
+                                        if ((strpos($v1[$i]["trend"], '-') == true) &&
+                                            ($mouthEndOpeningFrame != '-1')) {
+                                            $mouthStartClosingFrame = $i;
+                                            $mouthEndClosingFrame = -1;
+                                        }
+
+                                        //если рот перестал закрываться, то фиксируем
+                                        if (($mouthStartClosingFrame != '-1')
+                                            && ((strpos($v1[$i]["trend"],'=') == true) || ($v1[$i]["val"] === '+'))
+                                            && ($mouthEndClosingFrame == '-1')){
+                                            $mouthEndClosingFrame = $i;
+                                        }
+
+                                        //если рот остался открытым
+              /*                          if ((strpos($v1[$i]["trend"], '=') == true) &&
+                                            ($v1[$i]["val"] === '+') &&
+                                            ($mouthOpenedFrame != '-1')) {
+                                            $mouthOpenedCnt = $mouthOpenedCnt + 1;
+                                        }*/
+
+                                        if (($mouthOpenedFrame != '-1') && ($mouthEndClosingFrame != '-1')) {
+                                            //processing
+                                            $mouthOpenedCnt = ($mouthStartClosingFrame - $mouthEndOpeningFrame);
+
+//                                            echo $i.' :: $mouthStartOpeningFrame: '.$mouthStartOpeningFrame.' $mouthEndOpeningFrame: '.$mouthEndOpeningFrame.
+//                                                ' $mouthOpenedCnt:'.$mouthOpenedCnt.' $mouthStartClosingFrame: '. $mouthStartClosingFrame.
+//                                                ' $mouthEndClosingFrame: '. $mouthEndClosingFrame.'<br>';
+
+                                            if(($mouthOpenedCnt < 4) && ($mouthOpenedCnt > 0)) {
+//                                                echo $mouthOpenedCnt . '<br>';
+                                                $sourceFaceData1[$k]["speaking"] =
+                                                    $this->updateValues($sourceFaceData1[$k]["speaking"], 'val',
+                                                        'yes', $mouthStartOpeningFrame, $mouthEndClosingFrame);
+                                            }
+                                            $mouthStartClosingFrame = '-1';
+                                            $mouthOpenedFrame = '-1';
+                                            $mouthStartOpeningFrame = '-1';
+                                            $mouthEndOpeningFrame = '-1';
+                                            $mouthEndClosingFrame = '-1';
+                                            $mouthOpenedCnt = 0;
+                                        }
+                                    }
+                                }
+                                //---------------------------------------------------------------------------------------
+                            }
+                        }
+                }
+            }
+        return $sourceFaceData1;
+    }
     //масштабирование точек маски
     //вход - массив с точками; точки, относительно которых происходит масштабирование
     //выход - отмасштабированные точки
@@ -3832,12 +3943,13 @@ class FacialFeatureDetector
             $detectedFeatures = $this->detectIrisesA($detectedFeatures,
                 $FaceData["gazeangle"], 'eye','');
 
-//        if (isset($FaceData['contours']))
-//            $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
-//                $FaceData["contours"], 'nose','');
+        if (isset($FaceData['contours']))
+            $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
+                $FaceData["contours"], 'nose','');
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends);
+        $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends);
 
         return $detectedFeaturesWithTrends;
     }
@@ -3898,7 +4010,7 @@ class FacialFeatureDetector
         if ((($sourceFeatureName == 'left_eyebrow_movement_x') || ($sourceFeatureName == 'right_eyebrow_movement_x')) &&
             ($sourceValue == 'from center')) {
             $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'От центра';
+            $targetValues['changeDirection'] = 'От центра в стороны';
         }
         if ((($sourceFeatureName == 'left_eyebrow_movement_y') || ($sourceFeatureName == 'right_eyebrow_movement_y')) &&
             ($sourceValue == 'up')) {
@@ -3945,7 +4057,7 @@ class FacialFeatureDetector
                 ($sourceFeatureName == 'right_eyebrow_inner_movement_x')) &&
             ($sourceValue == 'from center')) {
             $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'От центра';
+            $targetValues['changeDirection'] = 'От центра в стороны';
         }
         if ((($sourceFeatureName == 'left_eyebrow_inner_movement_y') ||
             ($sourceFeatureName == 'right_eyebrow_inner_movement_y')) &&
@@ -4050,7 +4162,7 @@ class FacialFeatureDetector
                 ($sourceFeatureName == 'right_eye_lower_eyelid_movement_x')) &&
             ($sourceValue == 'from center')) {
             $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'От центра';
+            $targetValues['changeDirection'] = 'От центра в стороны';
         }
         if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_y') ||
                 ($sourceFeatureName == 'right_eye_lower_eyelid_movement_y')) &&
