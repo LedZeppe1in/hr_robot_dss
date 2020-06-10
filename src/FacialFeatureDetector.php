@@ -877,7 +877,7 @@ class FacialFeatureDetector
                             $FaceData_['contours'][$i][$k1]['cnt_wrinkles'] = $cntWrinkles;
                             $FaceData_['contours'][$i][$k1]['s_wrinkles'] = $sWrinkles;
                             $FaceData_['contours'][$i][$k1]['s2_wrinkles'] = $s2Wrinkles;
-                            $FaceData_['contours'][$i][$k1]['p_wrinkles'] = $pWrinkles;
+                            $FaceData_['contours'][$i][$k1]['s3_wrinkles'] = $pWrinkles;
                         }
                     //brow points processing
                     if (isset($v['brow']))
@@ -3341,9 +3341,9 @@ class FacialFeatureDetector
                 if ($k === 'eye') {
                     if ($v != null)
                         foreach ($v as $k1 => $v1) {
-                            // анализируем движение зрачков по Ивану - left_eye_pupil_movement_y
+                            // анализируем движение зрачков по Ивану - left_eye_pupil_movement_x
                             //закрытие глаза
-                            if (($k1 === 'left_eye_pupil_movement_y')||($k1 === 'right_eye_pupil_movement_y')) {
+                            if (($k1 === 'left_eye_pupil_movement_x')||($k1 === 'right_eye_pupil_movement_x')) {
                                 if(strpos($k1,'right')>-1) $prefix = 'right_';
                                  else $prefix = 'left_';
                                 //---------------------------------------------------------------------------------------
@@ -3351,7 +3351,7 @@ class FacialFeatureDetector
                                     //определение закрытие глаза, когда интенсивность выше 100
                                     $val = 100; //!!!
                                     if (isset($v1[$i]["force"])) {
-                                        if($sourceFaceData1[$k][$prefix."eye_pupil_movement_y"][$i]["force"] >= $val)
+                                        if($sourceFaceData1[$k][$prefix."eye_pupil_movement_x"][$i]["force"] >= $val)
                                          $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'yes';
                                         else
                                             $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'no';
@@ -3721,7 +3721,7 @@ class FacialFeatureDetector
         $level = $level/100;
         if ($sourceFaceData1 != null)
             foreach ($sourceFaceData1 as $k => $v) //normpoints and triangles
-                if ($v != null) {
+                if (($v != null) && ($k != 'gazeangle') && ($k != 'contours')) {
                     for ($i = $neighborsCnt; $i < count($sourceFaceData1[$k]) - $neighborsCnt; $i++) {
                         if (isset($sourceFaceData1[$k][$i])) //frames
                             foreach ($sourceFaceData1[$k][$i] as $k1 => $v1) { //points
@@ -3763,7 +3763,7 @@ class FacialFeatureDetector
      $resFaceData = array();
      if ($sourceFaceData1 != null)
          foreach ($sourceFaceData1 as $k => $v) //normpoints and triangles
-             if (($v != null)and($k != 'gazeangle')) {
+             if (($v != null) && ($k != 'gazeangle') && ($k != 'contours')) {
 //        echo $k.' '.$v.'<br>';
                  for ($i = 0; $i < count($sourceFaceData1[$k]); $i++) {
                      if (isset($sourceFaceData1[$k][$i])) //frames
@@ -3846,7 +3846,7 @@ class FacialFeatureDetector
         else
             $FaceData =  $FaceData_; // use the AB format
 
-        //echo json_encode($FaceData['contours']).'<br>';
+//        echo json_encode($FaceData['contours']).'<br>';
 
         $detectedFeatures = array();
         //----------------------------------------------------------------------------
@@ -3943,9 +3943,9 @@ class FacialFeatureDetector
             $detectedFeatures = $this->detectIrisesA($detectedFeatures,
                 $FaceData["gazeangle"], 'eye','');
 
-        if (isset($FaceData['contours']))
-            $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
-                $FaceData["contours"], 'nose','');
+//        if (isset($FaceData['contours']))
+//            $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
+//                $FaceData["contours"], 'nose','');
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends);
