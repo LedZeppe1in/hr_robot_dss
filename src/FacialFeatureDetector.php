@@ -3348,7 +3348,7 @@ class FacialFeatureDetector
      * @param $sourceFaceData1 - входной массив с лицевыми точками (landmarks)
      * @return array - выходной массив с обработанным массивом
      */
-    public function detectAdditionalEyeFeatures($sourceFaceData1)
+    public function detectAdditionalEyeFeatures($sourceFaceData1,$coefs_)
     {
         if ($sourceFaceData1 != null)
             foreach ($sourceFaceData1 as $k=>$v) {
@@ -3363,8 +3363,10 @@ class FacialFeatureDetector
                                 //---------------------------------------------------------------------------------------
                                 for ($i = 1; $i < count($v1); $i++) {
                                     //определение закрытие глаза, когда интенсивность выше 100
-                                    $val1 = 80; //!!! для х
-                                    $val2 = 60; //!!! для y
+                                    $val1 = $coefs_['coefEyeForceLevelX']; //!!! для х
+                                    $val2 = $coefs_['coefEyeForceLevelY']; //!!! для y
+//                                    $val1 = 80; //!!! для х
+//                                    $val2 = 55; //!!! для y
                                     if (isset($v1[$i]["force"])) {
                                         if(($sourceFaceData1[$k][$prefix."eye_pupil_movement_x"][$i]["force"] >= $val1) &&
                                             ($sourceFaceData1[$k][$prefix."eye_pupil_movement_y"][$i]["force"] >= $val2))
@@ -3447,8 +3449,8 @@ class FacialFeatureDetector
                                             //открытие глаза считается по закрытию
                                             if(($eyeStartClosingFrame != '-1') ) {
 //                                                echo $prefix.' '.$eyeStartClosingFrame.'<br>';
-//                                                echo $prefix.' [ '.$eyeStartClosingFrame.' ('.$eyeClosedFrame.
-//                                                    ' - '.$eyeStartOpeningFrame.') '. $eyeEndOpeningFrame.']<br>';
+ //                                               echo $prefix.' [ '.$eyeStartClosingFrame.' ('.$eyeClosedFrame.
+ //                                                   ' - '.$eyeStartOpeningFrame.') '. $eyeEndOpeningFrame.']<br>';
                                                 //изменить значения свойств в диапазоне от $eyeStartClosingFrame до $eyeEndOpeningFrame
                                                 $sourceFaceData1[$k][$prefix . "eye_blink"] =
                                                     $this->updateValues($sourceFaceData1[$k][$prefix . "eye_blink"], 'val',
@@ -3895,7 +3897,9 @@ class FacialFeatureDetector
             'coefEyeBrowXMax' => 0.3,
 //            'coefNoseWidthMax' => 0.5,
             'coefNoseMovMax' => 0.3,
-            'coefNoseWingYMax' => 0.5
+            'coefNoseWingYMax' => 0.5,
+            'coefEyeForceLevelX' => 80,
+            'coefEyeForceLevelY' => 55
         );
         //----------------------------------------------------------------------------
         //----------------- norm points processing -----------------------------------
@@ -4001,7 +4005,7 @@ class FacialFeatureDetector
                 $FaceData["contours"], 'nose','');
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
-        $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends);
+        $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
         $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends);
 
         return $detectedFeaturesWithTrends;
