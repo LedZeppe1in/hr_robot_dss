@@ -3363,10 +3363,11 @@ class FacialFeatureDetector
                                 //---------------------------------------------------------------------------------------
                                 for ($i = 1; $i < count($v1); $i++) {
                                     //определение закрытие глаза, когда интенсивность выше 100
-//                                    $val = 100; //!!! для х
-                                    $val = 68; //!!!
+                                    $val1 = 80; //!!! для х
+                                    $val2 = 60; //!!! для y
                                     if (isset($v1[$i]["force"])) {
-                                        if($sourceFaceData1[$k][$prefix."eye_pupil_movement_x"][$i]["force"] >= $val)
+                                        if(($sourceFaceData1[$k][$prefix."eye_pupil_movement_x"][$i]["force"] >= $val1) &&
+                                            ($sourceFaceData1[$k][$prefix."eye_pupil_movement_y"][$i]["force"] >= $val2))
                                          $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'yes';
                                         else
                                             $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'no';
@@ -3400,14 +3401,14 @@ class FacialFeatureDetector
                                      isset($v1[$i]["val"])
                                     ) {
                                         //если глаз начинает закрываться, то фиксируем
-                                        if (($v1[$i]["val"] === '-')&&($eyeStartClosingFrame === '-1')
+                                        if (($v1[$i]["val"] === '-')&&($eyeStartClosingFrame == '-1')
                                         && (strpos($v1[$i]["trend"],'+') == true)){
                                             $eyeStartClosingFrame = $i;
                                             $eyeStartOpeningFrame = '-1';
                                             //                                    $eyeClosedFrame = '-1';
                                         }
                                         //если глаз не закрывается, и не закрывался, то обнуляем
-                                        if (($v1[$i]["val"] !== '-') && ($eyeClosedFrame === '-1')) {
+                                        if (($v1[$i]["val"] !== '-') && ($eyeClosedFrame == '-1')) {
                                             $eyeStartClosingFrame = '-1';
                                             $eyeStartOpeningFrame = '-1';
                                         }
@@ -3415,15 +3416,15 @@ class FacialFeatureDetector
                                         //если глаз закрыт и ранее это не фиксировалось, то фиксируем
                                         if (isset($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"]) &&
                                             ($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'yes') &&
-                                            ($eyeClosedFrame === '-1') && ($eyeStartClosingFrame != '-1')
+                                            ($eyeClosedFrame == '-1') && ($eyeStartClosingFrame != '-1')
                                         ) {
                                             $eyeClosedFrame = $i;
 //                                             echo $i.'<br>';
                                         }
 
-                                        //если глаз открыт и ранее фиксировалось его закрытие, то фиксируем его окрывание
+                                        //если глаз заткрыт и ранее фиксировалось его закрытие, то фиксируем его окрывание
                                         if (isset($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"]) &&
-                                            ($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'no') &&
+                                            ($sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] === 'yes') &&
                                             ($eyeClosedFrame != '-1')) {
                                             $eyeStartOpeningFrame = $i;
                                             $eyeEndOpeningFrame = -1;
@@ -3431,7 +3432,8 @@ class FacialFeatureDetector
 
                                         //если глаз перестал открываться, то фиксируем
                                         if (($eyeStartOpeningFrame != '-1')
-                                            && ((strpos($v1[$i]["trend"],'=') == true) || ($v1[$i]["val"] === '+'))){
+                                            && ((strpos($v1[$i]["trend"],'=') == true) || (strpos($v1[$i]["trend"],'+') == true)
+                                            )){
                                             $eyeEndOpeningFrame = $i;
                                         }
 
@@ -3445,8 +3447,8 @@ class FacialFeatureDetector
                                             //открытие глаза считается по закрытию
                                             if(($eyeStartClosingFrame != '-1') ) {
 //                                                echo $prefix.' '.$eyeStartClosingFrame.'<br>';
-//                                                echo '$eyeStartClosingFrame: '.$eyeStartClosingFrame.' $eyeClosedFrame: '.$eyeClosedFrame.
-//                                                    ' $eyeStartOpeningFrame:'.$eyeStartOpeningFrame.' $eyeEndOpeningFrame: '. $eyeEndOpeningFrame.'<br>';
+//                                                echo $prefix.' [ '.$eyeStartClosingFrame.' ('.$eyeClosedFrame.
+//                                                    ' - '.$eyeStartOpeningFrame.') '. $eyeEndOpeningFrame.']<br>';
                                                 //изменить значения свойств в диапазоне от $eyeStartClosingFrame до $eyeEndOpeningFrame
                                                 $sourceFaceData1[$k][$prefix . "eye_blink"] =
                                                     $this->updateValues($sourceFaceData1[$k][$prefix . "eye_blink"], 'val',
