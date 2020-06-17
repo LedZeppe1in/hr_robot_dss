@@ -1484,7 +1484,6 @@ class FacialFeatureDetector
      */
     public function detectAdditionalNoseFeatures($targetFaceData, $sourceFaceData0, $facePart, $postFix)
     {
-        $targetFaceData = array();
         //31x48x74 31x40x74  - left_nasolabial_fold
         //35x54x75 35x47x75 - right_nasolabial_fold
         //27x35x42 и 27x31x39 - right and left nose wrinkle zones
