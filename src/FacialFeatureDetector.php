@@ -3796,6 +3796,36 @@ class FacialFeatureDetector
                                 }
                             }
                     }
+                }elseif (($v != null) &&  ($k == 'contours')) {
+                    for ($i = $neighborsCnt; $i < count($sourceFaceData1[$k]) - $neighborsCnt; $i++) {
+                        if (isset($sourceFaceData1[$k][$i])) //frames
+                            foreach ($sourceFaceData1[$k][$i] as $k1 => $v1) { //rectangles
+                                if (isset($sourceFaceData1[$k][$i - 1][$k1]) && isset($sourceFaceData1[$k][$i + 1][$k1]) &&
+                                    isset($sourceFaceData1[$k][$i - 1][$k1]['s_wrinkles'])) { //points $sourceFaceData3['contours'][0][xxx]['s_wrinkles']
+                                    $neighborLeftValue = ($sourceFaceData1[$k][$i - 1][$k1]['s_wrinkles'] +
+                                        $sourceFaceData1[$k][$i - 1][$k1]['s_wrinkles'] * $level);
+                                    $neighborRightValue = ($sourceFaceData1[$k][$i + 1][$k1]['s_wrinkles'] +
+                                        $sourceFaceData1[$k][$i + 1][$k1]['s_wrinkles'] * $level);
+                                    $beforeVal = $sourceFaceData1[$k][$i][$k1]['s_wrinkles'];
+                                    //                                   echo $neighborLeftValueX.'/'.$neighborRightValueX.'//'.$sourceFaceData1[$k][$i][$k1]['X'].'<br>';
+                                    if (($neighborLeftValue < $sourceFaceData1[$k][$i][$k1]['s_wrinkles']) &&
+                                        ($neighborRightValue < $sourceFaceData1[$k][$i][$k1]['s_wrinkles'])
+                                    ) $sourceFaceData1[$k][$i][$k1]['s_wrinkles'] = (($sourceFaceData1[$k][$i - 1][$k1]['s_wrinkles'] +
+                                            $sourceFaceData1[$k][$i + 1][$k1]['s_wrinkles']) / 2);
+//echo $i.'/'.$k1.' : '.$beforeVal.'->'.$sourceFaceData1[$k][$i][$k1]['s_wrinkles'].'<br>';
+
+                                 /*   $neighborLeftValueY = ($sourceFaceData1[$k][$i - 1][$k1]['Y'] +
+                                        $sourceFaceData1[$k][$i - 1][$k1]['Y'] * $level);
+                                    $neighborRightValueY = ($sourceFaceData1[$k][$i + 1][$k1]['Y'] +
+                                        $sourceFaceData1[$k][$i + 1][$k1]['Y'] * $level);
+//                                    echo $neighborLeftValueY.'/'.$neighborRightValueY.'//'.$sourceFaceData1[$k][$i][$k1]['Y'].'<br>';
+                                    if (($neighborLeftValueY < $sourceFaceData1[$k][$i][$k1]['Y']) &&
+                                        ($neighborRightValueY < $sourceFaceData1[$k][$i][$k1]['Y'])
+                                    ) $sourceFaceData1[$k][$i][$k1]['Y'] = ($sourceFaceData1[$k][$i - 1][$k1]['Y'] +
+                                            $sourceFaceData1[$k][$i + 1][$k1]['Y']) / 2;*/
+                                }
+                            }
+                    }
                 }
         return $sourceFaceData1;
     }
@@ -3863,6 +3893,45 @@ class FacialFeatureDetector
                      if (is_array($resFaceData[$k]))
                       array_push($resFaceData[$k], $sourceFaceData1[$k][$i1]);
                  }
+             } elseif (($v != null)  && ($k == 'contours')){
+//        echo $k.' '.$v.'<br>';
+                 for ($i = 0; $i < count($sourceFaceData1[$k]); $i++) {
+                     if (isset($sourceFaceData1[$k][$i])) //frames
+                         foreach ($sourceFaceData1[$k][$i] as $k1 => $v1) { //rectangles
+                             if (isset($sourceFaceData1[$k][$i][$k1])) {
+                                 $avSum = 0;
+                                 $i2 = $i - $cnt + 1;
+                                 if ($i2 < 0) $i2 = 0;
+                                 if ($i > 0) {
+                                     for ($i1 = $i; $i1 >= $i2; $i1--) {
+                                         if (isset($sourceFaceData1[$k][$i1][$k1]) &&
+                                             isset($sourceFaceData1[$k][$i1][$k1]['s_wrinkles'])) {
+                                             $avSum = $avSum + $sourceFaceData1[$k][$i1][$k1]['s_wrinkles'];
+                                         }
+                                     }
+                                     $avSum = round($avSum / ($i - $i2 + 1));
+                                 } else {
+                                     if (isset($sourceFaceData1[$k][$i][$k1]['s_wrinkles']))
+                                         $avSum = $sourceFaceData1[$k][$i][$k1]['s_wrinkles'];
+                                 }
+//echo $i.'/'.$k1.' : '.$sourceFaceData1[$k][$i][$k1]['s_wrinkles'].'->'.$avSum.'<br>';
+                                 $resFaceData[$k][$i][$k1]['s_wrinkles'] = $avSum;
+                             }
+                         }
+                 }
+                 //shift
+                 $shiftCnt = round(($cnt-1)/2);
+                 for ($i1 = 1; $i1 <= $shiftCnt; $i1++) {
+                     if (is_array($resFaceData[$k])) array_shift($resFaceData[$k]);
+//                     else echo $k.'<br>';
+                 }
+
+                 //add to the end of the array new values
+                 for ($i1 = (count($sourceFaceData1[$k])  - $shiftCnt);
+                      $i1 < (count($sourceFaceData1[$k])); $i1++) {
+                     if (is_array($resFaceData[$k]))
+                         array_push($resFaceData[$k], $sourceFaceData1[$k][$i1]);
+                 }
              } else{ //for gazeangle
                  $resFaceData[$k] = $v;
              }
@@ -3897,7 +3966,7 @@ class FacialFeatureDetector
 
         $detectedFeatures = array();
 
-        //--------------- initilal loading vars -------------------------------------
+        //--------------- initilal loading of vars -------------------------------------
         $coefs = array(
             'outlierPercent' => 10,
             'outlierNeighborsCnt' => 1,
@@ -4027,9 +4096,9 @@ class FacialFeatureDetector
             $detectedFeatures = $this->detectIrisesA($detectedFeatures,
                 $FaceData["gazeangle"], 'eye','');
 
-//        if (isset($FaceData['contours']))
-//            $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
-//                $FaceData["contours"], 'nose','');
+        if (isset($FaceData['contours']))
+            $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
+                $FaceData["contours"], 'nose','');
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
