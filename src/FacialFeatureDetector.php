@@ -4233,23 +4233,23 @@ class FacialFeatureDetector
             $targetValues['featureChangeType'] = 'Отсутствие типа';
             $targetValues['changeDirection'] = 'Отсутствие направления';
         }*/
-        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'lright_eyebrow_form')) && ($sourceValue == 'triangle')) {
+        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'right_eyebrow_form')) && ($sourceValue == 'triangle')) {
             $targetValues['featureChangeType'] = 'Изменение формы';
             $targetValues['changeDirection'] = 'Тругольник';
         }
-        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'lright_eyebrow_form')) && ($sourceValue == 'none')) {
+        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'right_eyebrow_form')) && ($sourceValue == 'none')) {
             $targetValues['featureChangeType'] = 'Изменение формы';
             $targetValues['changeDirection'] = 'Не определено';
         }
-        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'lright_eyebrow_form')) && ($sourceValue == 'line')) {
+        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'right_eyebrow_form')) && ($sourceValue == 'line')) {
             $targetValues['featureChangeType'] = 'Изменение формы';
             $targetValues['changeDirection'] = 'Линия';
         }
-        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'lright_eyebrow_form')) && ($sourceValue == 'up')) {
+        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'right_eyebrow_form')) && ($sourceValue == 'up')) {
             $targetValues['featureChangeType'] = 'Изменение формы';
             $targetValues['changeDirection'] = 'Дуга вверх';
         }
-        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'lright_eyebrow_form')) && ($sourceValue == 'down')) {
+        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'right_eyebrow_form')) && ($sourceValue == 'down')) {
             $targetValues['featureChangeType'] = 'Изменение формы';
             $targetValues['changeDirection'] = 'Дуга вниз';
         }
