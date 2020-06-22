@@ -2168,11 +2168,16 @@ class FacialFeatureDetector
         else return false;
     }
 
-    public function isLine($point1,$point2,$point3,$constr){
-        //                if abs((x_3 - x_1) / (x_2 - x_1) - (y_3 - y_1) / (y_2 - y_1)) <= Tol
-        if(abs(($point3['X'] - $point1['X']) / ($point2['X'] - $point1['X']) -
-                ($point3['Y'] - $point1['Y']) / ($point2['Y'] - $point1['Y'])) <= $constr) return true;
-                    else return false;
+    public function isLine($point1,$point2,$point3,$constr)
+    {
+        $denominator = $point2['Y'] - $point1['Y'];
+        if ($denominator == 0) $denominator = 1;
+        // if abs((x_3 - x_1) / (x_2 - x_1) - (y_3 - y_1) / (y_2 - y_1)) <= Tol
+        if (abs(($point3['X'] - $point1['X']) / ($point2['X'] - $point1['X']) -
+                ($point3['Y'] - $point1['Y']) / $denominator) <= $constr)
+            return true;
+        else
+            return false;
     }
 
     /**
@@ -4015,11 +4020,10 @@ class FacialFeatureDetector
                  }
 
                  //add to the end of the array new values
-                 for ($i1 = (count($sourceFaceData1[$k])  - $shiftCnt);
-                       $i1 < (count($sourceFaceData1[$k])); $i1++) {
-                     if (is_array($resFaceData[$k]))
-                      array_push($resFaceData[$k], $sourceFaceData1[$k][$i1]);
-                 }
+                 for ($i1 = (count($sourceFaceData1[$k])  - $shiftCnt); $i1 < (count($sourceFaceData1[$k])); $i1++)
+                     if (is_array($resFaceData[$k]) && isset($sourceFaceData1[$k][$i1]))
+                         array_push($resFaceData[$k], $sourceFaceData1[$k][$i1]);
+
              } elseif (($v != null)  && ($k == 'contours')){
 //        echo $k.' '.$v.'<br>';
                  for ($i = 0; $i < count($sourceFaceData1[$k]); $i++) {
