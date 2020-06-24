@@ -15,6 +15,8 @@ class OSConnector
     const OBJECT_STORAGE_KNOWLEDGE_BASE_BUCKET        = 'knowledgebase';
     // Название бакета для файлов видеоинтервью в Object Storage на Yandex.Cloud
     const OBJECT_STORAGE_VIDEO_BUCKET                 = 'videointerviews';
+    // Название бакета для файлов с озвучкой вопросов в Object Storage на Yandex.Cloud
+    const OBJECT_STORAGE_AUDIO_BUCKET                 = 'questionvoiceactings';
     // Название бакета для json-файлов цифровых масок в Object Storage на Yandex.Cloud
     const OBJECT_STORAGE_LANDMARK_BUCKET              = 'landmarks';
     // Название бакета для json-файлов результатов определения признаков в Object Storage на Yandex.Cloud
@@ -59,9 +61,9 @@ class OSConnector
             // Если пришел массив
             if (is_array($file))
                 $content = json_encode($file, JSON_UNESCAPED_UNICODE);
-            // Если пришел не json-текст (файл)
-            if (is_string($file) && !is_array(json_decode($file, true)))
-                $content = fopen($file, 'r');
+//            // Если пришел не json-текст (файл)
+//            if (is_string($file) && !is_array(json_decode($file, true)))
+//                $content = fopen($file, 'r');
             $s3Client->putObject([
                 'Bucket' => $bucketName,
                 'Key' => ($path != null) ? $path . '/' . $fileName : $fileName,
