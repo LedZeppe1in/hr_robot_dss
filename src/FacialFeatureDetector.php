@@ -3086,7 +3086,8 @@ class FacialFeatureDetector
 
         reset($resSums); //получение первого элемента массива - номер первого экстремального фрейма
 //        $res = key($resSums);
-
+//        print_r($resSums);
+//        echo '<br>';
         if(isset($sourceFaceData1[key($resSums)])) $res = $sourceFaceData1[key($resSums)];
         return $res;
     }
@@ -4084,6 +4085,7 @@ class FacialFeatureDetector
             $json = '['.$json.']';
         }
 
+        $json = str_ireplace('Infinity','99999',$json);
         $FaceData_ = json_decode($json, true);
         // check input format and convert the I and A formats to AB
         if(strpos($json,'NORM_POINTS') !== false) //I format
@@ -4238,6 +4240,183 @@ class FacialFeatureDetector
 
         return $detectedFeaturesWithTrends;
     }
+    /**
+     * Обнаружение признаков на основе анализа входных данных.
+     *
+     * @param $json - содержимое файла в формате json с лицевыми точками (landmarks)
+     * @param $pointsFlag - тип точек (landmarks) для обработки: 0 - сырые, 1 - нормализованные
+     * @return array - выходной массив с опредеделенными признаками
+     */
+    public function detectFeaturesV2($json, $pointsFlag, $basicFrame)
+    {
+        // load data
+        if(strpos($json,'AUs') !== false) {
+            $json = str_replace('{"AUs"',',{"AUs"',$json);
+            $json =  trim($json, ',');
+            $json = '['.$json.']';
+        }
+
+        $json = str_ireplace('Infinity','99999',$json);
+        $FaceData_ = json_decode($json, true);
+        // check input format and convert the I and A formats to AB
+        if(strpos($json,'NORM_POINTS') !== false) //I format
+            $FaceData = $this->convertIJson($FaceData_);
+        elseif(strpos($json,'AUs') !== false)   //A format
+            $FaceData = $this->convertAJson($FaceData_);
+        else
+            $FaceData =  $FaceData_; // use the AB format
+
+//        echo json_encode($FaceData['contours']).'<br>';
+
+        $detectedFeatures = array();
+
+        //--------------- initilal loading of vars -------------------------------------
+        $coefs = array(
+            'outlierPercent' => 10,
+            'outlierNeighborsCnt' => 1,
+            'smoothWindow1' => 3,
+            'smoothWindow2' => 5,
+            'xMovingPoint1' => 21,
+            'xMovingPoint2' => 22,
+            'yMovingPoint1' => 21,
+            'yMovingPoint2' => 22,
+            'xRotationPoint1' => 39,
+            'xRotationPoint2' => 42,
+            'yScalingPoint1' => 27,
+            'yScalingPoint2' => 30,
+            'coefEyeWidthMax' => 0.65,
+            'coefMouthLengthMax' => 1.25,
+            'coefMouthLengthMin' => 0.7,
+            'coefMouthUpperLipMax' => 0.2,
+            'coefMouthLowerLipMax' => 1.05,
+            'coefMouthRightCornerYMax' => 0.4,
+            'coefMouthLeftCornerYMax' => 0.4,
+            'coefMouthRightCornerXMax' => 0.55,
+            'coefMouthLeftCornerXMax' => 0.55,
+            'coefChinScale' => 0.65,
+            'coefEyeBrowXMax' => 0.3,
+//            'coefNoseWidthMax' => 0.5,
+            'coefNoseMovMax' => 0.3,
+            'coefNoseWingYMax' => 0.5,
+            'coefEyeForceLevelX' => 80,
+            'coefEyeForceLevelY' => 55,
+            'coefLineDetection' => 3
+        );
+        //----------------------------------------------------------------------------
+        //----------------- norm points processing -----------------------------------
+        if ((isset($FaceData['normmask'])) && ($pointsFlag == 1)) {
+
+            if(Trim($basicFrame) != '') array_unshift($FaceData['normmask'],$basicFrame);
+
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_ORIGIN', $FaceData, $detectedFeatures, '');
+
+            $FaceData['normmask'] = $this->stabilizating($FaceData['normmask'], 39, 42);
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_STABILIZED', $FaceData, $detectedFeatures, 'pp.3942');
+
+            //    $FaceData['normmask'] = $this->rotating($FaceData['normmask'], 39, 42);
+            $FaceData['normmask'] = $this->rotating($FaceData['normmask'], $coefs['xRotationPoint1'], $coefs['xRotationPoint2']);
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_ROTAITED', $FaceData, $detectedFeatures, 'pp.'.$coefs['xRotationPoint1'].$coefs['xRotationPoint2']);
+
+//        $FaceData['normmask'] = $this->scaling($FaceData['normmask'],27,28);
+//        $detectedFeatures = $this->addPointsToResults('normmask',
+//            'NORM_POINTS_SCALED',$FaceData,$detectedFeatures,'pp.2728');
+        }
+
+        if ((isset($FaceData['points'])) && ($pointsFlag == 0)) {
+
+            if(Trim($basicFrame) != '') array_unshift($FaceData['points'],$basicFrame);
+            //-------------------------- orig points processing ----------------------
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_ORIGIN',$FaceData,$detectedFeatures,'');
+
+            $FaceData['points'] = $this->stabilizating($FaceData['points'],39,42);
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_STABILIZED',$FaceData,$detectedFeatures,'pp.3942');
+
+            $FaceData['points'] = $this->rotating($FaceData['points'],$coefs['xRotationPoint1'], $coefs['xRotationPoint2']);
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_ROTAITED',$FaceData,$detectedFeatures,'pp.'.$coefs['xRotationPoint1'].$coefs['xRotationPoint2']);
+        }
+        // ------------------------ зрачки ----------------------------------------
+//        $FaceData['normirises'] = $this->stabilizating($FaceData['normirises'],0,1);
+        if (isset($FaceData['normirises']))
+            $FaceData['normirises'] = $this->rotating($FaceData['normirises'],0,1);
+        //       $FaceData['normirises'] = $this->scaling($FaceData['normirises'],0,1);
+
+//        $FaceData['origirises'] = $this->stabilizating($FaceData['origirises'],0,1);
+        if (isset($FaceData['origirises']))
+            $FaceData['origirises'] = $this->rotating($FaceData['origirises'],0,1);
+//        $FaceData['origirises'] = $this->scaling($FaceData['origirises'],0,1);
+        //---------------------------------------------------------------------------
+        if ((isset($FaceData['normmask'])) && ($pointsFlag == 1)) {
+            $FaceData = $this->processingOutliers($FaceData, $coefs['outlierPercent'], $coefs['outlierNeighborsCnt']);
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_OUTLIER', $FaceData, $detectedFeatures, 'outlier_level_percent('.
+                $coefs['outlierPercent'].')outlier_neighbors('.$coefs['outlierNeighborsCnt'].')');
+            $FaceData = $this->processingWithMovingAverage($FaceData, $coefs['smoothWindow1']);
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_OUTLIER_MA', $FaceData, $detectedFeatures, 'smoth_order('.$coefs['smoothWindow1'].')');
+            $FaceData = $this->processingWithMovingAverage($FaceData, $coefs['smoothWindow2']);
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_OUTLIER_MA', $FaceData, $detectedFeatures, 'smoth_order('.$coefs['smoothWindow1'].
+                '_'.$coefs['smoothWindow2'].')');
+
+            $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['normmask'],'eye',39,42, $coefs);
+            $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['normmask'],'mouth',39,42,$coefs);
+            $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['normmask'],'brow',39,42,$coefs);
+            $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['normmask'],'eyebrow',39,42,$coefs);
+            $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['normmask'],'nose', 39,42,$coefs);
+            $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['normmask'],'chin',39,42,$coefs);
+        }
+
+        if ((isset($FaceData['points'])) && ($pointsFlag == 0)){
+            //------------------- origin points processing ------------------------------
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_OUTLIER',$FaceData,$detectedFeatures,'outlier_level_percent(10)outlier_neighbors('.
+                $coefs['outlierPercent'].')');
+            $FaceData = $this->processingWithMovingAverage($FaceData,$coefs['smoothWindow1']);
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order('.$coefs['smoothWindow1'].')');
+            $FaceData = $this->processingWithMovingAverage($FaceData,$coefs['smoothWindow2']);
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order('.$coefs['smoothWindow1'].
+                '_'.$coefs['smoothWindow2'].')');
+
+            $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['points'],'eye',39,42,$coefs);
+            $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['points'],'mouth',39,42,$coefs);
+            $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['points'],'brow',39,42,$coefs);
+            $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['points'],'eyebrow',39,42,$coefs);
+            $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['points'],'nose', 39,42,$coefs);
+            $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['points'],'chin',39,42,$coefs);
+        }
+//                $this->saveXY2($FaceData,'m1.json');
+        /*         $fd = fopen('_MA.json', "w");
+                     fwrite($fd,json_encode($FaceData));
+                     fclose($fd);*/
+        if (isset($FaceData['normirises']))
+            $detectedFeatures = $this->detectIrises($detectedFeatures,
+                $FaceData['normirises'], 'eye','');
+        if (isset($FaceData['origirises']))
+            $detectedFeatures = $this->detectIrises($detectedFeatures,
+                $FaceData['origirises'], 'eye','_orig');
+        if (isset($FaceData['gazeangle']))
+            $detectedFeatures = $this->detectIrisesA($detectedFeatures,
+                $FaceData["gazeangle"], 'eye','');
+
+        if (isset($FaceData['contours']))
+            $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
+                $FaceData["contours"], 'nose','');
+
+        $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
+        $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
+        $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends);
+
+        return $detectedFeaturesWithTrends;
+    }
+
 
     public function detectFeaturesForBasicFrameDetection($json, $pointsFlag)
     {
@@ -4248,6 +4427,7 @@ class FacialFeatureDetector
             $json = '['.$json.']';
         }
 
+        $json = str_ireplace('Infinity','99999',$json);
         $FaceData_ = json_decode($json, true);
         // check input format and convert the I and A formats to AB
         if(strpos($json,'NORM_POINTS') !== false) //I format
@@ -4393,7 +4573,9 @@ class FacialFeatureDetector
             $resFrame = $this->basicFrameDetection($FaceData['normmask'],$detectedFeaturesWithTrends,$arr);
         if ((isset($FaceData['points'])) && ($pointsFlag == 0))
             $resFrame = $this->basicFrameDetection($FaceData['points'],$detectedFeaturesWithTrends,$arr);
-        return json_encode($resFrame);
+        $res = json_encode($resFrame);
+//        echo $res;
+        return $res;
     }
 
     /**
