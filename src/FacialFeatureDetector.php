@@ -3829,7 +3829,7 @@ class FacialFeatureDetector
      * @param $sourceFaceData1 - входной массив с лицевыми точками (landmarks)
      * @return array - выходной массив с обработанным массивом
      */
-    public function detectAdditionalMouthFeatures($sourceFaceData1)
+    public function detectAdditionalMouthFeatures($sourceFaceData1, $coef_)
     {
         if ($sourceFaceData1 != null){
             foreach ($sourceFaceData1 as $k => $v) {
@@ -3986,11 +3986,11 @@ class FacialFeatureDetector
 
 //                                            echo 'mouth_width :: '.$mouthStartOpeningFrame.' / '.$mouthOpenedCnt.' / '. $mouthEndClosingFrame.'<br>';
 
-//                                            if (($mouthOpenedCnt < 4) && ($mouthOpenedCnt > 0)) {
+                                            if ($mouthOpenedCnt > $coef_['coefCntFramesForMouthOpenedWhenSpeaking']) {
                                                 $sourceFaceData1[$k]["speaking"] =
                                                     $this->updateValues($sourceFaceData1[$k]["speaking"], 'val',
                                                         'yes', $mouthStartOpeningFrame, $mouthEndClosingFrame);
- //                                           }
+                                            }
                                             $mouthStartClosingFrame = '-1';
                                             $mouthOpenedFrame = '-1';
                                             $mouthStartOpeningFrame = '-1';
@@ -4024,11 +4024,10 @@ class FacialFeatureDetector
                     if((((isset($sourceFaceData1[$k]["speaking"][$i+1])) && ($sourceFaceData1[$k]["speaking"][$i+1]['val'] == 'yes'))
                             || ((isset($sourceFaceData1[$k]["speaking"][$i+2])) && ($sourceFaceData1[$k]["speaking"][$i+2]['val'] == 'yes'))
                             || ((isset($sourceFaceData1[$k]["speaking"][$i+3])) && ($sourceFaceData1[$k]["speaking"][$i+3]['val'] == 'yes')))
-//                            || (((isset($sourceFaceData1[$k]["speaking"][$i-1])) && ($sourceFaceData1[$k]["speaking"][$i-1]['val'] == 'yes') )
-                           /* ||
-                            ((isset($sourceFaceData1[$k]["speaking"][$i-2])) && ($sourceFaceData1[$k]["speaking"][$i-2]['val'] == 'yes'))
-                            || ((isset($sourceFaceData1[$k]["speaking"][$i-3])) && ($sourceFaceData1[$k]["speaking"][$i-3]['val'] == 'yes'))*/
-//                        )
+                            || (((isset($sourceFaceData1[$k]["speaking"][$i-1])) && ($sourceFaceData1[$k]["speaking"][$i-1]['val'] == 'yes') )
+                            || ((isset($sourceFaceData1[$k]["speaking"][$i-2])) && ($sourceFaceData1[$k]["speaking"][$i-2]['val'] == 'yes'))
+                            || ((isset($sourceFaceData1[$k]["speaking"][$i-3])) && ($sourceFaceData1[$k]["speaking"][$i-3]['val'] == 'yes'))
+                        )
                     )
                     {$sourceFaceData1[$k]["speaking"][$i]['val'] = 'yes';}
                     else
@@ -4040,16 +4039,16 @@ class FacialFeatureDetector
             for ($i = 0; $i < count($sourceFaceData1[$k]["speaking"]); $i++) {
                 if(($sourceFaceData1[$k]["speaking"][$i]['val'] == 'yes') && ($sourceFaceData1[$k]["audio_db_val"][$i]['val'] == 'no')){
                     //проверить звук дальше
-                    if((((isset($sourceFaceData1[$k]["audio_db_val"][$i+1])) && ($sourceFaceData1[$k]["audio_db_val"][$i+1]['val'] == 'no')) //&&
- //                       ((isset($sourceFaceData1[$k]["audio_db_val"][$i+2])) && ($sourceFaceData1[$k]["audio_db_val"][$i+2]['val'] == 'no'))
+                    if((((isset($sourceFaceData1[$k]["audio_db_val"][$i+1])) && ($sourceFaceData1[$k]["audio_db_val"][$i+1]['val'] == 'no')) &&
+                        ((isset($sourceFaceData1[$k]["audio_db_val"][$i+2])) && ($sourceFaceData1[$k]["audio_db_val"][$i+2]['val'] == 'no'))
                         ) &&
-                        (((isset($sourceFaceData1[$k]["audio_db_val"][$i-1])) && ($sourceFaceData1[$k]["audio_db_val"][$i-1]['val'] == 'no')) //&&
-//                            ((isset($sourceFaceData1[$k]["audio_db_val"][$i-2])) && ($sourceFaceData1[$k]["audio_db_val"][$i-2]['val'] == 'no'))
+                        (((isset($sourceFaceData1[$k]["audio_db_val"][$i-1])) && ($sourceFaceData1[$k]["audio_db_val"][$i-1]['val'] == 'no')) &&
+                            ((isset($sourceFaceData1[$k]["audio_db_val"][$i-2])) && ($sourceFaceData1[$k]["audio_db_val"][$i-2]['val'] == 'no'))
                         )
                     )
                     {$sourceFaceData1[$k]["speaking"][$i]['val'] = 'no';}
                 }
-//                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
+ //               echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
             }
     }
         return $sourceFaceData1;
@@ -4470,7 +4469,8 @@ class FacialFeatureDetector
             'coefNoseWingYMax' => 0.5,
             'coefEyeForceLevelX' => 80,
             'coefEyeForceLevelY' => 55,
-            'coefLineDetection' => 3
+            'coefLineDetection' => 3,
+            'coefCntFramesForMouthOpenedWhenSpeaking' => 3
         );
         //----------------------------------------------------------------------------
         //----------------- norm points processing -----------------------------------
@@ -4577,7 +4577,7 @@ class FacialFeatureDetector
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
-        $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends);
+        $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends,$coefs);
 
         return $detectedFeaturesWithTrends;
     }
@@ -4671,6 +4671,7 @@ class FacialFeatureDetector
             'coefEyeForceLevelY' => 55,
             'coefLineDetection' => 3,
             'coefVoiceDetection' => -31,
+            'coefCntFramesForMouthOpenedWhenSpeaking' => 3
         );
         //----------------------------------------------------------------------------
         //----------------- norm points processing -----------------------------------
@@ -4787,7 +4788,7 @@ class FacialFeatureDetector
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
-        $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends);
+        $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends, $coefs);
 
         return $detectedFeaturesWithTrends;
     }
@@ -4846,6 +4847,7 @@ class FacialFeatureDetector
             'coefEyeForceLevelY' => 55,
             'coefLineDetection' => 3,
             'coefVoiceDetection' => -31,
+            'coefCntFramesForMouthOpenedWhenSpeaking' => 3
         );
         //----------------------------------------------------------------------------
         //----------------- norm points processing -----------------------------------
@@ -4936,9 +4938,13 @@ class FacialFeatureDetector
             $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
                 $FaceData["contours"], 'nose','');
 */
+        if (isset($FaceData['audiodata']))
+            $detectedFeatures = $this->processAudio($detectedFeatures,
+                $FaceData["audiodata"], 'mouth',$coefs);
+
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
-        $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends);
+        $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends,$coefs);
 
         $arr = array(61,62, 63, 65, 66, 67, 36,37,38,39, 40, 41, 42, 43, 44, 45, 46,47, 31, 35,
             19,24, 17, 21, 22, 26, 48, 54, 51, 57, 27, 28, 29);
