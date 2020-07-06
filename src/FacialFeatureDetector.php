@@ -836,6 +836,14 @@ class FacialFeatureDetector
         foreach ($iFaceData as $k=>$v)
             if (strpos(Trim($k), 'frame_') !== false) {
                 if(isset($v)) {
+                    //audio processing
+                    if (isset($v['AUDIO_DATA']))
+ //                       foreach ($v['AUDIO_DATA'] as $k1 => $v1)
+                        {
+                            $FaceData_['audiodata'][$i]['amp'] =$v['AUDIO_DATA'][0];
+                            $FaceData_['audiodata'][$i]['av_amp'] = $v['AUDIO_DATA'][1];
+                            $FaceData_['audiodata'][$i]['db_val'] = $v['AUDIO_DATA'][2];
+                        }
                     //norm points processing
                     if (isset($v['NORM_POINTS']))
                         foreach ($v['NORM_POINTS'] as $k1 => $v1) {
@@ -1691,6 +1699,22 @@ class FacialFeatureDetector
         return $targetFaceData;
     }
 
+    //Обработка звуковой информации
+    public function processAudio($targetFaceData, $sourceFaceData0, $facePart, $coefs_)
+    {
+            for ($i = 0; $i < count($sourceFaceData0); $i++) {
+                // $FaceData_['audiodata'][$i]['db_val']
+                if (isset($sourceFaceData0[$i]['db_val'])) {
+                    $targetFaceData[$facePart]['VALUES_REL']["audio_db_val"]["val"] = $sourceFaceData0[$i]['db_val'];
+                    if ($sourceFaceData0[$i]['db_val'] > $coefs_['coefVoiceDetection']) $isVoice = 'yes';
+                    else $isVoice = 'no';
+                    $targetFaceData[$facePart]["audio_db_val"][$i]["val"] = $isVoice;
+                }
+            }
+        return $targetFaceData;
+    }
+
+
     /**
      * Обнаружение признаков зрачков.
      *
@@ -1719,19 +1743,6 @@ class FacialFeatureDetector
             $xN0 = $sourceFaceData0[0][0]['X'];
             $yN1 = $sourceFaceData0[0][1]['Y'];
             $xN1 = $sourceFaceData0[0][1]['X'];
-
- /*           $maxY0 = $this->getFaceDataMaxForKeyV2($sourceFaceData0, 0, "Y");
-            $minY0 = $this->getFaceDataMinForKeyV2($sourceFaceData0, 0, "Y");
-            $scaleY0 = $maxY0 - $minY0;
-            $maxX0 = $this->getFaceDataMaxForKeyV2($sourceFaceData0, 0, "X");
-            $minX0 = $this->getFaceDataMinForKeyV2($sourceFaceData0, 0, "X");
-            $scaleX0 = $maxX0 - $minX0;
-            $maxY1 = $this->getFaceDataMaxForKeyV2($sourceFaceData0, 1, "Y");
-            $minY1 = $this->getFaceDataMinForKeyV2($sourceFaceData0, 1, "Y");
-            $scaleY1 = $maxY1 - $minY1;
-            $maxX1 = $this->getFaceDataMaxForKeyV2($sourceFaceData0, 1, "X");
-            $minX1 = $this->getFaceDataMinForKeyV2($sourceFaceData0, 1, "X");
-            $scaleX1 = $maxX1 - $minX1;*/
 
             for ($i = 0; $i < count($sourceFaceData0); $i++) {
                 $leftEyePupilYMov = 0;
@@ -1793,8 +1804,85 @@ class FacialFeatureDetector
                 $targetFaceData[$facePart]["right_eye_pupil_movement_y".$postFix][$i]["val"] = $yMov;
                 $targetFaceData[$facePart]["right_eye_pupil_movement_d".$postFix][$i]["val"] = $yMov.' and '.$xMov;
             }
-                       return $targetFaceData;
-        } else return false;
+//                       return $targetFaceData;
+        }// else return false;
+
+        if (isset($sourceFaceData0[0][2]) && isset($sourceFaceData0[0][3])) {
+            $leftEyeNWidthForIrises = 0;
+            if (isset($targetFaceData[$facePart]['VALUES_REL']["left_eye_width"][0]["val"]))
+                $leftEyeNWidthForIrises = round($targetFaceData[$facePart]['VALUES_REL']["left_eye_width"][0]["val"] / 2);
+            $rightEyeNWidthForIrises = 0;
+            if (isset($targetFaceData[$facePart]['VALUES_REL']["right_eye_width"][0]["val"]))
+                $rightEyeNWidthForIrises = round($targetFaceData[$facePart]['VALUES_REL']["right_eye_width"][0]["val"] / 2);
+
+            $yN0 = $sourceFaceData0[0][2]['Y'];
+            $xN0 = $sourceFaceData0[0][2]['X'];
+            $yN1 = $sourceFaceData0[0][3]['Y'];
+            $xN1 = $sourceFaceData0[0][3]['X'];
+
+            for ($i = 0; $i < count($sourceFaceData0); $i++) {
+                $leftEyePupilYMov = 0;
+                if (isset($sourceFaceData0[$i][2])) {
+                    $leftEyePupilYMov = $sourceFaceData0[$i][2]['Y'] - $yN0;
+                    $leftEyePupilXMov = $sourceFaceData0[$i][2]['X'] - $xN0;
+                }
+                $rightEyePupilYMov = 0;
+                if (isset($sourceFaceData0[$i][3])) {
+                    $rightEyePupilYMov = $sourceFaceData0[$i][3]['Y'] - $yN1;
+                    $rightEyePupilXMov = $sourceFaceData0[$i][3]['X'] - $xN1;
+                }
+                $leftEyePupilYMovForce = $this->getForce($leftEyeNWidthForIrises, abs($leftEyePupilYMov));
+                $leftEyePupilXMovForce = $this->getForce($leftEyeNWidthForIrises, abs($leftEyePupilXMov));
+                $rightEyePupilYMovForce = $this->getForce($rightEyeNWidthForIrises, abs($rightEyePupilYMov));
+                $rightEyePupilXMovForce = $this->getForce($rightEyeNWidthForIrises, abs($rightEyePupilXMov));
+
+                $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil2_movement_x".$postFix]["max"] = $leftEyeNWidthForIrises;
+                $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil2_movement_x".$postFix]["min"] = 0;
+                $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil2_movement_x".$postFix][$i]["delta"] = $leftEyePupilXMov;
+                $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil2_movement_y".$postFix]["max"] = $leftEyeNWidthForIrises;
+                $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil2_movement_y".$postFix]["min"] = 0;
+                $targetFaceData[$facePart]['VALUES_REL']["left_eye_pupil2_movement_y".$postFix][$i]["delta"] = $leftEyePupilYMov;
+                $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil2_movement_x".$postFix]["max"] = $rightEyeNWidthForIrises;
+                $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil2_movement_x".$postFix]["min"] = 0;
+                $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil2_movement_x".$postFix][$i]["delta"] = $rightEyePupilXMov;
+                $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil2_movement_y".$postFix]["max"] = $rightEyeNWidthForIrises;
+                $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil2_movement_y".$postFix]["min"] = 0;
+                $targetFaceData[$facePart]['VALUES_REL']["right_eye_pupil2_movement_y".$postFix][$i]["delta"] = $rightEyePupilYMov;
+
+                $targetFaceData[$facePart]["left_eye_pupil2_movement_x".$postFix][$i]["force"] = $leftEyePupilXMovForce;
+                $targetFaceData[$facePart]["left_eye_pupil2_movement_y".$postFix][$i]["force"] = $leftEyePupilYMovForce;
+                $targetFaceData[$facePart]["left_eye_pupil2_movement_d".$postFix][$i]["force"] =
+                    round(($leftEyePupilXMovForce + $leftEyePupilYMovForce)/2);
+                $targetFaceData[$facePart]["right_eye_pupil2_movement_x".$postFix][$i]["force"] = $rightEyePupilXMovForce;
+                $targetFaceData[$facePart]["right_eye_pupil2_movement_y".$postFix][$i]["force"] = $rightEyePupilYMovForce;
+                $targetFaceData[$facePart]["right_eye_pupil2_movement_d".$postFix][$i]["force"] =
+                    round(($rightEyePupilYMovForce + $rightEyePupilXMovForce)/2);
+
+                $xMov = 'none';
+                if ($leftEyePupilYMov > 0) $yMov = 'down';
+                if ($leftEyePupilYMov < 0) $yMov = 'up';
+                if ($leftEyePupilYMov == 0) $yMov = 'none';
+                if ($leftEyePupilXMov > 0) $xMov = 'right';
+                if ($leftEyePupilXMov < 0) $xMov = 'left';
+
+                $targetFaceData[$facePart]["left_eye_pupil2_movement_x".$postFix][$i]["val"] = $xMov;
+                $targetFaceData[$facePart]["left_eye_pupil2_movement_y".$postFix][$i]["val"] = $yMov;
+                $targetFaceData[$facePart]["left_eye_pupil2_movement_d".$postFix][$i]["val"] = $yMov.' and '.$xMov;
+
+                $xMov = 'none';
+                if ($rightEyePupilYMov > 0) $yMov = 'down';
+                if ($rightEyePupilYMov < 0) $yMov = 'up';
+                if ($rightEyePupilYMov == 0) $yMov = 'none';
+                if ($rightEyePupilXMov < 0) $xMov = 'left';
+                if ($rightEyePupilXMov > 0) $xMov = 'right';
+
+                $targetFaceData[$facePart]["right_eye_pupil2_movement_x".$postFix][$i]["val"] = $xMov;
+                $targetFaceData[$facePart]["right_eye_pupil2_movement_y".$postFix][$i]["val"] = $yMov;
+                $targetFaceData[$facePart]["right_eye_pupil2_movement_d".$postFix][$i]["val"] = $yMov.' and '.$xMov;
+            }
+//                       return $targetFaceData;
+        }
+        return $targetFaceData;
     }
 
     /**
@@ -1860,7 +1948,7 @@ class FacialFeatureDetector
      * @param $sourceFaceData - входной массив с лицевыми точками (landmarks)
      * @return array - выходной массив с обработанным массивом для лба
      */
-    public function detectBrowFeatures($sourceFaceData, $facePart,$point1,$point2,$coefs_){
+    public function detectBrowFeatures($sourceFaceData, $facePart,$point1,$point2,$coefs){
         //анализируемые точки:
         // 19 (left_eyebrow_center),
         // 24 (right_eyebrow_center),
@@ -3131,6 +3219,7 @@ class FacialFeatureDetector
 //        print_r($resSums);
 //        echo '<br>';
 //        if(isset($sourceFaceData1[key($resSums)])) $res = $sourceFaceData1[key($resSums)];
+//       echo $res;
         return $res;
     }
 
@@ -3401,6 +3490,53 @@ class FacialFeatureDetector
             fclose($fd);
         }
         //       return $sourceFaceData2;
+    }
+
+    //сохранение координат точек в csv файл
+    //вход - массив с точками; имя файла
+    public function saveAudioToCSV($sourceFaceData3,$fileName)
+    {
+        $res = array();
+ //       print_r($sourceFaceData3['audiodata']);
+        for ($i = 0; $i < count($sourceFaceData3['audiodata']); $i++) {
+                if (isset($sourceFaceData3['audiodata'][$i])){
+                    $res .=  $i.';'.$sourceFaceData3['audiodata'][$i]['amp'].';'.
+                        $sourceFaceData3['audiodata'][$i]['av_amp'].";".$sourceFaceData3['audiodata'][$i]['db_val']."\n";
+                }
+        }
+
+        //        print_r($res);
+            $fd = fopen($fileName.'_'.'.csv', "w");
+            fwrite($fd,$res);
+            fclose($fd);
+
+        //       return $sourceFaceData2;
+    }
+
+    //сохранение координат точек в csv файл
+    //вход - массив с точками; имя файла
+    public function savePupilResToCSV($sourceFaceData3,$fileName)
+    {
+        if ($sourceFaceData3 != null)
+            foreach ($sourceFaceData3 as $k=>$v) {
+                if ($k === 'eye') {
+                    if ($v != null)
+                        foreach ($v as $k1 => $v1) {
+                            //right_eye_pupil_movement_x
+                            if(strpos($k1,'eye_pupil')>-1) {
+                                $res = '';
+                                for ($i = 0; $i < count($v1); $i++) {
+                                    if (($sourceFaceData3[$k][$k1][$i]["val"] == 'up') || ($sourceFaceData3[$k][$k1][$i]["val"] == 'right')) $sign = '+';
+                                    if (($sourceFaceData3[$k][$k1][$i]["val"] == 'down') || ($sourceFaceData3[$k][$k1][$i]["val"] == 'left')) $sign = '-';
+                                    $res .=  $i.';'.$sign.$sourceFaceData3[$k][$k1][$i]["force"]."\n";
+                                }
+                                $fd = fopen($fileName.'_'.$k1.'.csv', "w");
+                                fwrite($fd,$res);
+                                fclose($fd);
+                            }
+                        }
+                }
+            }
     }
 
     /**
@@ -3695,12 +3831,99 @@ class FacialFeatureDetector
      */
     public function detectAdditionalMouthFeatures($sourceFaceData1)
     {
-        if ($sourceFaceData1 != null)
-            foreach ($sourceFaceData1 as $k=>$v) {
+        if ($sourceFaceData1 != null){
+            foreach ($sourceFaceData1 as $k => $v) {
                 if ($k === 'mouth') {
+                    //=============================================================================================
+                    //ver 1
                     if ($v != null)
                         foreach ($v as $k1 => $v1) {
-                            if ($k1 === 'mouth_upper_lip_outer_center_movement') {
+                            /*                           if ($k1 === 'mouth_upper_lip_outer_center_movement') {
+                                                            $mouthStartClosingFrame = '-1';
+                                                            $mouthOpenedFrame = '-1';
+                                                            $mouthStartOpeningFrame = '-1';
+                                                            $mouthEndOpeningFrame = '-1';
+                                                            $mouthEndClosingFrame = '-1';
+                            //                                $mouthOpenedCnt = 0;
+
+                                                            for ($i = 0; $i < count($v1); $i++) $sourceFaceData1[$k]["speaking"][$i]["val"] = 'no';
+                                                            //---------------------------------------------------------------------------------------
+                                                            for ($i = 1; $i < count($v1); $i++) {
+
+                                                                if (isset($v1[$i]["trend"]) &&
+                                                                    isset($v1[$i]["val"])
+                                                                ) {
+                                                                    //если рот начинает открываться, то фиксируем
+                                                                    if (($v1[$i]["val"] === 'up') && ($mouthStartOpeningFrame == '-1')
+                                                                        && (strpos($v1[$i]["trend"], '+') == true)) {
+                                                                        $mouthStartOpeningFrame = $i;
+                                                                        $mouthStartClosingFrame = '-1';
+                            //                                            $mouthOpenedCnt = 0;
+                                                                        $mouthEndOpeningFrame = '-1';
+                                                                        $mouthEndClosingFrame = '-1';
+                                                                        //                                    $eyeClosedFrame = '-1';
+                                                                    }
+
+                                                                    //если рот открыт и ранее это не фиксировалось, то фиксируем
+                                                                    if ((((strpos($v1[$i]["trend"], '-') == true) && (strpos($v1[$i]["trend"], '+') == true))
+                                                                        || (strpos($v1[$i]["trend"], '=') == true)) &&
+                                                                        ($v1[$i]["val"] === 'up') &&
+                                                                        ($mouthOpenedFrame == '-1') &&
+                                                                        ($mouthStartOpeningFrame != '-1')) {
+                                                                        $mouthOpenedFrame = $i;
+                                                                        $mouthEndOpeningFrame = $i;
+                            //                                            $mouthOpenedCnt = 1;
+                            //                                             echo $i.'<br>';
+                                                                    }
+
+                                                                    //если рот открыт и ранее фиксировалось его открытие, то фиксируем его закрывание
+                                                                    if ((strpos($v1[$i]["trend"], '-') == true) &&
+                                                                        ($mouthEndOpeningFrame != '-1')) {
+                                                                        $mouthStartClosingFrame = $i;
+                                                                        $mouthEndClosingFrame = -1;
+                                                                    }
+
+                                                                    //если рот перестал закрываться, то фиксируем
+                                                                    if (($mouthStartClosingFrame != '-1')
+                                                                        && ((strpos($v1[$i]["trend"],'=') == true) || ($v1[$i]["val"] === 'up'))
+                                                                        && ($mouthEndClosingFrame == '-1')){
+                                                                        $mouthEndClosingFrame = $i;
+                                                                    }
+
+                                                                    //если рот остался открытым
+
+                                                                    if (($mouthOpenedFrame != '-1') && ($mouthEndClosingFrame != '-1')) {
+                                                                        //processing
+                                                                        $mouthOpenedCnt = ($mouthStartClosingFrame - $mouthEndOpeningFrame);
+
+                                                                        echo 'mouth_lip :: '.$mouthStartOpeningFrame.' / '.$mouthOpenedCnt.' / '. $mouthEndClosingFrame.'<br>';
+
+                                                                        if(($mouthOpenedCnt < 4) && ($mouthOpenedCnt > 0)) {
+                            //                                                echo 'mouth_lip :: '.$i.' :: $mouthStartOpeningFrame: '.$mouthStartOpeningFrame.' $mouthEndOpeningFrame: '.$mouthEndOpeningFrame.
+                            //                                                    ' $mouthOpenedCnt:'.$mouthOpenedCnt.' $mouthStartClosingFrame: '. $mouthStartClosingFrame.
+                            //                                                    ' $mouthEndClosingFrame: '. $mouthEndClosingFrame.'<br>';
+
+                                                                            $sourceFaceData1[$k]["speaking"] =
+                                                                                $this->updateValues($sourceFaceData1[$k]["speaking"], 'val',
+                                                                                    'yes', $mouthStartOpeningFrame, $mouthEndClosingFrame);
+                                                                        }
+                                                                        $mouthStartClosingFrame = '-1';
+                                                                        $mouthOpenedFrame = '-1';
+                                                                        $mouthStartOpeningFrame = '-1';
+                                                                        $mouthEndOpeningFrame = '-1';
+                                                                        $mouthEndClosingFrame = '-1';
+                                                                        $mouthOpenedCnt = 0;
+                                                                    }
+                                                                }
+                                                            }
+                                                            //---------------------------------------------------------------------------------------
+                                                        }*/
+                            //                       }
+                            //=============================================================================================
+                            //ver 2
+//                    if ($v != null)
+//                        foreach ($v as $k1 => $v1) {
+                            if ($k1 === 'mouth_width') {
                                 $mouthStartClosingFrame = '-1';
                                 $mouthOpenedFrame = '-1';
                                 $mouthStartOpeningFrame = '-1';
@@ -3716,7 +3939,7 @@ class FacialFeatureDetector
                                         isset($v1[$i]["val"])
                                     ) {
                                         //если рот начинает открываться, то фиксируем
-                                        if (($v1[$i]["val"] === 'up') && ($mouthStartOpeningFrame == '-1')
+                                        if (($v1[$i]["val"] == '+') && ($mouthStartOpeningFrame == '-1')
                                             && (strpos($v1[$i]["trend"], '+') == true)) {
                                             $mouthStartOpeningFrame = $i;
                                             $mouthStartClosingFrame = '-1';
@@ -3726,17 +3949,10 @@ class FacialFeatureDetector
                                             //                                    $eyeClosedFrame = '-1';
                                         }
 
-                                        //если рот не открывался, и не открывается, то обнуляем
-  /*                                      if (($v1[$i]["val"] !== '+') && ($mouthOpenedFrame === '-1')) {
-                                            $mouthStartClosingFrame = '-1';
-                                            $mouthStartOpeningFrame = '-1';
-                                            $mouthOpenedCnt = 0;
-                                        }*/
-
                                         //если рот открыт и ранее это не фиксировалось, то фиксируем
                                         if ((((strpos($v1[$i]["trend"], '-') == true) && (strpos($v1[$i]["trend"], '+') == true))
-                                            || (strpos($v1[$i]["trend"], '=') == true)) &&
-                                            ($v1[$i]["val"] === 'up') &&
+                                                || (strpos($v1[$i]["trend"], '=') == true)) &&
+                                            ($v1[$i]["val"] === '+') &&
                                             ($mouthOpenedFrame == '-1') &&
                                             ($mouthStartOpeningFrame != '-1')) {
                                             $mouthOpenedFrame = $i;
@@ -3754,32 +3970,27 @@ class FacialFeatureDetector
 
                                         //если рот перестал закрываться, то фиксируем
                                         if (($mouthStartClosingFrame != '-1')
-                                            && ((strpos($v1[$i]["trend"],'=') == true) || ($v1[$i]["val"] === 'up'))
-                                            && ($mouthEndClosingFrame == '-1')){
+                                            && ((strpos($v1[$i]["trend"], '=') == true)
+                                                //|| ($v1[$i]["val"] === '+') || ($v1[$i]["val"] === 'none')
+                                            )
+                                            && ($mouthEndClosingFrame == '-1')) {
                                             $mouthEndClosingFrame = $i;
                                         }
 
-                                        //если рот остался открытым
-              /*                          if ((strpos($v1[$i]["trend"], '=') == true) &&
-                                            ($v1[$i]["val"] === '+') &&
-                                            ($mouthOpenedFrame != '-1')) {
-                                            $mouthOpenedCnt = $mouthOpenedCnt + 1;
-                                        }*/
-
-                                        if (($mouthOpenedFrame != '-1') && ($mouthEndClosingFrame != '-1')) {
+                                        if (($mouthEndOpeningFrame != '-1') && ($mouthEndClosingFrame != '-1')) {
                                             //processing
                                             $mouthOpenedCnt = ($mouthStartClosingFrame - $mouthEndOpeningFrame);
-
-//                                            echo $i.' :: $mouthStartOpeningFrame: '.$mouthStartOpeningFrame.' $mouthEndOpeningFrame: '.$mouthEndOpeningFrame.
+//                                            echo 'mouth_width :: '.$i.' :: $mouthStartOpeningFrame: '.$mouthStartOpeningFrame.' $mouthEndOpeningFrame: '.$mouthEndOpeningFrame.
 //                                                ' $mouthOpenedCnt:'.$mouthOpenedCnt.' $mouthStartClosingFrame: '. $mouthStartClosingFrame.
 //                                                ' $mouthEndClosingFrame: '. $mouthEndClosingFrame.'<br>';
 
-                                            if(($mouthOpenedCnt < 4) && ($mouthOpenedCnt > 0)) {
-//                                                echo $mouthOpenedCnt . '<br>';
+//                                            echo 'mouth_width :: '.$mouthStartOpeningFrame.' / '.$mouthOpenedCnt.' / '. $mouthEndClosingFrame.'<br>';
+
+//                                            if (($mouthOpenedCnt < 4) && ($mouthOpenedCnt > 0)) {
                                                 $sourceFaceData1[$k]["speaking"] =
                                                     $this->updateValues($sourceFaceData1[$k]["speaking"], 'val',
                                                         'yes', $mouthStartOpeningFrame, $mouthEndClosingFrame);
-                                            }
+ //                                           }
                                             $mouthStartClosingFrame = '-1';
                                             $mouthOpenedFrame = '-1';
                                             $mouthStartOpeningFrame = '-1';
@@ -3792,8 +4003,55 @@ class FacialFeatureDetector
                                 //---------------------------------------------------------------------------------------
                             }
                         }
+                    //=============================================================================================
                 }
             }
+            //постобработка с учетом информации о звуке
+            //уточняем говорение - оставляем только тогда, когда есть звук
+            //погрешность (1-2) кадра
+            //добавляем слушание
+            //$sourceFaceData1[$k]
+            $k = 'mouth';
+//            print_r($sourceFaceData1[$k]["speaking"]);
+            for ($i = 0; $i < count($sourceFaceData1[$k]["audio_db_val"]); $i++) {
+                $sourceFaceData1[$k]["listerning"][$i]['val'] = 'no';
+//echo $i.'::'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].'<br>';
+//                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].
+//                    ' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'-->'.$sourceFaceData1[$k]["speaking"][$i-1]['val'].'/';
+
+                if(($sourceFaceData1[$k]["audio_db_val"][$i]['val'] == 'yes') && ($sourceFaceData1[$k]["speaking"][$i]['val'] == 'no')){
+                    //проверить говорение дальше
+                    if((((isset($sourceFaceData1[$k]["speaking"][$i+1])) && ($sourceFaceData1[$k]["speaking"][$i+1]['val'] == 'yes'))
+                            || ((isset($sourceFaceData1[$k]["speaking"][$i+2])) && ($sourceFaceData1[$k]["speaking"][$i+2]['val'] == 'yes'))
+                            || ((isset($sourceFaceData1[$k]["speaking"][$i+3])) && ($sourceFaceData1[$k]["speaking"][$i+3]['val'] == 'yes')))
+//                            || (((isset($sourceFaceData1[$k]["speaking"][$i-1])) && ($sourceFaceData1[$k]["speaking"][$i-1]['val'] == 'yes') )
+                           /* ||
+                            ((isset($sourceFaceData1[$k]["speaking"][$i-2])) && ($sourceFaceData1[$k]["speaking"][$i-2]['val'] == 'yes'))
+                            || ((isset($sourceFaceData1[$k]["speaking"][$i-3])) && ($sourceFaceData1[$k]["speaking"][$i-3]['val'] == 'yes'))*/
+//                        )
+                    )
+                    {$sourceFaceData1[$k]["speaking"][$i]['val'] = 'yes';}
+                    else
+                    {$sourceFaceData1[$k]["listerning"][$i]['val'] = 'yes';}
+                }
+//                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
+            }
+       //чистим ложные срабатывания говорения
+            for ($i = 0; $i < count($sourceFaceData1[$k]["speaking"]); $i++) {
+                if(($sourceFaceData1[$k]["speaking"][$i]['val'] == 'yes') && ($sourceFaceData1[$k]["audio_db_val"][$i]['val'] == 'no')){
+                    //проверить звук дальше
+                    if((((isset($sourceFaceData1[$k]["audio_db_val"][$i+1])) && ($sourceFaceData1[$k]["audio_db_val"][$i+1]['val'] == 'no')) //&&
+ //                       ((isset($sourceFaceData1[$k]["audio_db_val"][$i+2])) && ($sourceFaceData1[$k]["audio_db_val"][$i+2]['val'] == 'no'))
+                        ) &&
+                        (((isset($sourceFaceData1[$k]["audio_db_val"][$i-1])) && ($sourceFaceData1[$k]["audio_db_val"][$i-1]['val'] == 'no')) //&&
+//                            ((isset($sourceFaceData1[$k]["audio_db_val"][$i-2])) && ($sourceFaceData1[$k]["audio_db_val"][$i-2]['val'] == 'no'))
+                        )
+                    )
+                    {$sourceFaceData1[$k]["speaking"][$i]['val'] = 'no';}
+                }
+//                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
+            }
+    }
         return $sourceFaceData1;
     }
     //масштабирование точек маски
@@ -3943,7 +4201,8 @@ class FacialFeatureDetector
         $level = $level/100;
         if ($sourceFaceData1 != null)
             foreach ($sourceFaceData1 as $k => $v) //normpoints and triangles
-                if (($v != null) && ($k != 'gazeangle') && ($k != 'contours')) {
+ //               if (($v != null)  && (($k == 'normmask') || ($k == 'points') )){
+                if (($v != null) && ($k != 'gazeangle') && ($k != 'contours') && ($k != 'audiodata')) {
                     for ($i = $neighborsCnt; $i < count($sourceFaceData1[$k]) - $neighborsCnt; $i++) {
                         if (isset($sourceFaceData1[$k][$i])) //frames
                             foreach ($sourceFaceData1[$k][$i] as $k1 => $v1) { //points
@@ -4015,7 +4274,8 @@ class FacialFeatureDetector
      $resFaceData = array();
      if ($sourceFaceData1 != null)
          foreach ($sourceFaceData1 as $k => $v) //normpoints and triangles
-             if (($v != null) && ($k != 'gazeangle') && ($k != 'contours')) {
+//             if (($v != null)  && (($k == 'normmask') || ($k == 'points') )){
+             if (($v != null) && ($k != 'gazeangle') && ($k != 'contours') && ($k != 'audiodata')) {
 //        echo $k.' '.$v.'<br>';
                  for ($i = 0; $i < count($sourceFaceData1[$k]); $i++) {
                      if (isset($sourceFaceData1[$k][$i])) //frames
@@ -4090,6 +4350,45 @@ class FacialFeatureDetector
                                  }
 //echo $i.'/'.$k1.' : '.$sourceFaceData1[$k][$i][$k1]['s_wrinkles'].'->'.$avSum.'<br>';
                                  $resFaceData[$k][$i][$k1]['s_wrinkles'] = $avSum;
+                             }
+                         }
+                 }
+                 //shift
+                 $shiftCnt = round(($cnt-1)/2);
+                 for ($i1 = 1; $i1 <= $shiftCnt; $i1++) {
+                     if (is_array($resFaceData[$k])) array_shift($resFaceData[$k]);
+//                     else echo $k.'<br>';
+                 }
+
+                 //add to the end of the array new values
+                 for ($i1 = (count($sourceFaceData1[$k])  - $shiftCnt);
+                      $i1 < (count($sourceFaceData1[$k])); $i1++) {
+                     if (is_array($resFaceData[$k]))
+                         array_push($resFaceData[$k], $sourceFaceData1[$k][$i1]);
+                 }
+             } elseif (($v != null)  && ($k == 'audiodata')){
+//        echo $k.' '.$v.'<br>';
+                 for ($i = 0; $i < count($sourceFaceData1[$k]); $i++) {
+                     if (isset($sourceFaceData1[$k][$i])) //frames
+                         foreach ($sourceFaceData1[$k][$i] as $k1 => $v1) { //params
+                             if (isset($sourceFaceData1[$k][$i][$k1])) {
+                                 $avSum = 0;
+                                 $i2 = $i - $cnt + 1;
+                                 if ($i2 < 0) $i2 = 0;
+                                 if ($i > 0) {
+                                     for ($i1 = $i; $i1 >= $i2; $i1--) {
+                                         if (isset($sourceFaceData1[$k][$i1][$k1]) &&
+                                             isset($sourceFaceData1[$k][$i1][$k1])) {
+                                             $avSum = $avSum + $sourceFaceData1[$k][$i1][$k1];
+                                         }
+                                     }
+                                     $avSum = round($avSum / ($i - $i2 + 1));
+                                 } else {
+                                     if (isset($sourceFaceData1[$k][$i][$k1]))
+                                         $avSum = $sourceFaceData1[$k][$i][$k1];
+                                 }
+//echo $i.'/'.$k1.' : '.$sourceFaceData1[$k][$i][$k1].'->'.$avSum.'<br>';
+                                 $resFaceData[$k][$i][$k1] = $avSum;
                              }
                          }
                  }
@@ -4370,7 +4669,8 @@ class FacialFeatureDetector
             'coefNoseWingYMax' => 0.5,
             'coefEyeForceLevelX' => 80,
             'coefEyeForceLevelY' => 55,
-            'coefLineDetection' => 3
+            'coefLineDetection' => 3,
+            'coefVoiceDetection' => -31,
         );
         //----------------------------------------------------------------------------
         //----------------- norm points processing -----------------------------------
@@ -4390,9 +4690,9 @@ class FacialFeatureDetector
             $detectedFeatures = $this->addPointsToResults('normmask',
                 'NORM_POINTS_ROTAITED', $FaceData, $detectedFeatures, 'pp.'.$coefs['xRotationPoint1'].$coefs['xRotationPoint2']);
 
-//        $FaceData['normmask'] = $this->scaling($FaceData['normmask'],27,28);
-//        $detectedFeatures = $this->addPointsToResults('normmask',
-//            'NORM_POINTS_SCALED',$FaceData,$detectedFeatures,'pp.2728');
+ //       $FaceData['normmask'] = $this->scaling($FaceData['normmask'],27,28);
+ //       $detectedFeatures = $this->addPointsToResults('normmask',
+ //           'NORM_POINTS_SCALED',$FaceData,$detectedFeatures,'pp.2728');
         }
 
         if ((isset($FaceData['points'])) && ($pointsFlag == 0)) {
@@ -4480,6 +4780,11 @@ class FacialFeatureDetector
             $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
                 $FaceData["contours"], 'nose','');
 
+       //$FaceData_['audiodata'][$i]['db_val'] = $v['AUDIO_DATA'][2];
+        if (isset($FaceData['audiodata']))
+            $detectedFeatures = $this->processAudio($detectedFeatures,
+                $FaceData["audiodata"], 'mouth',$coefs);
+
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
         $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
         $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends);
@@ -4539,7 +4844,8 @@ class FacialFeatureDetector
             'coefNoseWingYMax' => 0.5,
             'coefEyeForceLevelX' => 80,
             'coefEyeForceLevelY' => 55,
-            'coefLineDetection' => 3
+            'coefLineDetection' => 3,
+            'coefVoiceDetection' => -31,
         );
         //----------------------------------------------------------------------------
         //----------------- norm points processing -----------------------------------
@@ -4548,13 +4854,11 @@ class FacialFeatureDetector
  //               'NORM_POINTS_ORIGIN', $FaceData, $detectedFeatures, '');
 
             $FaceData['normmask'] = $this->stabilizating($FaceData['normmask'], 39, 42);
-//            $detectedFeatures = $this->addPointsToResults('normmask',
-//                'NORM_POINTS_STABILIZED', $FaceData, $detectedFeatures, 'pp.3942');
 
             $FaceData['normmask'] = $this->rotating($FaceData['normmask'], $coefs['xRotationPoint1'], $coefs['xRotationPoint2']);
-//            $detectedFeatures = $this->addPointsToResults('normmask',
-//                'NORM_POINTS_ROTAITED', $FaceData, $detectedFeatures, 'pp.'.$coefs['xRotationPoint1'].$coefs['xRotationPoint2']);
-        }
+
+//            $FaceData['normmask'] = $this->scaling($FaceData['normmask'],27,28);
+    }
 
         if ((isset($FaceData['points'])) && ($pointsFlag == 0)) {
             //-------------------------- orig points processing ----------------------
