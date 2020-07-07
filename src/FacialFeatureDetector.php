@@ -4013,42 +4013,46 @@ class FacialFeatureDetector
             //$sourceFaceData1[$k]
             $k = 'mouth';
 //            print_r($sourceFaceData1[$k]["speaking"]);
-            for ($i = 0; $i < count($sourceFaceData1[$k]["audio_db_val"]); $i++) {
-                $sourceFaceData1[$k]["listerning"][$i]['val'] = 'no';
+            if (isset($sourceFaceData1[$k]["audio_db_val"])) {
+                for ($i = 0; $i < count($sourceFaceData1[$k]["audio_db_val"]); $i++) {
+                    $sourceFaceData1[$k]["listerning"][$i]['val'] = 'no';
 //echo $i.'::'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].'<br>';
 //                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].
 //                    ' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'-->'.$sourceFaceData1[$k]["speaking"][$i-1]['val'].'/';
 
-                if(($sourceFaceData1[$k]["audio_db_val"][$i]['val'] == 'yes') && ($sourceFaceData1[$k]["speaking"][$i]['val'] == 'no')){
-                    //проверить говорение дальше
-                    if((((isset($sourceFaceData1[$k]["speaking"][$i+1])) && ($sourceFaceData1[$k]["speaking"][$i+1]['val'] == 'yes'))
-                            || ((isset($sourceFaceData1[$k]["speaking"][$i+2])) && ($sourceFaceData1[$k]["speaking"][$i+2]['val'] == 'yes'))
-                            || ((isset($sourceFaceData1[$k]["speaking"][$i+3])) && ($sourceFaceData1[$k]["speaking"][$i+3]['val'] == 'yes')))
-                            || (((isset($sourceFaceData1[$k]["speaking"][$i-1])) && ($sourceFaceData1[$k]["speaking"][$i-1]['val'] == 'yes') )
-                            || ((isset($sourceFaceData1[$k]["speaking"][$i-2])) && ($sourceFaceData1[$k]["speaking"][$i-2]['val'] == 'yes'))
-                            || ((isset($sourceFaceData1[$k]["speaking"][$i-3])) && ($sourceFaceData1[$k]["speaking"][$i-3]['val'] == 'yes'))
-                        )
-                    )
-                    {$sourceFaceData1[$k]["speaking"][$i]['val'] = 'yes';}
-                    else
-                    {$sourceFaceData1[$k]["listerning"][$i]['val'] = 'yes';}
-                }
+                    if (($sourceFaceData1[$k]["audio_db_val"][$i]['val'] == 'yes') && ($sourceFaceData1[$k]["speaking"][$i]['val'] == 'no')) {
+                        //проверить говорение дальше
+                        if ((((isset($sourceFaceData1[$k]["speaking"][$i + 1])) && ($sourceFaceData1[$k]["speaking"][$i + 1]['val'] == 'yes'))
+                                || ((isset($sourceFaceData1[$k]["speaking"][$i + 2])) && ($sourceFaceData1[$k]["speaking"][$i + 2]['val'] == 'yes'))
+                                || ((isset($sourceFaceData1[$k]["speaking"][$i + 3])) && ($sourceFaceData1[$k]["speaking"][$i + 3]['val'] == 'yes')))
+                            || (((isset($sourceFaceData1[$k]["speaking"][$i - 1])) && ($sourceFaceData1[$k]["speaking"][$i - 1]['val'] == 'yes'))
+                                || ((isset($sourceFaceData1[$k]["speaking"][$i - 2])) && ($sourceFaceData1[$k]["speaking"][$i - 2]['val'] == 'yes'))
+                                || ((isset($sourceFaceData1[$k]["speaking"][$i - 3])) && ($sourceFaceData1[$k]["speaking"][$i - 3]['val'] == 'yes'))
+                            )
+                        ) {
+                            $sourceFaceData1[$k]["speaking"][$i]['val'] = 'yes';
+                        } else {
+                            $sourceFaceData1[$k]["listerning"][$i]['val'] = 'yes';
+                        }
+                    }
 //                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
-            }
-       //чистим ложные срабатывания говорения
-            for ($i = 0; $i < count($sourceFaceData1[$k]["speaking"]); $i++) {
-                if(($sourceFaceData1[$k]["speaking"][$i]['val'] == 'yes') && ($sourceFaceData1[$k]["audio_db_val"][$i]['val'] == 'no')){
-                    //проверить звук дальше
-                    if((((isset($sourceFaceData1[$k]["audio_db_val"][$i+1])) && ($sourceFaceData1[$k]["audio_db_val"][$i+1]['val'] == 'no')) &&
-                        ((isset($sourceFaceData1[$k]["audio_db_val"][$i+2])) && ($sourceFaceData1[$k]["audio_db_val"][$i+2]['val'] == 'no'))
-                        ) &&
-                        (((isset($sourceFaceData1[$k]["audio_db_val"][$i-1])) && ($sourceFaceData1[$k]["audio_db_val"][$i-1]['val'] == 'no')) &&
-                            ((isset($sourceFaceData1[$k]["audio_db_val"][$i-2])) && ($sourceFaceData1[$k]["audio_db_val"][$i-2]['val'] == 'no'))
-                        )
-                    )
-                    {$sourceFaceData1[$k]["speaking"][$i]['val'] = 'no';}
                 }
- //               echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
+                //чистим ложные срабатывания говорения
+                for ($i = 0; $i < count($sourceFaceData1[$k]["speaking"]); $i++) {
+                    if (($sourceFaceData1[$k]["speaking"][$i]['val'] == 'yes') && ($sourceFaceData1[$k]["audio_db_val"][$i]['val'] == 'no')) {
+                        //проверить звук дальше
+                        if ((((isset($sourceFaceData1[$k]["audio_db_val"][$i + 1])) && ($sourceFaceData1[$k]["audio_db_val"][$i + 1]['val'] == 'no')) &&
+                                ((isset($sourceFaceData1[$k]["audio_db_val"][$i + 2])) && ($sourceFaceData1[$k]["audio_db_val"][$i + 2]['val'] == 'no'))
+                            ) &&
+                            (((isset($sourceFaceData1[$k]["audio_db_val"][$i - 1])) && ($sourceFaceData1[$k]["audio_db_val"][$i - 1]['val'] == 'no')) &&
+                                ((isset($sourceFaceData1[$k]["audio_db_val"][$i - 2])) && ($sourceFaceData1[$k]["audio_db_val"][$i - 2]['val'] == 'no'))
+                            )
+                        ) {
+                            $sourceFaceData1[$k]["speaking"][$i]['val'] = 'no';
+                        }
+                    }
+                    //               echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
+                }
             }
     }
         return $sourceFaceData1;
