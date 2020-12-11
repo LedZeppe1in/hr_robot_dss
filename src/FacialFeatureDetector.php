@@ -4016,9 +4016,9 @@ class FacialFeatureDetector
             if (isset($sourceFaceData1[$k]["audio_db_val"])) {
                 for ($i = 0; $i < count($sourceFaceData1[$k]["audio_db_val"]); $i++) {
                     $sourceFaceData1[$k]["listerning"][$i]['val'] = 'no';
-//echo $i.'::'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].'<br>';
-//                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].
-//                    ' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'-->'.$sourceFaceData1[$k]["speaking"][$i-1]['val'].'/';
+                    //echo $i.'::'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].'<br>';
+                    //                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].
+                    //                    ' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'-->'.$sourceFaceData1[$k]["speaking"][$i-1]['val'].'/';
 
                     if (($sourceFaceData1[$k]["audio_db_val"][$i]['val'] == 'yes') && ($sourceFaceData1[$k]["speaking"][$i]['val'] == 'no')) {
                         //проверить говорение дальше
@@ -4035,7 +4035,7 @@ class FacialFeatureDetector
                             $sourceFaceData1[$k]["listerning"][$i]['val'] = 'yes';
                         }
                     }
-//                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
+                    //                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
                 }
                 //чистим ложные срабатывания говорения
                 for ($i = 0; $i < count($sourceFaceData1[$k]["speaking"]); $i++) {
@@ -5389,45 +5389,45 @@ class FacialFeatureDetector
         if (($sourceFeatureName == 'mouth_form') || ($sourceFeatureName == 'mouth_form2') || ($sourceFeatureName == 'mouth_lips_form')
             || ($sourceFeatureName == 'mouth_lowerlip_form') || ($sourceFeatureName == 'mouth_upperlip_form'))
             $targetValues['targetFacePart'] = 'Рот';
+//        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'down')) {
+//            $targetValues['featureChangeType'] = 'Изменение формы нижней губы';
+//            $targetValues['changeDirection'] = 'Дуга вниз';
+//        }
+//        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'none')) {
+//            $targetValues['featureChangeType'] = 'Изменение формы нижней губы';
+//            $targetValues['changeDirection'] = 'Не определено';
+//        }
+//        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'up')) {
+//            $targetValues['featureChangeType'] = 'Изменение формы нижней губы';
+//            $targetValues['changeDirection'] = 'Дуга вверх';
+//        }
+//        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'down')) {
+//            $targetValues['featureChangeType'] = 'Изменение формы верхней губы';
+//            $targetValues['changeDirection'] = 'Дуга вниз';
+//        }
+//        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'none')) {
+//            $targetValues['featureChangeType'] = 'Изменение формы верхней губы';
+//            $targetValues['changeDirection'] = 'Не определено';
+//        }
+//        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'up')) {
+//            $targetValues['featureChangeType'] = 'Изменение формы верхней губы';
+//            $targetValues['changeDirection'] = 'Дуга вверх';
+//        }
+//        if (($sourceFeatureName == 'mouth_lips_form') && ($sourceValue == 'down')) {
+//            $targetValues['featureChangeType'] = 'Изменение формы губ';
+//            $targetValues['changeDirection'] = 'Дуга вниз';
+//        }
+//        if (($sourceFeatureName == 'mouth_lips_form') && ($sourceValue == 'none')) {
+//            $targetValues['featureChangeType'] = 'Изменение формы губ';
+//            $targetValues['changeDirection'] = 'Не определено';
+//        }
+//        if (($sourceFeatureName == 'mouth_lips_form') && ($sourceValue == 'up')) {
+//            $targetValues['featureChangeType'] = 'Изменение формы губ';
+//            $targetValues['changeDirection'] = 'Дуга вверх';
+//        }
         if (($sourceFeatureName == 'mouth_form2') && ($sourceValue == 'none')) {
             $targetValues['featureChangeType'] = 'Изменение формы';
             $targetValues['changeDirection'] = 'Не определено';
-        }
-        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение формы нижней губы';
-            $targetValues['changeDirection'] = 'Дуга вниз';
-        }
-        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение формы нижней губы';
-            $targetValues['changeDirection'] = 'Не определено';
-        }
-        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение формы нижней губы';
-            $targetValues['changeDirection'] = 'Дуга вверх';
-        }
-        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение формы верхней губы';
-            $targetValues['changeDirection'] = 'Дуга вниз';
-        }
-        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение формы верхней губы';
-            $targetValues['changeDirection'] = 'Не определено';
-        }
-        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение формы верхней губы';
-            $targetValues['changeDirection'] = 'Дуга вверх';
-        }
-        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение формы губ';
-            $targetValues['changeDirection'] = 'Дуга вниз';
-        }
-        if (($sourceFeatureName == 'mouth_lips_form') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение формы губ';
-            $targetValues['changeDirection'] = 'Не определено';
-        }
-        if (($sourceFeatureName == 'mouth_lips_form') && ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение формы губ';
-            $targetValues['changeDirection'] = 'Дуга вверх';
         }
         if (($sourceFeatureName == 'mouth_form') && ($sourceValue == 'ellipse')) {
             $targetValues['featureChangeType'] = 'Изменение формы';
@@ -5523,6 +5523,34 @@ class FacialFeatureDetector
             $targetValues['targetFacePart'] = 'Верхняя губа';
         if ($sourceFeatureName == 'mouth_lower_lip_outer_center_movement')
             $targetValues['targetFacePart'] = 'Нижняя губа';
+        if ($sourceFeatureName == 'mouth_upperlip_form')
+            $targetValues['targetFacePart'] = 'Верхняя губа';
+        if ($sourceFeatureName == 'mouth_lowerlip_form')
+            $targetValues['targetFacePart'] = 'Нижняя губа';
+        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'down')) {
+            $targetValues['featureChangeType'] = 'Изменение формы';
+            $targetValues['changeDirection'] = 'Дуга вниз';
+        }
+        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'none')) {
+            $targetValues['featureChangeType'] = 'Изменение формы';
+            $targetValues['changeDirection'] = 'Не определено';
+        }
+        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'up')) {
+            $targetValues['featureChangeType'] = 'Изменение формы';
+            $targetValues['changeDirection'] = 'Дуга вверх';
+        }
+        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'down')) {
+            $targetValues['featureChangeType'] = 'Изменение формы';
+            $targetValues['changeDirection'] = 'Дуга вниз';
+        }
+        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'none')) {
+            $targetValues['featureChangeType'] = 'Изменение формы';
+            $targetValues['changeDirection'] = 'Не определено';
+        }
+        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'up')) {
+            $targetValues['featureChangeType'] = 'Изменение формы';
+            $targetValues['changeDirection'] = 'Дуга вверх';
+        }
         if ((($sourceFeatureName == 'mouth_upper_lip_outer_center_movement') ||
                 ($sourceFeatureName == 'mouth_lower_lip_outer_center_movement')) &&
             ($sourceValue == 'none')) {
@@ -5672,7 +5700,7 @@ class FacialFeatureDetector
 
         /* Соответствия для глаз */
         // Глаза
-        if ($sourceFeatureName == 'left_eye_blink' || $sourceFeatureName == 'right_eye_blink')
+        if ($sourceFeatureName == 'left_eye_blink')
             $targetValues['targetFacePart'] = 'Левый глаз';
         if ($sourceFeatureName == 'right_eye_blink')
             $targetValues['targetFacePart'] = 'Правый глаз';
@@ -5768,7 +5796,7 @@ class FacialFeatureDetector
                 if (isset($faceData['fps'])) {
                     // Определение времени на вопрос в кадрах
                     $questionTimeInFrames = round(((float)$faceData['fps'] * ($questionTime / 1000)), 0);
-                    // Формирование факта одного признака для текущего кадра
+                    // Формирование факта одного признака для первого кадра
                     $videoParametersFact['NameOfTemplate'] = 'T2110';
                     $videoParametersFact['s922'] = $faceData['fps'];
                     $videoParametersFact['s924'] = $questionTimeInFrames;
