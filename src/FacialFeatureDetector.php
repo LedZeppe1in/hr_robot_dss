@@ -1,5 +1,21 @@
 <?php
 
+namespace app\components;
+
+
+use app\components\TextDetection\TextFrequencyDetector;
+use app\components\TextDetection\PhraseDetector;
+
+
+use app\components\TrendDetection\IndexedTrend;
+use app\components\TrendDetection\TrendSequence;
+use app\components\TrendDetection\TrendOfQuantitativeValues;
+use app\components\TrendDetection\TrendOfQualitativeValues;
+
+use stdClass;
+
+
+
 /**
  * FacialFeatureDetector - класс обнаружения лицевых признаков.
  */
@@ -69,6 +85,8 @@ class FacialFeatureDetector
             }
         return $max;
     }
+
+
 
     /**
      * Вычисление минимального значения характеристики относительно определенных точек.
@@ -2308,6 +2326,26 @@ class FacialFeatureDetector
             return false;
     }
 
+
+
+
+    public function detectEyeBrowFeaturesStatistics($sourceFaceData1,$facePart)
+    {
+
+        //root --> eyebrow --> right_eyebrow_movement_y (left_eyebrow_movement_y) -->
+        // force
+        // val
+        // trend = <число> <направление>
+        // confidence
+        if ($sourceFaceData1 != null)
+        {
+            foreach ($sourceFaceData1 as $k => $v)
+            {
+               // if((strpos($k,'frame') !== false)
+            }
+        }
+    }
+
     /**
      * Обнаружение признаков бровей.
      *
@@ -3233,10 +3271,16 @@ class FacialFeatureDetector
     {
         if ($sourceFaceData1 != null)
             foreach ($sourceFaceData1 as $k => $v)
-                if((strpos($k,'frame') === false) && (strpos($k,'MASK_NAMES') === false)){
+                if((strpos($k,'frame') === false) && (strpos($k,'MASK_NAMES') === false) &&
+                    (strpos($k,'statistics') === false) &&
+                    (strpos($k,'text') === false) &&
+                    (strpos($k,'options') === false)
+                )
+
+                {
                 if ($v != null) {
                     foreach ($v as $k1 => $v1) {
-                        if (isset($v1[0])) {
+                        if (isset($v1[0])) {//st: если это первый кадр (базовый?)
                             $v1[0]["trend"] = '1=';
                             $v1[0]["confidence"] = 1;
                         }
@@ -3265,7 +3309,7 @@ class FacialFeatureDetector
                                 }
 
                                 if (($v1[$i - 1]["force"] > $v1[$i]["force"]) &&    //если интенсивность уменьшается
-                                    ($v1[$i - 1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
+//                                    ($v1[$i - 1]["val"] === $v1[$i]["val"]) &&    //и значение не меняет направление
                                     (isset($v1[$i - 1]["trend"]) && (strpos($v1[$i - 1]["trend"], '-') > 0))) { //и был тренд на уменьшение, то продолжаем его
                                     ++$currentTrendLength;
                                     $v1[$i]["trend"] = $currentTrendLength . '-';
@@ -3679,14 +3723,381 @@ class FacialFeatureDetector
         return $sourceFaceData1;
     }
 
-    /**
-     * Определение дополнительных проявлений, в частности
-     * моргание
-     * закрытие глаза на основе информации о движении зрачков по Ивану
-     * @param $sourceFaceData1 - входной массив с лицевыми точками (landmarks)
-     * @return array - выходной массив с обработанным массивом
-     */
-    public function detectAdditionalEyeFeatures($sourceFaceData1,$coefs_)
+
+
+    public function detectStatisticsA($fileData,$StatisticsObject)
+    {
+
+        if (isset ($fileData) && isset($StatisticsObject) &&
+                isset($StatisticsObject["parameters"]) &&
+                isset($StatisticsObject["parameters"]["TotalTime"]) && $StatisticsObject["parameters"]["TotalTime"]>0)
+        {
+            //конвератция данных модуля Андрея
+            //patch for AJson
+            if (strpos($fileData, 'AUs') !== false) {
+                $fileData = str_replace('{"AUs"', ',{"AUs"', $fileData);
+                $fileData = trim($fileData, ',');
+                $fileData = '[' . $fileData . ']';
+            }
+            $FaceData_ = json_decode($fileData, true);
+
+            //подсчёт количества морагний по AU
+            if (isset($FaceData_) && is_array($FaceData_))
+            {
+                $blinkingTrendLength=0;
+                $blinkingCount=0;
+
+                for ($iFrame = 0; $iFrame < count($FaceData_); $iFrame++)
+                {
+                    if (isset($FaceData_[$iFrame]) && isset($FaceData_[$iFrame]["AUs"]) && isset($FaceData_[$iFrame]["AUs"]["AU45"]) &&
+                        isset($FaceData_[$iFrame]["AUs"]["AU45"]["intensity"]) && isset($FaceData_[$iFrame]["AUs"]["AU45"]["presence"]) )
+                    {
+                        if ($FaceData_[$iFrame]["AUs"]["AU45"]["presence"]>0 && $FaceData_[$iFrame]["AUs"]["AU45"]["intensity"]>0.1 )
+                        {
+                            $blinkingTrendLength++;
+                        }
+                        else
+                        {
+                            if ($blinkingTrendLength>0)
+                            {
+                                $blinkingCount++;
+                                $blinkingTrendLength=0;
+                            }
+                        }
+                    }
+                }
+
+                //возварщение данных
+                if (!isset($StatisticsObject["average_eye_blinking_frequency"]))
+                {
+                    $StatisticsObject["average_eye_blinking_frequency"]=array("val"=>0,"count"=>0);
+                }
+                if (!isset($StatisticsObject["average_eye_blinking_frequency"]["val"])) $StatisticsObject["average_eye_blinking_frequency"]["val"]=0;
+                if (!isset($StatisticsObject["average_eye_blinking_frequency"]["count"])) $StatisticsObject["average_eye_blinking_frequency"]["count"]=0;
+
+                $StatisticsObject["average_eye_blinking_frequency"]["count"]=$blinkingCount;
+                if ($StatisticsObject["parameters"]["TotalTime"]!=0)
+                {
+                    $StatisticsObject["average_eye_blinking_frequency"]["val"]=round($blinkingCount/$StatisticsObject["parameters"]["TotalTime"],4);
+                }
+                return $StatisticsObject;
+            }
+        }
+        return null;
+    }
+
+    public function detectNoseExtCount($theData)
+    {
+        $nose_expansion_force_up=new TrendOfQuantitativeValues("force",1);
+        $nose_expansion_force_up->MaxDelta=0;
+        $nose_expansion_force_up->ValueForDetectionStarted=1;
+
+        $nose_expansion_force_down=new TrendOfQuantitativeValues("force",2);
+        $nose_expansion_force_down->ValueForDetectionStarted=100;
+        $nose_expansion_force_down->SufficientLevelToEnd=1;
+
+        $nose_expansion_trend_sequence=new TrendSequence();
+        $nose_expansion_trend_sequence->trendSequence[]=$nose_expansion_force_up;
+        $nose_expansion_trend_sequence->trendSequence[]=$nose_expansion_force_down;
+
+        $nose_expansion=new TrendOfQualitativeValues("val",array("+","none"));
+        $nose_expansion->QuantitativeTrendDetector=$nose_expansion_trend_sequence;
+
+        $N=count($theData["nose"]["nose_width_changing"]);
+        $prevData=null;
+        $numberOf_nose_expansion=0;
+
+        for ($i=0;$i<$N;$i++)
+        {
+
+            $nose_expansion->DetectTrend( $theData["nose"]["nose_width_changing"][$i],$prevData,$i,null);
+            $prevData=$theData["nose"]["nose_width_changing"][$i];
+
+            if($nose_expansion->TrendEndedAt>0)
+            {
+                $numberOf_nose_expansion++;
+                $nose_expansion->ResetTrend();
+            }
+        }
+
+        return $numberOf_nose_expansion;
+    }
+
+
+    public function detectEyebrowLiftCount($theData)
+    {
+        $eyebrow_lifting_force_up=new TrendOfQuantitativeValues("force",1);
+        $eyebrow_lifting_force_up->MaxDelta=1;
+
+        $eyebrow_lifting_force_down=new TrendOfQuantitativeValues("force",2);
+        $eyebrow_lifting_force_down->ValueForDetectionStarted=100;
+        $eyebrow_lifting_force_down->SufficientLevelToEnd=1;
+
+        $eyebrow_lifting_trend_sequence=new TrendSequence();
+        $eyebrow_lifting_trend_sequence->trendSequence[]=$eyebrow_lifting_force_up;
+        $eyebrow_lifting_trend_sequence->trendSequence[]=$eyebrow_lifting_force_down;
+
+        $eyebrow_lifting=new TrendOfQualitativeValues("val",array("up","none"));
+        $eyebrow_lifting->QuantitativeTrendDetector=$eyebrow_lifting_trend_sequence;
+
+
+        $prevData=null;
+        $numberOf_eyebrow_lifting=0;
+
+        $N=count($theData["eyebrow"]["right_eyebrow_movement_y"]);
+
+        for ($i=0;$i<$N;$i++)
+        {
+
+            $eyebrow_lifting->DetectTrend( $theData["eyebrow"]["right_eyebrow_movement_y"][$i],$prevData,$i,null);
+            $prevData=$theData["eyebrow"]["right_eyebrow_movement_y"][$i];
+
+
+            if($eyebrow_lifting->TrendEndedAt>0)
+            {
+                $numberOf_eyebrow_lifting++;
+                $eyebrow_lifting->ResetTrend();
+            }
+        }
+
+        return $numberOf_eyebrow_lifting;
+    }
+
+    public function detectFeatureStatistics($sourceFaceData1,$FPS,$FrameCount,$TotalTime, $voiceActingTime)
+    {
+            //1. время видео на вопрос
+            // 2. время озвучивания вопроса
+
+        if (!isset($sourceFaceData1["feature_statistics"])) $sourceFaceData1["feature_statistics"]=array();
+
+        $sourceFaceData1["feature_statistics"]["TotalTime"]=$TotalTime;
+        $onlyAnswerTime=null;
+        if (isset($TotalTime))
+        {
+            $onlyAnswerTime=$TotalTime;
+            if (isset($voiceActingTime))
+            {
+                $onlyAnswerTime-=$voiceActingTime;
+            }
+        }
+
+        if (isset($onlyAnswerTime))
+        {
+            if (!isset($sourceFaceData1["feature_statistics"])) $sourceFaceData1["feature_statistics"]=array();
+
+           // $sourceFaceData1["feature_statistics"]["average_eye_blinking_frequency"]=array("val"=>0);
+          //  $sourceFaceData1["feature_statistics"]["average_lipcorners_lowering_frequency"]=array("val"=>0);
+
+            $curCount=$this->detectEyebrowLiftCount($sourceFaceData1);
+            $sourceFaceData1["feature_statistics"]["average_eyebrow_lift_frequency"]=array("val"=>$curCount/$onlyAnswerTime, "count"=>$curCount);
+
+            $curCount=$this->detectNoseExtCount($sourceFaceData1);
+            $sourceFaceData1["feature_statistics"]["average_nose_movement_frequency"]=array("val"=>$curCount/$onlyAnswerTime,"count"=>$curCount);
+           // $sourceFaceData1["feature_statistics"]["average_frown_frequency"]=array("val"=>0);
+
+            $sourceFaceData1["feature_statistics"]["parameters"]=array("FPS"=>$FPS,"FrameCount"=> $FrameCount,
+                                                                        "TotalTime"=>$TotalTime,"voiceActingTime"=>$voiceActingTime,"AnswerTime"=>$onlyAnswerTime);
+        }
+
+
+        return $sourceFaceData1;
+
+    }
+
+    public function detectTextPhrases($sourceFaceData1,$textData,$theFPS, $voiceActingTime)
+    {
+        if (isset($sourceFaceData1)  &&
+                isset($textData) && is_array($textData) &&
+                    isset($theFPS))
+        {
+
+            if (!isset($sourceFaceData1["text"]) )   $sourceFaceData1["text"]=array();
+
+            //$sourceFaceData1["text"]["YesPhrase"]=PhraseDetector::GetDumpResult();
+           // $sourceFaceData1["text"]["NoPhrase"]=PhraseDetector::GetDumpResult();
+
+            $sourceFaceData1["text"]["YesPhrase"]=PhraseDetector::GetPhrase($textData,$theFPS,PhraseDetector::$YesPhraseSynonyms,"Да",$voiceActingTime);
+            $sourceFaceData1["text"]["NoPhrase"]=PhraseDetector::GetPhrase($textData,$theFPS,PhraseDetector::$NoPhraseSynonyms,"Нет",$voiceActingTime);
+
+        }
+
+        return $sourceFaceData1;
+    }
+
+
+    public function detectTextStatistics($sourceFaceData1,$textData,$TotalTime, $voiceActingTime)
+    {
+        if (isset($sourceFaceData1) && isset($textData))
+        {
+            $onlyAnswerTime=null;
+            if (isset($TotalTime))
+            {
+                $onlyAnswerTime=$TotalTime;
+                if (isset($voiceActingTime))
+                {
+                    //$voiceActingTime=(double)$voiceActingTime;
+                    $onlyAnswerTime-=$voiceActingTime;
+                }
+            }
+
+            if (isset($onlyAnswerTime))
+            {
+                if (!isset($sourceFaceData1["feature_statistics"]))    $sourceFaceData1["feature_statistics"]=array();
+
+                $averSpeech= TextFrequencyDetector::CountSpeechFrequencyByWords($textData,$onlyAnswerTime);
+                //if (isset($averSpeech))
+                    $sourceFaceData1["feature_statistics"]["average_speech_frequency"]=array("val"=>round($averSpeech,4));
+
+                if (isset($voiceActingTime))
+                {
+                    $startOfAnswer=TextFrequencyDetector::ResponseStartTimeByWords($textData,$voiceActingTime);
+                   // if (isset($startOfAnswer))
+                        $sourceFaceData1["feature_statistics"]["silence_before_response"]=array("val"=>round($startOfAnswer-$voiceActingTime,4));
+                }
+
+            }
+        }
+
+        return $sourceFaceData1;
+    }
+
+
+    public function updateSummarizedFeatureStatisticsByUnit($theSumStat, $theUnitStat,$theKeyOfSumStat,$theKeyOfUnitStat)
+    {
+        if (isset($theUnitStat[$theKeyOfUnitStat]))
+        {
+            if (isset($theUnitStat[$theKeyOfUnitStat]["count"]))$theSumStat[$theKeyOfSumStat]["count"]+=$theUnitStat[$theKeyOfUnitStat]["count"];
+            if (isset($theUnitStat[$theKeyOfUnitStat]["val"]))$theSumStat[$theKeyOfSumStat]["val"]+=$theUnitStat[$theKeyOfUnitStat]["val"];
+        }
+
+        return $theSumStat;
+    }
+
+    public function countDeviationInSummarizedFeatureStatistics($theUnitStatArray,$theKeyOfUnitStat,$theAverKey,$theAverVal)
+    {
+
+        if (isset($theUnitStatArray) && is_array($theUnitStatArray) && isset($theKeyOfUnitStat) && isset($theAverVal) && isset($theAverKey))
+        {
+            $curDeviationVal=0;
+            $N=0;
+
+            $data_array=array();
+
+            foreach ($theUnitStatArray as $unitStatistic)
+            {
+                if (isset($unitStatistic[$theKeyOfUnitStat]))
+                {
+
+                  //  $data_array[]=$unitStatistic[$theKeyOfUnitStat];
+                    $curItemVal=$unitStatistic[$theKeyOfUnitStat][$theAverKey]-$theAverVal;
+                    $curDeviationVal+=$curItemVal*$curItemVal;
+                    $N++;
+                }
+            }
+
+           // file_put_contents('/var/www/hr-robot-interface.com/public_html/components/DevStatistics.json', json_encode(array("Aver"=>$theAverVal,"Data"=>$data_array)));
+
+            if ($N!=0)
+            {
+                $curDeviationVal=$curDeviationVal/$N;
+                $curDeviationVal=sqrt($curDeviationVal);
+                return $curDeviationVal;
+            }
+
+
+
+            return null;
+
+        }
+
+
+        return null;
+    }
+
+
+    public function detectSummarizedFeatureStatistics($arrayOfUnitStatistics)
+    {
+
+         file_put_contents('/var/www/hr-robot-interface.com/public_html/components/SummarizedFeatureStatistics.json', json_encode($arrayOfUnitStatistics));
+
+       if (isset($arrayOfUnitStatistics) && is_array($arrayOfUnitStatistics) && count($arrayOfUnitStatistics)>0)
+       {
+            //$result= array("summarized_feature_statistics"=>array());
+
+           $result= array();
+           $result["average_speech_frequency"]=array("val"=>0,"count"=>0);
+           $result["average_eye_blinking_frequency"]=array("val"=>0,"count"=>0);
+           $result["average_lipcorners_lowering_frequency"]=array("val"=>0,"count"=>0);
+           $result["average_eyebrow_lift_frequency"]=array("val"=>0,"count"=>0);
+           $result["average_nose_movement_frequency"]=array("val"=>0,"count"=>0);
+           $result["average_frown_frequency"]=array("val"=>0,"count"=>0);
+           $result["average_silence_before_response"]=array("val"=>0,"count"=>0);
+
+           $AllTimeDuration=0;
+           $N=count($arrayOfUnitStatistics);
+
+           foreach ($arrayOfUnitStatistics as $unitStatistic)
+           {
+               ///$unitStatistic["average_speech_frequency"]
+               if (isset($unitStatistic["parameters"]) && isset($unitStatistic["parameters"]["AnswerTime"]))
+               {
+                   $AllTimeDuration+=$unitStatistic["parameters"]["AnswerTime"];
+               }
+               else
+               {
+                   return null;
+               }
+
+               $result=$this->updateSummarizedFeatureStatisticsByUnit($result,$unitStatistic,"average_speech_frequency","average_speech_frequency");
+               $result=$this->updateSummarizedFeatureStatisticsByUnit($result,$unitStatistic,"average_eye_blinking_frequency","average_eye_blinking_frequency");
+               $result=$this->updateSummarizedFeatureStatisticsByUnit($result,$unitStatistic,"average_lipcorners_lowering_frequency","average_lipcorners_lowering_frequency");
+               $result=$this->updateSummarizedFeatureStatisticsByUnit($result,$unitStatistic,"average_eyebrow_lift_frequency","average_eyebrow_lift_frequency");
+               $result=$this->updateSummarizedFeatureStatisticsByUnit($result,$unitStatistic,"average_nose_movement_frequency","average_nose_movement_frequency");
+               $result=$this->updateSummarizedFeatureStatisticsByUnit($result,$unitStatistic,"average_frown_frequency","average_frown_frequency");
+               $result=$this->updateSummarizedFeatureStatisticsByUnit($result,$unitStatistic,"average_silence_before_response","silence_before_response");
+           }
+
+           if ($N!=0 ) {
+               $result["average_speech_frequency"]["val"] = $result["average_speech_frequency"]["val"] / $N;
+               $result["average_silence_before_response"]["val"] = $result["average_silence_before_response"]["val"] / $N;
+
+               $result["average_eye_blinking_frequency"]["val"] = $result["average_eye_blinking_frequency"]["val"] / $N;
+               $result["average_lipcorners_lowering_frequency"]["val"] = $result["average_lipcorners_lowering_frequency"]["val"] / $N;
+               $result["average_eyebrow_lift_frequency"]["val"] = $result["average_eyebrow_lift_frequency"]["val"] / $N;
+               $result["average_nose_movement_frequency"]["val"] = $result["average_nose_movement_frequency"]["val"] / $N;
+               $result["average_frown_frequency"]["val"] = $result["average_frown_frequency"]["val"] / $N;
+
+           }
+
+           if ($AllTimeDuration!=0) {
+
+               $result["average_eye_blinking_frequency"]["val2"] = $result["average_eye_blinking_frequency"]["count"] / $AllTimeDuration;
+               $result["average_lipcorners_lowering_frequency"]["val2"] = $result["average_lipcorners_lowering_frequency"]["count"] / $AllTimeDuration;
+               $result["average_eyebrow_lift_frequency"]["val2"] = $result["average_eyebrow_lift_frequency"]["count"] / $AllTimeDuration;
+               $result["average_nose_movement_frequency"]["val2"] = $result["average_nose_movement_frequency"]["count"] / $AllTimeDuration;
+               $result["average_frown_frequency"]["val2"] = $result["average_frown_frequency"]["count"] / $AllTimeDuration;
+
+           }
+
+
+           $curAverKey="val";
+           $result["deviation_speech_frequency"]=array("val"=>$this->countDeviationInSummarizedFeatureStatistics($arrayOfUnitStatistics,"average_speech_frequency",$curAverKey,$result["average_speech_frequency"][$curAverKey]));
+           $result["deviation_eye_blinking_frequency"]=array("val"=>$this->countDeviationInSummarizedFeatureStatistics($arrayOfUnitStatistics,"average_eye_blinking_frequency",$curAverKey,$result["average_eye_blinking_frequency"][$curAverKey]));
+            $result["deviation_eyebrow_lift_frequency"]=array("val"=>$this->countDeviationInSummarizedFeatureStatistics($arrayOfUnitStatistics,"average_eyebrow_lift_frequency",$curAverKey,$result["average_eyebrow_lift_frequency"][$curAverKey]));
+           $result["deviation_nose_movement_frequency"]=array("val"=>$this->countDeviationInSummarizedFeatureStatistics($arrayOfUnitStatistics,"average_nose_movement_frequency",$curAverKey,$result["average_nose_movement_frequency"][$curAverKey]));
+           $result["deviation_frown_frequency"]=array("val"=>$this->countDeviationInSummarizedFeatureStatistics($arrayOfUnitStatistics,"average_frown_frequency",$curAverKey,$result["average_frown_frequency"][$curAverKey]));
+           $result["deviation_silence_before_response"]=array("val"=>$this->countDeviationInSummarizedFeatureStatistics($arrayOfUnitStatistics,"silence_before_response",$curAverKey,$result["average_silence_before_response"][$curAverKey]));
+
+
+
+           return array("summarized_feature_statistics"=>$result);
+       }
+
+       return null;
+
+    }
+
+    public function detectEyeClosedFeatures($sourceFaceData1,$coefs_)
     {
         if ($sourceFaceData1 != null)
             foreach ($sourceFaceData1 as $k=>$v) {
@@ -3697,7 +4108,7 @@ class FacialFeatureDetector
                             //закрытие глаза
                             if (($k1 === 'left_eye_pupil_movement_y')||($k1 === 'right_eye_pupil_movement_y')) {
                                 if(strpos($k1,'right')>-1) $prefix = 'right_';
-                                 else $prefix = 'left_';
+                                else $prefix = 'left_';
                                 //---------------------------------------------------------------------------------------
                                 for ($i = 1; $i < count($v1); $i++) {
                                     //определение закрытие глаза, когда интенсивность выше 100
@@ -3708,7 +4119,7 @@ class FacialFeatureDetector
                                     if (isset($v1[$i]["force"])) {
                                         if(($sourceFaceData1[$k][$prefix."eye_pupil_movement_x"][$i]["force"] >= $val1) &&
                                             ($sourceFaceData1[$k][$prefix."eye_pupil_movement_y"][$i]["force"] >= $val2))
-                                         $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'yes';
+                                            $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'yes';
                                         else
                                             $sourceFaceData1[$k][$prefix."eye_closed"][$i]["val"] = 'no';
                                     }
@@ -3718,6 +4129,20 @@ class FacialFeatureDetector
                         }
                 }
             }
+        return $sourceFaceData1;
+    }
+
+
+    /**
+     * Определение дополнительных проявлений, в частности
+     * моргание
+     * закрытие глаза на основе информации о движении зрачков по Ивану
+     * @param $sourceFaceData1 - входной массив с лицевыми точками (landmarks)
+     * @return array - выходной массив с обработанным массивом
+     */
+    public function detectAdditionalEyeFeatures($sourceFaceData1,$coefs_)
+    {
+
         if ($sourceFaceData1 != null)
             foreach ($sourceFaceData1 as $k=>$v) {
                 if ($k === 'eye') {
@@ -4016,9 +4441,9 @@ class FacialFeatureDetector
             if (isset($sourceFaceData1[$k]["audio_db_val"])) {
                 for ($i = 0; $i < count($sourceFaceData1[$k]["audio_db_val"]); $i++) {
                     $sourceFaceData1[$k]["listerning"][$i]['val'] = 'no';
-                    //echo $i.'::'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].'<br>';
-                    //                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].
-                    //                    ' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'-->'.$sourceFaceData1[$k]["speaking"][$i-1]['val'].'/';
+//echo $i.'::'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].'<br>';
+//                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].
+//                    ' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'-->'.$sourceFaceData1[$k]["speaking"][$i-1]['val'].'/';
 
                     if (($sourceFaceData1[$k]["audio_db_val"][$i]['val'] == 'yes') && ($sourceFaceData1[$k]["speaking"][$i]['val'] == 'no')) {
                         //проверить говорение дальше
@@ -4035,7 +4460,7 @@ class FacialFeatureDetector
                             $sourceFaceData1[$k]["listerning"][$i]['val'] = 'yes';
                         }
                     }
-                    //                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
+//                echo $i.':: audio:'.$sourceFaceData1[$k]["audio_db_val"][$i]['val'].' speaking:'.$sourceFaceData1[$k]["speaking"][$i]['val'].' listerning:'.$sourceFaceData1[$k]["listerning"][$i]['val'].'<br>';
                 }
                 //чистим ложные срабатывания говорения
                 for ($i = 0; $i < count($sourceFaceData1[$k]["speaking"]); $i++) {
@@ -4205,7 +4630,7 @@ class FacialFeatureDetector
         if ($sourceFaceData1 != null)
             foreach ($sourceFaceData1 as $k => $v) //normpoints and triangles
  //               if (($v != null)  && (($k == 'normmask') || ($k == 'points') )){
-                if (($v != null) && ($k != 'gazeangle') && ($k != 'contours') && ($k != 'audiodata')) {
+                if (is_array($sourceFaceData1[$k]) && ($v != null) && ($k != 'gazeangle') && ($k != 'contours') && ($k != 'audiodata')) {
                     for ($i = $neighborsCnt; $i < count($sourceFaceData1[$k]) - $neighborsCnt; $i++) {
                         if (isset($sourceFaceData1[$k][$i])) //frames
                             foreach ($sourceFaceData1[$k][$i] as $k1 => $v1) { //points
@@ -4278,7 +4703,7 @@ class FacialFeatureDetector
      if ($sourceFaceData1 != null)
          foreach ($sourceFaceData1 as $k => $v) //normpoints and triangles
 //             if (($v != null)  && (($k == 'normmask') || ($k == 'points') )){
-             if (($v != null) && ($k != 'gazeangle') && ($k != 'contours') && ($k != 'audiodata')) {
+             if (is_array($sourceFaceData1[$k]) && ($v != null) && ($k != 'gazeangle') && ($k != 'contours') && ($k != 'audiodata')) {
 //        echo $k.' '.$v.'<br>';
                  for ($i = 0; $i < count($sourceFaceData1[$k]); $i++) {
                      if (isset($sourceFaceData1[$k][$i])) //frames
@@ -4409,8 +4834,261 @@ class FacialFeatureDetector
              } else{ //for gazeangle
                  $resFaceData[$k] = $v;
              }
+
+
      return $resFaceData;
     }
+
+
+
+    public function detectFeaturesV3($json,$basicFrame, $textData,$options)
+    {
+
+       // file_put_contents('/var/www/hr-robot-interface.com/public_html/components/11.json', json_encode($textData));
+
+        // load data
+            //patch for AJson
+            if(strpos($json,'AUs') !== false) {
+                $json = str_replace('{"AUs"',',{"AUs"',$json);
+                $json =  trim($json, ',');
+                $json = '['.$json.']';
+            }
+
+            //patch for IJson
+            $json = str_ireplace('Infinity','99999',$json);
+            $basicFrame = str_ireplace('Infinity','99999',$basicFrame);
+
+        $FaceData_ = json_decode($json, true);
+        if(Trim($basicFrame) != '') {
+            if (strpos($json, 'NORM_POINTS') !== false) {//I format
+                $ar_basicFrame = array();
+                $ar_basicFrame['frame_#B'] = json_decode($basicFrame,true);
+                $FaceData_ = array_merge($ar_basicFrame, $FaceData_);//базовый станет нулевым при преобразовании во внутренний формат
+            }
+            else
+                array_unshift($FaceData_, json_decode($basicFrame,true));
+        }
+
+        // check input format and convert the I and A formats to AB
+
+        if(strpos($json,'NORM_POINTS') !== false)  //I format
+            $FaceData = $this->convertIJson($FaceData_);
+
+        elseif(strpos($json,'AUs') !== false)   //A format
+            $FaceData = $this->convertAJson($FaceData_);
+        else
+            $FaceData =  $FaceData_; // use the AB format
+
+
+        $detectedFeatures = array();
+
+        $FPS=null;
+        if (isset($FaceData_["FPS"]))
+        {
+            $FPS=$FaceData_["FPS"];
+        }
+        $FrameCount=null;
+        if (isset($FaceData_["FrameCount"]))
+        {
+            $FrameCount=$FaceData_["FrameCount"];
+        }
+        $Duration=null;
+        if (isset($FaceData_["Duration"]))
+        {
+            $Duration=$FaceData_["Duration"];
+        }
+
+        $voiceActingTime=null;
+        if (isset($options) && isset($options["voiceActingTime"]))
+        {
+            $voiceActingTime=$options["voiceActingTime"]/1000;
+        }
+
+        $pointsFlag=1;
+        if (isset($options) && isset($options["pointsFlag"]))
+        {
+            $pointsFlag=$options["pointsFlag"];
+        }
+
+        $skipIrisDetection=true;
+        if (isset($options) && isset($options["skipIrisDetection"]))
+        {
+            $skipIrisDetection=$options["skipIrisDetection"];
+        }
+
+
+        //--------------- initilal loading of vars -------------------------------------
+        $coefs = array(
+            'outlierPercent' => 10,
+            'outlierNeighborsCnt' => 1,
+            'smoothWindow1' => 3,
+            'smoothWindow2' => 5,
+            'xMovingPoint1' => 21,
+            'xMovingPoint2' => 22,
+            'yMovingPoint1' => 21,
+            'yMovingPoint2' => 22,
+            'xRotationPoint1' => 39,
+            'xRotationPoint2' => 42,
+            'yScalingPoint1' => 27,
+            'yScalingPoint2' => 30,
+            'coefEyeWidthMax' => 0.65,
+            'coefMouthLengthMax' => 1.25,
+            'coefMouthLengthMin' => 0.7,
+            'coefMouthUpperLipMax' => 0.2,
+            'coefMouthLowerLipMax' => 1.05,
+            'coefMouthRightCornerYMax' => 0.4,
+            'coefMouthLeftCornerYMax' => 0.4,
+            'coefMouthRightCornerXMax' => 0.25,
+            'coefMouthLeftCornerXMax' => 0.25,
+            'coefChinScale' => 0.65,
+            'coefEyeBrowXMax' => 0.3,
+//            'coefNoseWidthMax' => 0.5,
+            'coefNoseMovMax' => 0.3,
+            'coefNoseWingYMax' => 0.5,
+            'coefEyeForceLevelX' => 80,
+            'coefEyeForceLevelY' => 55,
+            'coefLineDetection' => 3,
+            'coefVoiceDetection' => -31,
+            'coefCntFramesForMouthOpenedWhenSpeaking' => 3
+        );
+        //----------------------------------------------------------------------------
+        //----------------- norm points processing -----------------------------------
+        if ((isset($FaceData['normmask'])) && ($pointsFlag == 1)) {
+
+//            if(Trim($basicFrame) != '') array_unshift($FaceData['normmask'],$basicFrame);
+
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_ORIGIN', $FaceData, $detectedFeatures, '');
+
+            $FaceData['normmask'] = $this->stabilizating($FaceData['normmask'], 39, 42);
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_STABILIZED', $FaceData, $detectedFeatures, 'pp.3942');
+
+            //    $FaceData['normmask'] = $this->rotating($FaceData['normmask'], 39, 42);
+            $FaceData['normmask'] = $this->rotating($FaceData['normmask'], $coefs['xRotationPoint1'], $coefs['xRotationPoint2']);
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_ROTAITED', $FaceData, $detectedFeatures, 'pp.'.$coefs['xRotationPoint1'].$coefs['xRotationPoint2']);
+
+            //       $FaceData['normmask'] = $this->scaling($FaceData['normmask'],27,28);
+            //       $detectedFeatures = $this->addPointsToResults('normmask',
+            //           'NORM_POINTS_SCALED',$FaceData,$detectedFeatures,'pp.2728');
+        }
+
+        if ((isset($FaceData['points'])) && ($pointsFlag == 0)) {
+
+            //           if(Trim($basicFrame) != '') array_unshift($FaceData['points'],$basicFrame);
+            //-------------------------- orig points processing ----------------------
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_ORIGIN',$FaceData,$detectedFeatures,'');
+
+            $FaceData['points'] = $this->stabilizating($FaceData['points'],39,42);
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_STABILIZED',$FaceData,$detectedFeatures,'pp.3942');
+
+            $FaceData['points'] = $this->rotating($FaceData['points'],$coefs['xRotationPoint1'], $coefs['xRotationPoint2']);
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_ROTAITED',$FaceData,$detectedFeatures,'pp.'.$coefs['xRotationPoint1'].$coefs['xRotationPoint2']);
+        }
+        // ------------------------ зрачки ----------------------------------------
+        if (!$skipIrisDetection) {
+
+            if (isset($FaceData['normirises']))
+                $FaceData['normirises'] = $this->rotating($FaceData['normirises'],0,1);
+
+            if (isset($FaceData['origirises']))
+                $FaceData['origirises'] = $this->rotating($FaceData['origirises'],0,1);
+        }
+
+
+
+        //---------------------------------------------------------------------------
+        if ((isset($FaceData['normmask'])) && ($pointsFlag == 1)) {
+            $FaceData = $this->processingOutliers($FaceData, $coefs['outlierPercent'], $coefs['outlierNeighborsCnt']);
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_OUTLIER', $FaceData, $detectedFeatures, 'outlier_level_percent('.
+                $coefs['outlierPercent'].')outlier_neighbors('.$coefs['outlierNeighborsCnt'].')');
+            $FaceData = $this->processingWithMovingAverage($FaceData, $coefs['smoothWindow1']);
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_OUTLIER_MA', $FaceData, $detectedFeatures, 'smoth_order('.$coefs['smoothWindow1'].')');
+            $FaceData = $this->processingWithMovingAverage($FaceData, $coefs['smoothWindow2']);
+            $detectedFeatures = $this->addPointsToResults('normmask',
+                'NORM_POINTS_OUTLIER_MA', $FaceData, $detectedFeatures, 'smoth_order('.$coefs['smoothWindow1'].
+                '_'.$coefs['smoothWindow2'].')');
+
+            $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['normmask'],'eye',39,42, $coefs);
+            $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['normmask'],'mouth',39,42,$coefs);
+            $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['normmask'],'brow',39,42,$coefs);
+            $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['normmask'],'eyebrow',39,42,$coefs);
+            $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['normmask'],'nose', 39,42,$coefs);
+            $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['normmask'],'chin',39,42,$coefs);
+        }
+
+        if ((isset($FaceData['points'])) && ($pointsFlag == 0)){
+            //------------------- origin points processing ------------------------------
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_OUTLIER',$FaceData,$detectedFeatures,'outlier_level_percent(10)outlier_neighbors('.
+                $coefs['outlierPercent'].')');
+            $FaceData = $this->processingWithMovingAverage($FaceData,$coefs['smoothWindow1']);
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order('.$coefs['smoothWindow1'].')');
+            $FaceData = $this->processingWithMovingAverage($FaceData,$coefs['smoothWindow2']);
+            $detectedFeatures = $this->addPointsToResults('points',
+                'POINTS_OUTLIER_MA',$FaceData,$detectedFeatures,'smoth_order('.$coefs['smoothWindow1'].
+                '_'.$coefs['smoothWindow2'].')');
+
+            $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData['points'],'eye',39,42,$coefs);
+            $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData['points'],'mouth',39,42,$coefs);
+            $detectedFeatures['brow'] = $this->detectBrowFeatures($FaceData['points'],'brow',39,42,$coefs);
+            $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData['points'],'eyebrow',39,42,$coefs);
+            $detectedFeatures['nose'] = $this->detectNoseFeatures($FaceData['points'],'nose', 39,42,$coefs);
+            $detectedFeatures['chin'] = $this->detectChinFeatures($FaceData['points'],'chin',39,42,$coefs);
+        }
+
+        if (!$skipIrisDetection)
+        {
+            if (isset($FaceData['normirises']))
+                $detectedFeatures = $this->detectIrises($detectedFeatures,
+                    $FaceData['normirises'], 'eye','');
+            if (isset($FaceData['origirises']))
+                $detectedFeatures = $this->detectIrises($detectedFeatures,
+                    $FaceData['origirises'], 'eye','_orig');
+            if (isset($FaceData['gazeangle']))
+                $detectedFeatures = $this->detectIrisesA($detectedFeatures,
+                    $FaceData["gazeangle"], 'eye','');
+        }
+
+
+        if (isset($FaceData['contours']))
+            $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
+                $FaceData["contours"], 'nose','');
+
+        //$FaceData_['audiodata'][$i]['db_val'] = $v['AUDIO_DATA'][2];
+        if (isset($FaceData['audiodata']))
+            $detectedFeatures = $this->processAudio($detectedFeatures,
+                $FaceData["audiodata"], 'mouth',$coefs);
+
+
+        //$options["Duration"]=$Duration;
+        //$detectedFeatures["options"]=$options;
+
+
+        $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
+
+        if (!$skipIrisDetection)
+            $detectedFeaturesWithTrends=$this->detectEyeClosedFeatures($detectedFeaturesWithTrends,$coefs);
+
+        $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
+        $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends, $coefs);
+
+        $detectedFeaturesWithTrends = $this->detectFeatureStatistics($detectedFeaturesWithTrends,$FPS,$FrameCount,$Duration,$voiceActingTime);
+        $detectedFeaturesWithTrends = $this->detectTextStatistics($detectedFeaturesWithTrends,$textData,$Duration,$voiceActingTime);
+
+        $detectedFeaturesWithTrends = $this->detectTextPhrases($detectedFeaturesWithTrends,$textData,$FPS,$voiceActingTime);
+
+        return $detectedFeaturesWithTrends;
+
+    }
+
     /**
      * Обнаружение признаков на основе анализа входных данных.
      *
@@ -4462,8 +5140,8 @@ class FacialFeatureDetector
             'coefMouthLowerLipMax' => 1.05,
             'coefMouthRightCornerYMax' => 0.4,
             'coefMouthLeftCornerYMax' => 0.4,
-            'coefMouthRightCornerXMax' => 0.55,
-            'coefMouthLeftCornerXMax' => 0.55,
+            'coefMouthRightCornerXMax' => 0.25,
+            'coefMouthLeftCornerXMax' => 0.25,
             'coefChinScale' => 0.65,
             'coefEyeBrowXMax' => 0.3,
 //            'coefNoseWidthMax' => 0.5,
@@ -4581,6 +5259,8 @@ class FacialFeatureDetector
         $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
         $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends,$coefs);
 
+
+
         return $detectedFeaturesWithTrends;
     }
     /**
@@ -4593,10 +5273,9 @@ class FacialFeatureDetector
     public function detectFeaturesV2($json, $pointsFlag, $basicFrame)
     {
 
-//        $basicFrame = '{"AUs":{"AU01":{"intensity":0.43,"presence":0},"AU02":{"intensity":0.44,"presence":0},"AU04":{"intensity":0.0,"presence":0},"AU05":{"intensity":0.35,"presence":0},"AU06":{"intensity":2.27,"presence":1},"AU07":{"intensity":3.16,"presence":1},"AU09":{"intensity":0.49,"presence":0},"AU10":{"intensity":1.78,"presence":1},"AU12":{"intensity":3.23,"presence":1},"AU14":{"intensity":0.58,"presence":1},"AU15":{"intensity":0.17,"presence":0},"AU17":{"intensity":0.47,"presence":0},"AU20":{"intensity":0.31,"presence":0},"AU23":{"intensity":0.54,"presence":0},"AU25":{"intensity":0.54,"presence":0},"AU26":{"intensity":0.51,"presence":0},"AU28":{"intensity":0.0,"presence":0},"AU45":{"intensity":0.66,"presence":0}},"Emotions":{"Happy":1.0},"confidence":0.98,"frame":1,"gaze angle":{"x":0.019,"y":0.197},"gaze direction":{"x_0":0.24024,"x_1":-0.203498,"y_0":0.168279,"y_1":0.213106,"z_0":-0.956016,"z_1":-0.955601},"landmarks_2D":{"0":{"x":360.6,"y":271.9},"1":{"x":364.2,"y":342.0},"10":{"x":748.9,"y":638.1},"11":{"x":799.2,"y":585.6},"12":{"x":838.7,"y":528.0},"13":{"x":863.3,"y":463.8},"14":{"x":874.5,"y":397.7},"15":{"x":881.2,"y":331.2},"16":{"x":884.9,"y":263.7},"17":{"x":402.1,"y":231.2},"18":{"x":427.7,"y":192.4},"19":{"x":469.7,"y":171.0},"2":{"x":370.6,"y":411.7},"20":{"x":518.7,"y":168.7},"21":{"x":565.6,"y":180.6},"22":{"x":676.1,"y":176.8},"23":{"x":727.8,"y":162.3},"24":{"x":775.9,"y":162.7},"25":{"x":820.9,"y":182.4},"26":{"x":844.8,"y":219.1},"27":{"x":624.9,"y":246.6},"28":{"x":625.4,"y":290.8},"29":{"x":626.1,"y":334.8},"3":{"x":382.0,"y":479.0},"30":{"x":627.3,"y":380.3},"31":{"x":563.0,"y":406.6},"32":{"x":593.6,"y":417.1},"33":{"x":625.0,"y":427.1},"34":{"x":656.9,"y":415.7},"35":{"x":685.0,"y":405.4},"36":{"x":462.9,"y":265.9},"37":{"x":492.8,"y":250.9},"38":{"x":524.9,"y":250.0},"39":{"x":552.9,"y":264.9},"4":{"x":407.9,"y":541.0},"40":{"x":523.6,"y":269.5},"41":{"x":491.7,"y":270.8},"42":{"x":689.8,"y":260.1},"43":{"x":719.7,"y":243.2},"44":{"x":752.0,"y":243.3},"45":{"x":779.6,"y":256.7},"46":{"x":753.7,"y":263.1},"47":{"x":722.4,"y":263.6},"48":{"x":496.1,"y":482.5},"49":{"x":540.6,"y":463.5},"5":{"x":449.8,"y":598.1},"50":{"x":591.4,"y":458.4},"51":{"x":622.9,"y":464.8},"52":{"x":658.9,"y":457.7},"53":{"x":708.7,"y":461.9},"54":{"x":752.0,"y":476.9},"55":{"x":710.4,"y":536.9},"56":{"x":662.0,"y":564.2},"57":{"x":623.3,"y":569.5},"58":{"x":588.3,"y":566.3},"59":{"x":537.5,"y":540.6},"6":{"x":499.1,"y":647.8},"60":{"x":512.3,"y":485.1},"61":{"x":591.1,"y":481.6},"62":{"x":623.3,"y":484.7},"63":{"x":659.7,"y":480.1},"64":{"x":737.5,"y":481.4},"65":{"x":660.5,"y":526.9},"66":{"x":623.1,"y":532.5},"67":{"x":589.8,"y":529.3},"7":{"x":557.5,"y":687.8},"8":{"x":625.9,"y":698.4},"9":{"x":692.2,"y":681.6},"count":68},"landmarks_2d":{"0":{"x":393.0,"y":294.1},"1":{"x":394.9,"y":354.8},"10":{"x":742.0,"y":631.1},"11":{"x":784.2,"y":575.6},"12":{"x":817.4,"y":520.7},"13":{"x":838.4,"y":461.8},"14":{"x":847.9,"y":402.0},"15":{"x":850.8,"y":343.0},"16":{"x":848.9,"y":286.1},"17":{"x":406.5,"y":236.7},"18":{"x":427.3,"y":193.1},"19":{"x":465.5,"y":164.3},"2":{"x":399.5,"y":415.7},"20":{"x":513.3,"y":154.8},"21":{"x":561.7,"y":161.2},"22":{"x":680.7,"y":157.4},"23":{"x":732.6,"y":150.5},"24":{"x":778.3,"y":158.3},"25":{"x":818.4,"y":185.0},"26":{"x":836.8,"y":226.3},"27":{"x":625.7,"y":229.9},"28":{"x":626.6,"y":273.6},"29":{"x":627.9,"y":319.6},"3":{"x":408.2,"y":475.1},"30":{"x":629.8,"y":370.8},"31":{"x":556.8,"y":404.7},"32":{"x":590.4,"y":416.1},"33":{"x":626.3,"y":427.3},"34":{"x":662.2,"y":414.4},"35":{"x":692.8,"y":403.1},"36":{"x":458.8,"y":262.7},"37":{"x":488.5,"y":245.8},"38":{"x":521.5,"y":244.4},"39":{"x":550.1,"y":259.1},"4":{"x":428.1,"y":531.5},"40":{"x":519.2,"y":262.9},"41":{"x":486.1,"y":264.7},"42":{"x":692.0,"y":254.6},"43":{"x":722.7,"y":237.6},"44":{"x":755.5,"y":238.4},"45":{"x":782.7,"y":253.3},"46":{"x":758.4,"y":257.3},"47":{"x":726.4,"y":257.2},"48":{"x":495.3,"y":483.9},"49":{"x":534.6,"y":467.1},"5":{"x":462.5,"y":585.9},"50":{"x":588.0,"y":462.9},"51":{"x":623.6,"y":470.4},"52":{"x":664.5,"y":462.2},"53":{"x":716.1,"y":465.5},"54":{"x":752.2,"y":478.3},"55":{"x":716.2,"y":545.4},"56":{"x":667.2,"y":581.9},"57":{"x":623.8,"y":588.8},"58":{"x":584.5,"y":583.6},"59":{"x":531.6,"y":549.3},"6":{"x":503.5,"y":639.1},"60":{"x":511.2,"y":486.7},"61":{"x":587.9,"y":488.4},"62":{"x":623.9,"y":492.4},"63":{"x":664.7,"y":487.0},"64":{"x":738.4,"y":483.2},"65":{"x":664.9,"y":538.7},"66":{"x":623.5,"y":545.6},"67":{"x":586.5,"y":540.9},"7":{"x":555.9,"y":691.9},"8":{"x":625.0,"y":707.8},"9":{"x":691.6,"y":685.3},"count":68},"pose":{"Rx":0.016,"Ry":-0.002,"Rz":-0.013,"Tx":-4.5,"Ty":9.5,"Tz":235.6},"timestamp":0.0}
-//';
-//        $basicFrame = '{"FACES":[1,[461,846,204,590,[645,323],-0.37417901609309]],"POINTS":[[451,377],[458,425],[466,471],[475,516],[495,557],[527,589],[568,612],[611,627],[660,628],[708,622],[747,601],[782,575],[807,540],[819,498],[822,452],[826,405],[829,357],[488,331],[508,301],[541,282],[581,273],[622,275],[661,273],[701,272],[740,280],[772,297],[792,326],[645,323],[647,351],[649,378],[651,406],[614,440],[632,443],[651,446],[669,442],[685,437],[538,351],[557,339],[580,335],[602,345],[582,351],[559,354],[685,343],[705,332],[728,334],[748,345],[728,350],[705,348],[586,515],[609,494],[631,484],[650,487],[667,483],[688,490],[711,508],[689,511],[669,514],[652,516],[633,516],[611,516],[596,510],[632,499],[651,501],[668,498],[700,504],[667,497],[650,500],[632,499],[640,281],[634,198],[482,248],[535,199],[734,197],[786,243],[530,468],[765,456],[549,561],[755,549]],"NORM_POINTS":[[-35,336],[-17,404],[0,465],[17,520],[47,569],[89,606],[141,632],[194,650],[255,654],[315,650],[368,629],[417,602],[457,562],[483,511],[498,450],[516,384],[534,310],[10,266],[35,217],[84,184],[147,168],[213,171],[277,167],[343,164],[407,178],[457,209],[483,258],[248,253],[250,298],[251,340],[253,381],[199,428],[224,433],[251,437],[277,432],[300,426],[86,297],[113,279],[148,272],[181,288],[151,298],[117,302],[309,286],[342,268],[378,272],[408,290],[375,297],[340,294],[161,523],[192,498],[222,486],[248,491],[272,486],[300,496],[330,520],[300,522],[272,525],[249,527],[224,526],[195,525],[175,518],[223,505],[249,509],[272,505],[315,514],[271,504],[247,507],[223,505],[242,181],[236,22],[-12,124],[66,28],[414,16],[495,108],[84,463],[414,454],[115,576],[385,571]],"NORM_IRISES":[[131,283],[361,280]],"ORIG_IRISES":[[36,12],[38,12]],"AUDIO_DATA":[0,0,-9999],"CONTOURS":{"21x22x28":[[273,176,439,792,4298],[240,234,310,365,4298],[245,183,69,69,4298],[213,174,13,28,4298],[252,211,19,19,4298]],"35x54x75":[[329,512,102,785,5088],[300,435,24,71,5088]],"27x31x39":[[240,234,1,365,5198],[231,309,62,96,5198],[201,388,60,61,5198],[238,281,41,48,5198],[210,264,18,60,5198],[206,372,21,21,5198]],"27x35x42":[[311,280,19,197,4606],[305,312,70,109,4606],[280,361,56,108,4606],[273,328,82,94,4606],[273,288,75,75,4606],[272,302,53,53,4606],[292,361,34,34,4606]],"31x48x74":[[180,505,9,191,4942],[122,501,3,41,4942],[159,515,24,26,4942]],"35x47x75":[[322,335,33,104,8287],[379,408,34,34,8287],[337,292,2,24,8287]],"31x40x74":[[175,405,78,78,8521],[155,328,26,26,8521]]},"21x22x28":[[247,214,246,214],[-991.11351281404,-53.304354233667,651.55271188215,15.041314834871,1605]],"31x48x74":[[148,472,148,473],[1093.8101934493,877.23961888254,631.16994167837,313.88269010193,2866]],"31x40x74":[[144,399,144,400],[711.70066659153,1699.3303407431,325.30060612968,772.35548995435,4332]],"35x54x75":[[348,467,348,467],[345.63977733254,-785.38106455654,547.3945683545,304.06025720623,2697]],"35x47x75":[[352,394,352,393],[-42.767876237631,-1498.1718788445,221.88026934923,697.05828706089,3889]],"27x35x42":[[286,325,286,324],[-152.92961074412,-489.62214787863,90.441846512677,137.45183199337,2015]],"27x31x39":[[209,326,209,327],[-363.1109264642,226.38684104383,157.16604001303,44.263897197406,2303]]}';
-        // load data
+
+
+       // load data
         //patch for AJson
         if(strpos($json,'AUs') !== false) {
             $json = str_replace('{"AUs"',',{"AUs"',$json);
@@ -4614,7 +5293,7 @@ class FacialFeatureDetector
             if (strpos($json, 'NORM_POINTS') !== false) {//I format
                 $ar_basicFrame = array();
                 $ar_basicFrame['frame_#B'] = json_decode($basicFrame,true);
-                $FaceData_ = array_merge($ar_basicFrame, $FaceData_);
+                $FaceData_ = array_merge($ar_basicFrame, $FaceData_);//базовый станет нулевым при преобразовании во внутренний формат
 //                array_unshift($FaceData_, $ar_basicFrame);
             }
                 else
@@ -4641,6 +5320,7 @@ class FacialFeatureDetector
 
         $detectedFeatures = array();
 
+
         //--------------- initilal loading of vars -------------------------------------
         $coefs = array(
             'outlierPercent' => 10,
@@ -4662,8 +5342,8 @@ class FacialFeatureDetector
             'coefMouthLowerLipMax' => 1.05,
             'coefMouthRightCornerYMax' => 0.4,
             'coefMouthLeftCornerYMax' => 0.4,
-            'coefMouthRightCornerXMax' => 0.55,
-            'coefMouthLeftCornerXMax' => 0.55,
+            'coefMouthRightCornerXMax' => 0.25,
+            'coefMouthLeftCornerXMax' => 0.25,
             'coefChinScale' => 0.65,
             'coefEyeBrowXMax' => 0.3,
 //            'coefNoseWidthMax' => 0.5,
@@ -4714,15 +5394,20 @@ class FacialFeatureDetector
                 'POINTS_ROTAITED',$FaceData,$detectedFeatures,'pp.'.$coefs['xRotationPoint1'].$coefs['xRotationPoint2']);
         }
         // ------------------------ зрачки ----------------------------------------
+
+
 //        $FaceData['normirises'] = $this->stabilizating($FaceData['normirises'],0,1);
-        if (isset($FaceData['normirises']))
-            $FaceData['normirises'] = $this->rotating($FaceData['normirises'],0,1);
-        //       $FaceData['normirises'] = $this->scaling($FaceData['normirises'],0,1);
+            if (isset($FaceData['normirises']))
+                $FaceData['normirises'] = $this->rotating($FaceData['normirises'],0,1);
+            //       $FaceData['normirises'] = $this->scaling($FaceData['normirises'],0,1);
 
 //        $FaceData['origirises'] = $this->stabilizating($FaceData['origirises'],0,1);
-        if (isset($FaceData['origirises']))
-            $FaceData['origirises'] = $this->rotating($FaceData['origirises'],0,1);
+            if (isset($FaceData['origirises']))
+                $FaceData['origirises'] = $this->rotating($FaceData['origirises'],0,1);
 //        $FaceData['origirises'] = $this->scaling($FaceData['origirises'],0,1);
+
+
+
         //---------------------------------------------------------------------------
         if ((isset($FaceData['normmask'])) && ($pointsFlag == 1)) {
             $FaceData = $this->processingOutliers($FaceData, $coefs['outlierPercent'], $coefs['outlierNeighborsCnt']);
@@ -4769,15 +5454,19 @@ class FacialFeatureDetector
         /*         $fd = fopen('_MA.json', "w");
                      fwrite($fd,json_encode($FaceData));
                      fclose($fd);*/
-        if (isset($FaceData['normirises']))
-            $detectedFeatures = $this->detectIrises($detectedFeatures,
-                $FaceData['normirises'], 'eye','');
-        if (isset($FaceData['origirises']))
-            $detectedFeatures = $this->detectIrises($detectedFeatures,
-                $FaceData['origirises'], 'eye','_orig');
-        if (isset($FaceData['gazeangle']))
-            $detectedFeatures = $this->detectIrisesA($detectedFeatures,
-                $FaceData["gazeangle"], 'eye','');
+
+
+            if (isset($FaceData['normirises']))
+                $detectedFeatures = $this->detectIrises($detectedFeatures,
+                    $FaceData['normirises'], 'eye','');
+            if (isset($FaceData['origirises']))
+                $detectedFeatures = $this->detectIrises($detectedFeatures,
+                    $FaceData['origirises'], 'eye','_orig');
+            if (isset($FaceData['gazeangle']))
+                $detectedFeatures = $this->detectIrisesA($detectedFeatures,
+                    $FaceData["gazeangle"], 'eye','');
+
+
 
         if (isset($FaceData['contours']))
             $detectedFeatures = $this->detectAdditionalNoseFeatures($detectedFeatures,
@@ -4789,11 +5478,409 @@ class FacialFeatureDetector
                 $FaceData["audiodata"], 'mouth',$coefs);
 
         $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
+        $detectedFeaturesWithTrends=$this->detectEyeClosedFeatures($detectedFeaturesWithTrends,$coefs);
         $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
         $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends, $coefs);
 
         return $detectedFeaturesWithTrends;
     }
+
+
+    public function DataPreprocessing(&$theData,$theConfigs)
+    {
+
+        if (isset($theConfigs["Outlier"]))
+        {
+
+            //echo "DataPreprocessingOutlier On";
+            $theData = $this->processingOutliers($theData,
+                $theConfigs["Outlier"]['outlierPercent'],
+                $theConfigs["Outlier"]['outlierNeighborsCnt']);
+        }
+
+
+        if (isset($theConfigs["MovingAverage"]))
+        {
+            if (isset($theConfigs["MovingAverage"]["smoothWindow1"]) )
+            {
+
+                $theData = $this->processingWithMovingAverage($theData,
+                    $theConfigs["MovingAverage"]['smoothWindow1']);
+
+                if (isset($theConfigs["MovingAverage"]["smoothWindow2"]) )
+                    $theData = $this->processingWithMovingAverage($theData,
+                        $theConfigs["MovingAverage"]['smoothWindow2']);
+            }
+
+        }
+
+
+    }
+
+    public function GeometricTransformations(&$theData,$theConfigs)
+    {
+
+
+        if (isset($theConfigs["Stabilization"]))
+                $theData= $this->stabilizating($theData,
+                                                    $theConfigs["Stabilization"]["Point1"],
+                                                        $theConfigs["Stabilization"]["Point2"]);
+
+        if (isset($theConfigs["Rotation"]))
+                $theData = $this->rotating($theData,
+                                                $theConfigs["Rotation"]["xPoint1"],
+                                                    $theConfigs["Rotation"]["xPoint2"]);
+
+    }
+
+
+    public function CorrectRawDataMistakes(&$theJson)
+    {
+        if(strpos($theJson,'AUs') !== false) {
+            $theJson = str_replace('{"AUs"',',{"AUs"',$theJson);
+            $theJson =  trim($theJson, ',');
+            $theJson = '['.$theJson.']';
+        }
+
+        $theJson = str_ireplace('Infinity','99999',$theJson);
+    }
+
+    public function modeFrame($sourceFaceData1,$targetFaceData,$basicPoints)
+    {
+        //$values = array_count_values($valueArray);
+       // $mode = array_search(max($values), $values);
+    }
+
+    public function averageFrame($sourceFaceData1,$targetFaceData,$basicPoints)
+    {
+        $resAverFrame = array();
+
+
+        foreach ($sourceFaceData1[0] as $pointName => $pointData)
+        {
+            $resAverFrame[$pointName]=array('X'=>0,'Y'=>0);
+        }
+
+        $realCount=0;
+
+        for ($iFrame = 0; $iFrame < count($sourceFaceData1)-1; $iFrame++)
+        {
+            if ($targetFaceData != null) {
+                if (isset($targetFaceData['eye']['right_eye_blink'][$iFrame]["val"]) &&
+                    $targetFaceData['eye']['right_eye_blink'][$iFrame]["val"] == 'yes') continue;
+
+                if (isset($targetFaceData['eye']['left_eye_blink'][$iFrame]["val"]) &&
+                    $targetFaceData['eye']['left_eye_blink'][$iFrame]["val"] == 'yes') continue;
+
+                if (isset($targetFaceData['mouth']['speaking'][$iFrame]["val"]) &&
+                    $targetFaceData['mouth']['speaking'][$iFrame]["val"] == 'yes') continue;
+            }
+
+            foreach ($sourceFaceData1[$iFrame] as $pointName => $pointData)
+            {
+                $resAverFrame[$pointName]['X']+=$pointData['X'];
+                $resAverFrame[$pointName]['Y']+=$pointData['Y'];
+
+            }
+
+            //echo $sourceFaceData1[$iFrame][43]['Y']."</br>";
+            $realCount++;
+        }
+
+
+
+        echo "Учтено точек: $realCount<br>";
+
+
+
+        foreach ($resAverFrame as $pointName => $pointData)
+        {
+            $resAverFrame[$pointName]['X']=$pointData['X']/$realCount;
+            $resAverFrame[$pointName]['Y']=$pointData['Y']/$realCount;
+        }
+
+        return $resAverFrame;
+    }
+
+    public function minimumDeviatedFrame($sourceFaceData1,$targetFaceData,$basicPoints)
+    {
+        // поиск экстремальных кадров - кадров относительно которых максимальные отличия по базовым точкам
+        //базовые точки - э
+        //то точки описания глаз, рта, бровей
+        $resSums = array();
+        $indexOfFrame=null;
+
+        if (is_array($sourceFaceData1)) {
+            for ($i0 = 0; $i0 < count($sourceFaceData1) - 1; $i0++) {
+                $sumForAllFramesOfCurFrame = 0;
+                for ($i = 1; $i < count($sourceFaceData1); $i++) {
+                    $sumForCurFrame = 0;
+                    foreach ($basicPoints as $k1 => $v1) {
+                        if (isset($sourceFaceData1[$i][$v1])) {
+                            $sumForCurFrame += (abs($sourceFaceData1[$i][$v1]['X'] - $sourceFaceData1[$i0][$v1]['X']) +
+                                    abs($sourceFaceData1[$i][$v1]['Y'] - $sourceFaceData1[$i0][$v1]['Y'])) / 2;
+                        }
+                    }
+                    //                $resSums[$i0.'_'.$i] = $sumForCurFrame;
+                    $sumForAllFramesOfCurFrame += $sumForCurFrame;
+                }
+                $resSums[$i0] = $sumForAllFramesOfCurFrame;
+            }
+            asort($resSums);
+            //        print_r($resSums);
+
+            //исключение экстремальных кадров с морганием и говорением
+            if ($targetFaceData != null)
+                foreach ($targetFaceData as $k => $v) {
+                    if (($k === 'eye') || ($k === 'mouth')) {
+                        foreach ($v as $k1 => $v1) {
+                            if (($k1 === 'right_eye_blink') || ($k1 === 'left_eye_blink') ||
+                                ($k1 === 'speaking')) {
+                                //---------------------------------------------------------------------------------------
+                                for ($i = 1; $i < count($v1); $i++) {
+                                    //определение закрытие глаза, когда ширина равна 50%
+                                    if (isset($v1[$i]["val"]) && ($v1[$i]["val"] == 'yes')) {
+                                        //                                echo $i.'<br>';
+                                        if (isset($resSums[$i])) {
+                                            unset($resSums[$i]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            reset($resSums); //получение первого элемента массива - номер первого экстремального фрейма
+            $indexOfFrame = key($resSums);
+        }
+        return $indexOfFrame;
+
+    }
+
+
+    public function maximumDeviatedFrameIndex($sourceFaceData1,$targetFaceData,$basicPoints)
+    {
+        // поиск экстремальных кадров - кадров относительно которых максимальные отличия по базовым точкам
+        //базовые точки - это точки описания глаз, рта, бровей
+        $resSums = array();
+        for ($i0 = 0; $i0 < count($sourceFaceData1)-1; $i0++) {
+            $sumForAllFramesOfCurFrame = 0;
+            for ($i = 1; $i < count($sourceFaceData1); $i++) {
+                $sumForCurFrame = 0;
+                foreach ($basicPoints as $k1 => $v1) {
+                    if (isset($sourceFaceData1[$i][$v1])) {
+                        $sumForCurFrame += (abs($sourceFaceData1[$i][$v1]['X'] -  $sourceFaceData1[$i0][$v1]['X'])+
+                                abs($sourceFaceData1[$i][$v1]['Y'] -  $sourceFaceData1[$i0][$v1]['Y']))/2;
+                    }
+                }
+                //                $resSums[$i0.'_'.$i] = $sumForCurFrame;
+                $sumForAllFramesOfCurFrame +=  $sumForCurFrame;
+            }
+            $resSums[$i0] = $sumForAllFramesOfCurFrame;
+        }
+        arsort($resSums);
+        //        print_r($resSums);
+
+        //исключение экстремальных кадров с морганием и говорением
+        if ($targetFaceData != null)
+            foreach ($targetFaceData as $k=>$v) {
+                if (($k === 'eye') || ($k === 'mouth')) {
+                    foreach ($v as $k1 => $v1) {
+                        if (($k1 === 'right_eye_blink') || ($k1 === 'left_eye_blink') ||
+                            ($k1 === 'speaking')) {
+                            //---------------------------------------------------------------------------------------
+                            for ($i = 1; $i < count($v1); $i++) {
+                                //определение закрытие глаза, когда ширина равна 50%
+                                if (isset($v1[$i]["val"]) && ($v1[$i]["val"] == 'yes')) {
+                                    //                                echo $i.'<br>';
+                                    if(isset($resSums[$i])){ unset($resSums[$i]);}
+                                }
+                            }
+                        }
+                    }
+                }}
+
+        reset($resSums); //получение первого элемента массива - номер первого экстремального фрейма
+        $indexOfFrame = key($resSums);
+
+        return $indexOfFrame;
+    }
+
+
+    public function makeBasicFrameWithSmoothingAndRotating($theFaceData,$thePointFlag)
+    {
+        $configData=array();
+
+        $configData["pointsFlag"]=$thePointFlag;
+        $configData["IsCalibrationData"]=1;
+
+
+
+
+       $configData["GeometricTransformations"]=array();
+            $configData["GeometricTransformations"]["Stabilization"]=array();
+            $configData["GeometricTransformations"]["Rotation"]=array();
+                $configData["GeometricTransformations"]["Stabilization"]["Point1"]=39;
+                $configData["GeometricTransformations"]["Stabilization"]["Point2"]=42;
+                $configData["GeometricTransformations"]["Rotation"]["xPoint1"]=39;
+                $configData["GeometricTransformations"]["Rotation"]["xPoint2"]=42;
+
+        $configData["DataPreprocessing"]=array();
+            $configData["DataPreprocessing"]["Outlier"]=array();
+                $configData["DataPreprocessing"]["Outlier"]["outlierPercent"]=10;
+                $configData["DataPreprocessing"]["Outlier"]["outlierNeighborsCnt"]=1;
+            $configData["DataPreprocessing"]["MovingAverage"]=array();
+                $configData["DataPreprocessing"]["MovingAverage"]["smoothWindow1"]=3;
+                $configData["DataPreprocessing"]["MovingAverage"]["smoothWindow2"]=5;
+
+        $configData["BasicFrameMethod"]="minimumDeviatedFrame";
+
+        $basicFrameDetectionResult =  $this->makeBasicFrame($theFaceData,$configData);
+
+        if (isset($basicFrameDetectionResult["FrameSource"])==True)
+        {
+                return    $basicFrameDetectionResult["FrameSource"];
+        }
+
+        return NULL;
+}
+
+    public function makeBasicFrame($json,$configs)
+    {
+       // $json - цифровая маска
+        //$pointsFlag == 0 - без нормализации 'points'
+        //$pointsFlag == 1 - с нормализацией 'normmask'
+
+
+
+
+
+        $pointsFlag=0;
+        if (isset($configs["pointsFlag"]))   $pointsFlag=$configs["pointsFlag"];
+        if (isset($configs["rawDataCorrection"])) $this->CorrectRawDataMistakes($json);
+
+        $FaceData_ = json_decode($json, true);
+        // check input format and convert the I and A formats to AB
+        if(strpos($json,'NORM_POINTS') !== false) //I format
+            $FaceData = $this->convertIJson($FaceData_);
+            elseif(strpos($json,'AUs') !== false)   //A format
+                $FaceData = $this->convertAJson($FaceData_);
+                else
+                    $FaceData =  $FaceData_; // use the AB format
+
+
+        $curKey=null;
+        if ((isset($FaceData['normmask'])) && ($pointsFlag == 1)) $curKey='normmask';
+        if ((isset($FaceData['points'])) && ($pointsFlag ==0)) $curKey='points';
+
+    //    var_dump($FaceData[$curKey]);
+
+        if (isset($configs["GeometricTransformations"]))  $this->GeometricTransformations($FaceData[$curKey],$configs["GeometricTransformations"]);
+        if (isset($configs["DataPreprocessing"]))   $this->DataPreprocessing($FaceData,$configs["DataPreprocessing"]);
+
+
+
+        //echo "Данные [61][43][y] ___ ".$FaceData[$curKey][61][43]['Y']."___||";
+        //echo "Данные [212][43][y] ___ ".$FaceData[$curKey][212][43]['Y']."___||";
+
+       // var_dump($FaceData[$curKey][61][43]['Y']['Y']);
+
+        $detectedFeatures = array();
+        $coefs = array(
+            'outlierPercent' => 10,
+            'outlierNeighborsCnt' => 1,
+            'smoothWindow1' => 3,
+            'smoothWindow2' => 5,
+            'xMovingPoint1' => 21,
+            'xMovingPoint2' => 22,
+            'yMovingPoint1' => 21,
+            'yMovingPoint2' => 22,
+            'xRotationPoint1' => 39,
+            'xRotationPoint2' => 42,
+            'yScalingPoint1' => 27,
+            'yScalingPoint2' => 30,
+            'coefEyeWidthMax' => 0.65,
+            'coefMouthLengthMax' => 1.25,
+            'coefMouthLengthMin' => 0.7,
+            'coefMouthUpperLipMax' => 0.2,
+            'coefMouthLowerLipMax' => 1.05,
+            'coefMouthRightCornerYMax' => 0.4,
+            'coefMouthLeftCornerYMax' => 0.4,
+            'coefMouthRightCornerXMax' => 0.25,
+            'coefMouthLeftCornerXMax' => 0.25,
+            'coefChinScale' => 0.65,
+            'coefEyeBrowXMax' => 0.3,
+//            'coefNoseWidthMax' => 0.5,
+            'coefNoseMovMax' => 0.3,
+            'coefNoseWingYMax' => 0.5,
+            'coefEyeForceLevelX' => 80,
+            'coefEyeForceLevelY' => 55,
+            'coefLineDetection' => 3,
+            'coefVoiceDetection' => -31,
+            'coefCntFramesForMouthOpenedWhenSpeaking' => 3
+        );
+        $detectedFeatures['eye'] = $this->detectEyeFeatures($FaceData[$curKey],'eye',39,42, $coefs);
+        $detectedFeatures['mouth'] = $this->detectMouthFeatures($FaceData[$curKey],'mouth',39,42,$coefs);
+        $detectedFeatures['eyebrow'] = $this->detectEyeBrowFeatures($FaceData[$curKey],'eyebrow',39,42,$coefs);
+
+        if (isset($FaceData['audiodata']))  $detectedFeatures = $this->processAudio($detectedFeatures, $FaceData["audiodata"], 'mouth',$coefs);
+
+        $detectedFeaturesWithTrends = $this->detectTrends($detectedFeatures,5);
+        $detectedFeaturesWithTrends = $this->detectAdditionalEyeFeatures($detectedFeaturesWithTrends,$coefs);
+        $detectedFeaturesWithTrends = $this->detectAdditionalMouthFeatures($detectedFeaturesWithTrends,$coefs);
+
+        $arr = array(61,62, 63, 65, 66, 67, 36,37,38,39, 40, 41, 42, 43, 44, 45, 46,47, 31, 35, 19,24, 17, 21, 22, 26, 48, 54, 51, 57, 27, 28, 29);
+
+
+
+        $resFrameIndex=null;
+
+        $res=array("FrameArray"=>null, "FrameIndex"=>$resFrameIndex );
+
+        //сначала исключаем говорение и моргание
+        //выделяем только фас (углы поворотов и наклонов головы)
+        //вычисляем или выбираем кадр
+
+        //погрешность нейтрального лица должна отличаться на x%:
+            //если лицо фас, то среднее не сильно отличается от модального
+            // отклонения от среднего не превышают х%
+
+
+        if (isset($configs["BasicFrameMethod"]))
+        {
+            if ($configs["BasicFrameMethod"]=="maximumDeviatedFrame")
+            {
+                $res["FrameIndex"] = $this->maximumDeviatedFrameIndex($FaceData[$curKey], $detectedFeaturesWithTrends, $arr);
+                $res["FrameArray"]=$FaceData[$curKey][$res["FrameIndex"]];
+                $res["FrameSource"]=  json_encode($FaceData_[$res["FrameIndex"]]);
+
+            }
+            if ($configs["BasicFrameMethod"]=="minimumDeviatedFrame")
+            {
+                $res["FrameIndex"] = $this->minimumDeviatedFrame($FaceData[$curKey], $detectedFeaturesWithTrends, $arr);
+                $res["FrameArray"]=$FaceData[$curKey][$res["FrameIndex"]];
+
+                if(isset($FaceData_['frame_#'.$res["FrameIndex"]])) $res["FrameSource"]= json_encode($FaceData_['frame_#'.$res["FrameIndex"]]);
+
+            }
+
+            if ($configs["BasicFrameMethod"]=="averageFrame")
+            {
+                $res["FrameArray"]=$this->averageFrame($FaceData[$curKey], $detectedFeaturesWithTrends, $arr);
+            }
+        }
+
+       // if(isset($FaceData_['frame_#'.$resFrame])) $res = json_encode($FaceData_['frame_#'.$resFrame]);
+      //  if(isset($FaceData_[$resFrame])) $res = json_encode($FaceData_[$resFrame]);
+
+
+
+
+        return $res;
+
+    }
+
 
 
     public function detectFeaturesForBasicFrameDetection($json, $pointsFlag)
@@ -4838,8 +5925,8 @@ class FacialFeatureDetector
             'coefMouthLowerLipMax' => 1.05,
             'coefMouthRightCornerYMax' => 0.4,
             'coefMouthLeftCornerYMax' => 0.4,
-            'coefMouthRightCornerXMax' => 0.55,
-            'coefMouthLeftCornerXMax' => 0.55,
+            'coefMouthRightCornerXMax' => 0.25,
+            'coefMouthLeftCornerXMax' => 0.25,
             'coefChinScale' => 0.65,
             'coefEyeBrowXMax' => 0.3,
 //            'coefNoseWidthMax' => 0.5,
@@ -4976,882 +6063,5 @@ class FacialFeatureDetector
         return $res;
     }
 
-    /**
-     * Поиск соответствий между форматами МОП и МИП для основных лицевых признаков.
-     *
-     * @param $sourceFacePart - название части лица от МОП
-     * @param $sourceFeatureName - название признака от МОП
-     * @param $sourceValue - значение признака от МОП
-     * @return array - массив значений для МИП
-     */
-    public static function findCorrespondences($sourceFacePart, $sourceFeatureName, $sourceValue)
-    {
-        // Формирование пустого целевого массива с лицевыми признаками для МИП
-        $targetValues = array();
-        $targetValues['targetFacePart'] = null;
-        $targetValues['featureChangeType'] = null;
-        $targetValues['changeDirection'] = null;
 
-        /* Соответствия для лба */
-        if ($sourceFacePart == 'brow')
-            $targetValues['targetFacePart'] = 'Лоб';
-        if ($sourceFeatureName == 'brow_width')
-            $targetValues['featureChangeType'] = 'Изменение размера по вертикали';
-        if ($sourceValue == '-')
-            $targetValues['changeDirection'] = 'Уменьшение';
-        if ($sourceValue == '+')
-            $targetValues['changeDirection'] = 'Увеличение';
-        /* Соответствия для брови */
-        if ($sourceFacePart == 'eyebrow')
-            $targetValues['targetFacePart'] = 'Бровь';
-        if (($sourceFeatureName == 'left_eyebrow_movement_x') || ($sourceFeatureName == 'left_eyebrow_movement_y')
-            || ($sourceFeatureName == 'left_eyebrow_form'))
-            $targetValues['targetFacePart'] = 'Левая бровь';
-        if (($sourceFeatureName == 'right_eyebrow_movement_x') || ($sourceFeatureName == 'right_eyebrow_movement_y')
-            || ($sourceFeatureName == 'right_eyebrow_form'))
-            $targetValues['targetFacePart'] = 'Правая бровь';
-//        if ((($sourceFeatureName == 'left_eyebrow_movement_x') || ($sourceFeatureName == 'right_eyebrow_movement_x')
-//            || ($sourceFeatureName == 'left_eyebrow_movement_y') || ($sourceFeatureName == 'right_eyebrow_movement_y')) &&
-//            ($sourceValue == 'none')) {
-//            $targetValues['featureChangeType'] = 'Отсутствие типа';
-//            $targetValues['changeDirection'] = 'Отсутствие направления';
-//        }
-        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'right_eyebrow_form')) && ($sourceValue == 'triangle')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Тругольник';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'right_eyebrow_form')) && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Не определено';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'right_eyebrow_form')) && ($sourceValue == 'line')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Линия';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'right_eyebrow_form')) && ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Дуга вверх';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_form') || ($sourceFeatureName == 'right_eyebrow_form')) && ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Дуга вниз';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_movement_x') || ($sourceFeatureName == 'right_eyebrow_movement_x')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_movement_y') || ($sourceFeatureName == 'right_eyebrow_movement_y')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_movement_x') || ($sourceFeatureName == 'right_eyebrow_movement_x')) &&
-            ($sourceValue == 'to center')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'К центру';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_movement_x') || ($sourceFeatureName == 'right_eyebrow_movement_x')) &&
-            ($sourceValue == 'from center')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'От центра в стороны';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_movement_y') || ($sourceFeatureName == 'right_eyebrow_movement_y')) &&
-            ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_movement_y') || ($sourceFeatureName == 'right_eyebrow_movement_y')) &&
-            ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-        if (($sourceFeatureName == 'left_eyebrow_inner_movement_x') || ($sourceFeatureName == 'left_eyebrow_inner_movement_y'))
-            $targetValues['targetFacePart'] = 'Внутренний уголок левой брови';
-        if (($sourceFeatureName == 'right_eyebrow_inner_movement_x') || ($sourceFeatureName == 'right_eyebrow_inner_movement_y'))
-            $targetValues['targetFacePart'] = 'Внутренний уголок правой брови';
-//        if ((($sourceFeatureName == 'left_eyebrow_inner_movement_x') ||
-//                ($sourceFeatureName == 'right_eyebrow_inner_movement_x') ||
-//                ($sourceFeatureName == 'left_eyebrow_inner_movement_y') ||
-//                ($sourceFeatureName == 'right_eyebrow_inner_movement_y')) &&
-//            ($sourceValue == 'none')) {
-//            $targetValues['featureChangeType'] = 'Отсутствие типа';
-//            $targetValues['changeDirection'] = 'Отсутствие направления';
-//        }
-        if ((($sourceFeatureName == 'left_eyebrow_inner_movement_x') ||
-                ($sourceFeatureName == 'right_eyebrow_inner_movement_x')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_inner_movement_y') ||
-                ($sourceFeatureName == 'right_eyebrow_inner_movement_y')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_inner_movement_x') ||
-                ($sourceFeatureName == 'right_eyebrow_inner_movement_x')) &&
-            ($sourceValue == 'to center')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'К центру';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_inner_movement_x') ||
-                ($sourceFeatureName == 'right_eyebrow_inner_movement_x')) &&
-            ($sourceValue == 'from center')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'От центра в стороны';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_inner_movement_y') ||
-                ($sourceFeatureName == 'right_eyebrow_inner_movement_y')) &&
-            ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_inner_movement_y') ||
-                ($sourceFeatureName == 'right_eyebrow_inner_movement_y')) &&
-            ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-//        if ((($sourceFeatureName == 'left_eyebrow_inner_movement') ||
-//                ($sourceFeatureName == 'right_eyebrow_inner_movement')) &&
-//            ($sourceValue == 'to center and up')) {
-//            $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
-//            $targetValues['changeDirection'] = 'К центру и вверх';
-//        }
-//        if (($sourceFeatureName == 'right_eyebrow_inner_movement') && ($sourceValue == 'to center and down')) {
-//            $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
-//            $targetValues['changeDirection'] = 'К центру и вниз';
-//        }
-        if ($sourceFeatureName == 'left_eyebrow_outer_movement')
-            $targetValues['targetFacePart'] = 'Внешний уголок левой брови';
-        if ($sourceFeatureName == 'right_eyebrow_outer_movement')
-            $targetValues['targetFacePart'] = 'Внешний уголок правой брови';
-
-        if ((($sourceFeatureName == 'left_eyebrow_outer_movement') ||
-                ($sourceFeatureName == 'right_eyebrow_outer_movement')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_outer_movement') ||
-                ($sourceFeatureName == 'right_eyebrow_outer_movement')) &&
-            ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if ((($sourceFeatureName == 'left_eyebrow_outer_movement') ||
-                ($sourceFeatureName == 'right_eyebrow_outer_movement')) &&
-            ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-
-        /* Соответствия для глаз */
-        // Глаза
-        if ($sourceFeatureName == 'left_eye_width_changing')
-            $targetValues['targetFacePart'] = 'Левый глаз';
-        if ($sourceFeatureName == 'right_eye_width_changing')
-            $targetValues['targetFacePart'] = 'Правый глаз';
-        if ((($sourceFeatureName == 'left_eye_width_changing') || ($sourceFeatureName == 'right_eye_width_changing')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eye_width_changing') || ($sourceFeatureName == 'right_eye_width_changing')) &&
-            ($sourceValue == '+')) {
-            $targetValues['featureChangeType'] = 'Изменение размера по вертикали';
-            $targetValues['changeDirection'] = 'Увеличение';
-        }
-        if ((($sourceFeatureName == 'left_eye_width_changing') || ($sourceFeatureName == 'right_eye_width_changing')) &&
-            ($sourceValue == '-')) {
-            $targetValues['featureChangeType'] = 'Изменение размера по вертикали';
-            $targetValues['changeDirection'] = 'Уменьшение';
-        }
-        // Нижнии веки
-        if (($sourceFeatureName == 'left_eye_lower_eyelid_movement_x') ||
-            ($sourceFeatureName == 'left_eye_lower_eyelid_movement_y') ||
-            ($sourceFeatureName == 'left_eye_lower_eyelid_movement_d'))
-            $targetValues['targetFacePart'] = 'Нижнее веко левого глаза';
-        if (($sourceFeatureName == 'right_eye_lower_eyelid_movement_x') ||
-            ($sourceFeatureName == 'right_eye_lower_eyelid_movement_y') ||
-            ($sourceFeatureName == 'right_eye_lower_eyelid_movement_d'))
-            $targetValues['targetFacePart'] = 'Нижнее веко правого глаза';
-//        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_x') ||
-//                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_x') ||
-//                ($sourceFeatureName == 'left_eye_lower_eyelid_movement_y') ||
-//                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_y') ||
-//                ($sourceFeatureName == 'left_eye_lower_eyelid_movement_d') ||
-//                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_d')) &&
-//            (($sourceValue == 'none') || ($sourceValue == 'none and none'))) {
-//            $targetValues['featureChangeType'] = 'Отсутствие типа';
-//            $targetValues['changeDirection'] = 'Отсутствие направления';
-//        }
-        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_x') ||
-                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_x')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_x') ||
-                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_x')) &&
-            ($sourceValue == 'to center')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'К центру';
-        }
-        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_x') ||
-                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_x')) &&
-            ($sourceValue == 'from center')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'От центра в стороны';
-        }
-        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_y') ||
-                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_y')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_y') ||
-                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_y')) &&
-            ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_y') ||
-                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_y')) &&
-            ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-//        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_d') ||
-//                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_d')) &&
-//            ($sourceValue != 'to center and up')) {
-//            $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
-//            $targetValues['changeDirection'] = 'Отсутствие направления';
-//        }
-//        if ((($sourceFeatureName == 'left_eye_lower_eyelid_movement_d') ||
-//                ($sourceFeatureName == 'right_eye_lower_eyelid_movement_d')) &&
-//            ($sourceValue == 'to center and up')) {
-//            $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
-//            $targetValues['changeDirection'] = 'К центру и вверх';
-//        }
-        // Верхнии веки
-        if ($sourceFeatureName == 'left_eye_upper_eyelid_movement')
-            $targetValues['targetFacePart'] = 'Верхнее веко левого глаза';
-        if ($sourceFeatureName == 'right_eye_upper_eyelid_movement')
-            $targetValues['targetFacePart'] = 'Верхнее веко правого глаза';
-        if ((($sourceFeatureName == 'left_eye_upper_eyelid_movement') ||
-                ($sourceFeatureName == 'right_eye_upper_eyelid_movement')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eye_upper_eyelid_movement') ||
-                ($sourceFeatureName == 'right_eye_upper_eyelid_movement')) &&
-            ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if ((($sourceFeatureName == 'left_eye_upper_eyelid_movement') ||
-                ($sourceFeatureName == 'right_eye_upper_eyelid_movement')) &&
-            ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-        // Зрачки
-        if (($sourceFeatureName == 'left_eye_pupil_movement_x') || ($sourceFeatureName == 'left_eye_pupil_movement_y')
-            || ($sourceFeatureName == 'left_eye_pupil_movement_d'))
-            $targetValues['targetFacePart'] = 'Левый зрачок';
-        if (($sourceFeatureName == 'right_eye_pupil_movement_x') || ($sourceFeatureName == 'right_eye_pupil_movement_y')
-            || ($sourceFeatureName == 'right_eye_pupil_movement_d'))
-            $targetValues['targetFacePart'] = 'Правый зрачок';
-
-        if ((($sourceFeatureName == 'left_eye_pupil_movement_d') || ($sourceFeatureName == 'right_eye_pupil_movement_d')) &&
-            ($sourceValue == 'none and none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
-            $targetValues['changeDirection'] = 'Прямо перед собой';
-        }
-        if ((($sourceFeatureName == 'left_eye_pupil_movement_x') || ($sourceFeatureName == 'right_eye_pupil_movement_x')) &&
-            ($sourceValue == 'left')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Влево';
-        }
-        if ((($sourceFeatureName == 'left_eye_pupil_movement_x') || ($sourceFeatureName == 'right_eye_pupil_movement_x')) &&
-            ($sourceValue == 'right')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Вправо';
-        }
-        if ((($sourceFeatureName == 'left_eye_pupil_movement_y') || ($sourceFeatureName == 'right_eye_pupil_movement_y')) &&
-            ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if ((($sourceFeatureName == 'left_eye_pupil_movement_y') || ($sourceFeatureName == 'right_eye_pupil_movement_y')) &&
-            ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-        if ((($sourceFeatureName == 'left_eye_pupil_movement_d') || ($sourceFeatureName == 'right_eye_pupil_movement_d')) &&
-            ($sourceValue == 'up and right')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
-            $targetValues['changeDirection'] = 'Вверх и вправо';
-        }
-        if ((($sourceFeatureName == 'left_eye_pupil_movement_d') || ($sourceFeatureName == 'right_eye_pupil_movement_d')) &&
-            ($sourceValue == 'down and right')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
-            $targetValues['changeDirection'] = 'Вниз и вправо';
-        }
-        if ((($sourceFeatureName == 'left_eye_pupil_movement_d') || ($sourceFeatureName == 'right_eye_pupil_movement_d')) &&
-            ($sourceValue == 'up and left')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
-            $targetValues['changeDirection'] = 'Вверх и влево';
-        }
-        if ((($sourceFeatureName == 'left_eye_pupil_movement_d') || ($sourceFeatureName == 'right_eye_pupil_movement_d')) &&
-            ($sourceValue == 'down and left')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по диагонали';
-            $targetValues['changeDirection'] = 'Вниз и влево';
-        }
-        // Уголки глаз
-        if ($sourceFeatureName == 'left_eye_inner_movement')
-            $targetValues['targetFacePart'] = 'Внутренний уголок левого глаза';
-        if ($sourceFeatureName == 'right_eye_inner_movement')
-            $targetValues['targetFacePart'] = 'Внутренний уголок правого глаза';
-        if ((($sourceFeatureName == 'left_eye_inner_movement') || ($sourceFeatureName == 'right_eye_inner_movement')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eye_inner_movement') || ($sourceFeatureName == 'right_eye_inner_movement')) &&
-            ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if ((($sourceFeatureName == 'left_eye_inner_movement') || ($sourceFeatureName == 'right_eye_inner_movement')) &&
-            ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-        if ($sourceFeatureName == 'left_eye_outer_movement')
-            $targetValues['targetFacePart'] = 'Внешний уголок левого глаза';
-        if ($sourceFeatureName == 'right_eye_outer_movement')
-            $targetValues['targetFacePart'] = 'Внешний уголок правого глаза';
-        if ((($sourceFeatureName == 'left_eye_outer_movement') || ($sourceFeatureName == 'right_eye_outer_movement')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_eye_outer_movement') || ($sourceFeatureName == 'right_eye_outer_movement')) &&
-            ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if ((($sourceFeatureName == 'left_eye_outer_movement') || ($sourceFeatureName == 'right_eye_outer_movement')) &&
-            ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-        // Закрытие глаз
-        if ($sourceFeatureName == 'left_eye_closed')
-            $targetValues['targetFacePart'] = 'Левый глаз';
-        if ($sourceFeatureName == 'right_eye_closed')
-            $targetValues['targetFacePart'] = 'Правый глаз';
-        if ((($sourceFeatureName == 'left_eye_closed') || ($sourceFeatureName == 'right_eye_closed')) &&
-            ($sourceValue == 'yes')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Глаз закрыт';
-        }
-        if ((($sourceFeatureName == 'left_eye_closed') || ($sourceFeatureName == 'right_eye_closed')) &&
-            ($sourceValue == 'no')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Глаз открыт';
-        }
-        // Моргание
-        if ($sourceFeatureName == 'left_eye_blink')
-            $targetValues['targetFacePart'] = 'Левый глаз';
-        if ($sourceFeatureName == 'right_eye_blink')
-            $targetValues['targetFacePart'] = 'Правый глаз';
-        if ((($sourceFeatureName == 'left_eye_blink') || ($sourceFeatureName == 'right_eye_blink')) &&
-            ($sourceValue == 'yes')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Глаз моргает';
-        }
-        if ((($sourceFeatureName == 'left_eye_blink') || ($sourceFeatureName == 'right_eye_blink')) &&
-            ($sourceValue == 'no')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Глаз не моргает';
-        }
-
-        /* Соответствия для рта */
-        // Размер и форма рта
-        if ($sourceFacePart == 'mouth')
-            $targetValues['targetFacePart'] = 'Рот';
-        if (($sourceFeatureName == 'mouth_form') || ($sourceFeatureName == 'mouth_form2') || ($sourceFeatureName == 'mouth_lips_form')
-            || ($sourceFeatureName == 'mouth_lowerlip_form') || ($sourceFeatureName == 'mouth_upperlip_form'))
-            $targetValues['targetFacePart'] = 'Рот';
-//        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'down')) {
-//            $targetValues['featureChangeType'] = 'Изменение формы нижней губы';
-//            $targetValues['changeDirection'] = 'Дуга вниз';
-//        }
-//        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'none')) {
-//            $targetValues['featureChangeType'] = 'Изменение формы нижней губы';
-//            $targetValues['changeDirection'] = 'Не определено';
-//        }
-//        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'up')) {
-//            $targetValues['featureChangeType'] = 'Изменение формы нижней губы';
-//            $targetValues['changeDirection'] = 'Дуга вверх';
-//        }
-//        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'down')) {
-//            $targetValues['featureChangeType'] = 'Изменение формы верхней губы';
-//            $targetValues['changeDirection'] = 'Дуга вниз';
-//        }
-//        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'none')) {
-//            $targetValues['featureChangeType'] = 'Изменение формы верхней губы';
-//            $targetValues['changeDirection'] = 'Не определено';
-//        }
-//        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'up')) {
-//            $targetValues['featureChangeType'] = 'Изменение формы верхней губы';
-//            $targetValues['changeDirection'] = 'Дуга вверх';
-//        }
-//        if (($sourceFeatureName == 'mouth_lips_form') && ($sourceValue == 'down')) {
-//            $targetValues['featureChangeType'] = 'Изменение формы губ';
-//            $targetValues['changeDirection'] = 'Дуга вниз';
-//        }
-//        if (($sourceFeatureName == 'mouth_lips_form') && ($sourceValue == 'none')) {
-//            $targetValues['featureChangeType'] = 'Изменение формы губ';
-//            $targetValues['changeDirection'] = 'Не определено';
-//        }
-//        if (($sourceFeatureName == 'mouth_lips_form') && ($sourceValue == 'up')) {
-//            $targetValues['featureChangeType'] = 'Изменение формы губ';
-//            $targetValues['changeDirection'] = 'Дуга вверх';
-//        }
-        if (($sourceFeatureName == 'mouth_form2') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Не определено';
-        }
-        if (($sourceFeatureName == 'mouth_form') && ($sourceValue == 'ellipse')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Овал';
-        }
-        if (($sourceFeatureName == 'mouth_form') && ($sourceValue == 'rectangle')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Прямоугольник';
-        }
-        if ($sourceFeatureName == 'mouth_length')
-            $targetValues['targetFacePart'] = 'Рот';
-        if (($sourceFeatureName == 'mouth_length') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение размера по горизонтали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if (($sourceFeatureName == 'mouth_length') && ($sourceValue == '-')) {
-            $targetValues['featureChangeType'] = 'Изменение размера по горизонтали';
-            $targetValues['changeDirection'] = 'Уменьшение';
-        }
-        if (($sourceFeatureName == 'mouth_length') && ($sourceValue == '+')) {
-            $targetValues['featureChangeType'] = 'Изменение размера по горизонтали';
-            $targetValues['changeDirection'] = 'Увеличение';
-        }
-        if ($sourceFeatureName == 'mouth_width')
-            $targetValues['targetFacePart'] = 'Рот';
-        if (($sourceFeatureName == 'mouth_width') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение размера по вертикали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if (($sourceFeatureName == 'mouth_width') && ($sourceValue == '-')) {
-            $targetValues['featureChangeType'] = 'Изменение размера по вертикали';
-            $targetValues['changeDirection'] = 'Уменьшение';
-        }
-        if (($sourceFeatureName == 'mouth_width') && ($sourceValue == '+')) {
-            $targetValues['featureChangeType'] = 'Изменение размера по вертикали';
-            $targetValues['changeDirection'] = 'Увеличение';
-        }
-        if (($sourceFeatureName == 'mouth_width') && ($sourceValue == 'compressed')) {
-            $targetValues['featureChangeType'] = 'Изменение размера по вертикали';
-            $targetValues['changeDirection'] = 'Сжатие';
-        }
-        // Уголки рта
-        if (($sourceFeatureName == 'left_corner_mouth_movement_x') || ($sourceFeatureName == 'left_corner_mouth_movement_y'))
-            $targetValues['targetFacePart'] = 'Левый уголок рта';
-        if (($sourceFeatureName == 'right_corner_mouth_movement_x') || ($sourceFeatureName == 'right_corner_mouth_movement_y'))
-            $targetValues['targetFacePart'] = 'Правый уголок рта';
-//        if ((($sourceFeatureName == 'left_corner_mouth_movement_x') ||
-//                ($sourceFeatureName == 'right_corner_mouth_movement_x') ||
-//                ($sourceFeatureName == 'left_corner_mouth_movement_y') ||
-//                ($sourceFeatureName == 'right_corner_mouth_movement_y')) &&
-//            ($sourceValue == 'none')) {
-//            $targetValues['featureChangeType'] = 'Отсутствие типа';
-//            $targetValues['changeDirection'] = 'Отсутствие направления';
-//        }
-        if ((($sourceFeatureName == 'left_corner_mouth_movement_x') ||
-                ($sourceFeatureName == 'right_corner_mouth_movement_x')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_corner_mouth_movement_x') ||
-                ($sourceFeatureName == 'right_corner_mouth_movement_x')) &&
-            ($sourceValue == 'from center')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'От центра в стороны';
-        }
-        if ((($sourceFeatureName == 'left_corner_mouth_movement_x') ||
-                ($sourceFeatureName == 'right_corner_mouth_movement_x')) &&
-            ($sourceValue == 'to center')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'К центру';
-        }
-        if ((($sourceFeatureName == 'left_corner_mouth_movement_y') ||
-                ($sourceFeatureName == 'right_corner_mouth_movement_y')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_corner_mouth_movement_y') ||
-                ($sourceFeatureName == 'right_corner_mouth_movement_y')) &&
-            ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if ((($sourceFeatureName == 'left_corner_mouth_movement_y') ||
-                ($sourceFeatureName == 'right_corner_mouth_movement_y')) &&
-            ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-        // Губы
-        if ($sourceFeatureName == 'mouth_upper_lip_outer_center_movement')
-            $targetValues['targetFacePart'] = 'Верхняя губа';
-        if ($sourceFeatureName == 'mouth_lower_lip_outer_center_movement')
-            $targetValues['targetFacePart'] = 'Нижняя губа';
-        if ($sourceFeatureName == 'mouth_upperlip_form')
-            $targetValues['targetFacePart'] = 'Верхняя губа';
-        if ($sourceFeatureName == 'mouth_lowerlip_form')
-            $targetValues['targetFacePart'] = 'Нижняя губа';
-        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Дуга вниз';
-        }
-        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Не определено';
-        }
-        if (($sourceFeatureName == 'mouth_lowerlip_form') && ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Дуга вверх';
-        }
-        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Дуга вниз';
-        }
-        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Не определено';
-        }
-        if (($sourceFeatureName == 'mouth_upperlip_form') && ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение формы';
-            $targetValues['changeDirection'] = 'Дуга вверх';
-        }
-        if ((($sourceFeatureName == 'mouth_upper_lip_outer_center_movement') ||
-                ($sourceFeatureName == 'mouth_lower_lip_outer_center_movement')) &&
-            ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'mouth_upper_lip_outer_center_movement') ||
-                ($sourceFeatureName == 'mouth_lower_lip_outer_center_movement')) &&
-            ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if ((($sourceFeatureName == 'mouth_upper_lip_outer_center_movement') ||
-                ($sourceFeatureName == 'mouth_lower_lip_outer_center_movement')) &&
-            ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-
-        /* Соответствия для подбородка */
-        if ($sourceFacePart == 'chin')
-            $targetValues['targetFacePart'] = 'Подбородок';
-        if ($sourceFeatureName == 'chin_movement')
-            $targetValues['targetFacePart'] = 'Подбородок';
-        if (($sourceFeatureName == 'chin_movement') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if (($sourceFeatureName == 'chin_movement') && ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-        if (($sourceFeatureName == 'chin_movement') && ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-
-        /* Соответствия для носа */
-        // Крылья носа
-        if (($sourceFacePart == 'nose') || ($sourceFacePart == 'nose_movement') || ($sourceFacePart == 'nose_width_changing'))
-            $targetValues['targetFacePart'] = 'Нос';
-        if ($sourceFeatureName == 'nose_wing_movement')
-            $targetValues['targetFacePart'] = 'Крылья носа';
-        if (($sourceFeatureName == 'nose_wing_movement') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if (($sourceFeatureName == 'nose_movement') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if (($sourceFeatureName == 'nose_movement') && ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if (($sourceFeatureName == 'nose_movement') && ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-        if (($sourceFeatureName == 'nose_width_changing') && ($sourceValue == 'none')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if (($sourceFeatureName == 'nose_width_changing') && ($sourceValue == '+')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Увеличение';
-        }
-        if (($sourceFeatureName == 'nose_width_changing') && ($sourceValue == '-')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'Уменьшение';
-        }
-        if (($sourceFeatureName == 'nose_wing_movement') && ($sourceValue == 'up')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вверх';
-        }
-        if (($sourceFeatureName == 'nose_wing_movement') && ($sourceValue == 'down')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по вертикали';
-            $targetValues['changeDirection'] = 'Вниз';
-        }
-        // Носогубная складка
-        if ($sourceFeatureName == 'left_nasolabial_fold_movement')
-            $targetValues['targetFacePart'] = 'Левая носогубная складка';
-        if ($sourceFeatureName == 'right_nasolabial_fold_movement')
-            $targetValues['targetFacePart'] = 'Правая носогубная складка';
-        if ((($sourceFeatureName == 'left_nasolabial_fold_movement') ||
-                ($sourceFeatureName == 'right_nasolabial_fold_movement')) &&
-            ($sourceValue != 'from center')) {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
-            $targetValues['changeDirection'] = 'Отсутствие направления';
-        }
-        if ((($sourceFeatureName == 'left_nasolabial_fold_movement') ||
-                ($sourceFeatureName == 'right_nasolabial_fold_movement')) &&
-            ($sourceValue == 'from center')) {
-            $targetValues['featureChangeType'] = 'Изменение положения по горизонтали';
-            $targetValues['changeDirection'] = 'От центра в стороны';
-        }
-        // Морщины носа
-        if ($sourceFeatureName == 'central_nose_wrinkle_zone')
-            $targetValues['targetFacePart'] = 'Центральная зона морщин носа';
-        if ($sourceFeatureName == 'left_nose_wrinkle_zone')
-            $targetValues['targetFacePart'] = 'Левая зона морщин носа';
-        if ($sourceFeatureName == 'right_nose_wrinkle_zone')
-            $targetValues['targetFacePart'] = 'Правая зона морщин носа';
-        if ((($sourceFeatureName == 'central_nose_wrinkle_zone') || ($sourceFeatureName == 'left_nose_wrinkle_zone') ||
-                ($sourceFeatureName == 'right_nose_wrinkle_zone')) && $sourceValue == 'none') {
-            $targetValues['featureChangeType'] = 'Отсутствие типа';
-            $targetValues['changeDirection'] = 'Отсутствие изменения размера';
-        }
-        if ((($sourceFeatureName == 'central_nose_wrinkle_zone') || ($sourceFeatureName == 'left_nose_wrinkle_zone') ||
-                ($sourceFeatureName == 'right_nose_wrinkle_zone')) && $sourceValue == '+') {
-            $targetValues['featureChangeType'] = 'Изменение размера';
-            $targetValues['changeDirection'] = 'Увеличение';
-        }
-        if ((($sourceFeatureName == 'left_nose_wrinkle_zone') || ($sourceFeatureName == 'left_nose_wrinkle_zone') ||
-                ($sourceFeatureName == 'right_nose_wrinkle_zone')) && $sourceValue == '-') {
-            $targetValues['featureChangeType'] = 'Изменение размера';
-            $targetValues['changeDirection'] = 'Уменьшение';
-        }
-
-        return $targetValues;
-    }
-
-    /**
-     * Поиск соответствий между форматами МОП и МИП для признаков общего поведения.
-     *
-     * @param $sourceFacePart - название части лица от МОП
-     * @param $sourceFeatureName - название признака от МОП
-     * @param $sourceValue - значение признака от МОП
-     * @return array - массив значений для МИП
-     */
-    public static function findCorrespondencesForBehaviorFeatures($sourceFacePart, $sourceFeatureName, $sourceValue)
-    {
-        // Формирование пустого целевого массива с лицевыми признаками для МИП
-        $targetValues = array();
-        $targetValues['targetFacePart'] = null;
-        $targetValues['generalNameBehavior'] = null;
-        $targetValues['presenceFeature'] = null;
-
-        /* Соответствия для рта */
-        // Разговор (речь)
-        if ($sourceFacePart == 'mouth')
-            $targetValues['targetFacePart'] = 'Рот';
-        if ($sourceFeatureName == 'speaking')
-            $targetValues['generalNameBehavior'] = 'Речь';
-        if ($sourceFeatureName == 'speaking' && $sourceValue == 'yes')
-            $targetValues['presenceFeature'] = 'Да';
-
-        /* Соответствия для глаз */
-        // Глаза
-        if ($sourceFeatureName == 'left_eye_blink')
-            $targetValues['targetFacePart'] = 'Левый глаз';
-        if ($sourceFeatureName == 'right_eye_blink')
-            $targetValues['targetFacePart'] = 'Правый глаз';
-        if ((($sourceFeatureName == 'left_eye_blink') || ($sourceFeatureName == 'right_eye_blink')) &&
-            ($sourceValue == 'yes')) {
-            $targetValues['generalNameBehavior'] = 'Моргание';
-            $targetValues['presenceFeature'] = 'Да';
-        }
-
-        return $targetValues;
-    }
-
-    /**
-     * Преобразование массива с результатами определения признаков в массив фактов.
-     *
-     * @param $faceData - цифровая маска
-     * @param $detectedFeatures - массив обнаруженных признаков
-     * @param $questionTime - время на вопрос в миллисекундах
-     * @return array - массив наборов фактов для кадого кадра видеоинтервью
-     */
-    public function convertFeaturesToFacts($faceData, $detectedFeatures, $questionTime)
-    {
-        // Массив для наборов фактов, сформированных для каждого кадра
-        $facts = array();
-        // Время на вопрос в кадрах
-        $questionTimeInFrames = 0;
-        // Кол-во кадров
-        $frameNumber = 0;
-        if (isset($detectedFeatures['eye']['left_eye_upper_eyelid_movement']) &&
-            is_array($detectedFeatures['eye']['left_eye_upper_eyelid_movement']))
-            $frameNumber = count($detectedFeatures['eye']['left_eye_upper_eyelid_movement']);
-        // Цикл от 1 до общего-кол-ва кадров
-        for ($i = 1; $i < $frameNumber; $i++) {
-            // Массив фактов для текущего кадра
-            $frameFacts = array();
-            // Обход всех определенных лицевых признаков
-            foreach ($detectedFeatures as $facePart => $features) {
-                if ($features != null)
-                    foreach ($features as $featureName => $frames)
-                        if (is_array($frames))
-                            for ($j = 1; $j < count($frames); $j++) {
-                                if (isset($frames[$j]["val"]) && isset($frames[$j]["force"]) && ($i == $j)) {
-                                    // Поиск соответствий лицевых признаков
-                                    $targetValues = self::findCorrespondences($facePart, $featureName,
-                                        $frames[$j]["val"]);
-                                    // Если соответсвия лицевых признаков найдены
-                                    if ($targetValues['targetFacePart'] != null &&
-                                        $targetValues['featureChangeType'] != null &&
-                                        $targetValues['changeDirection'] != null) {
-                                        // Формирование факта одного лицевого признака для текущего кадра
-                                        $faceFeatureFact['NameOfTemplate'] = 'T1986';
-                                        $faceFeatureFact['s861'] = $targetValues['targetFacePart'];
-                                        $faceFeatureFact['s862'] = $targetValues['featureChangeType'];
-                                        $faceFeatureFact['s863'] = $targetValues['changeDirection'];
-                                        $faceFeatureFact['s864'] = $frames[$j]["force"];
-                                        $faceFeatureFact['s869'] = $j;
-                                        $faceFeatureFact['s870'] = $j;
-                                        $faceFeatureFact['s871'] = $j; //count($frames);
-                                        $faceFeatureFact['s874'] = $j;
-                                        // Добавление факта одного лицевого признака для текущего кадра в набор фактов
-                                        array_push($frameFacts, $faceFeatureFact);
-                                    }
-                                }
-                                if (isset($frames[$j]["val"]) && $i == $j) {
-                                    // Поиск соответствий признаков общего поведения
-                                    $targetValues = self::findCorrespondencesForBehaviorFeatures(
-                                        $facePart,
-                                        $featureName,
-                                        $frames[$j]["val"]
-                                    );
-                                    // Если соответсвия признаков общего поведения найдены
-                                    if ($targetValues['targetFacePart'] != null &&
-                                        $targetValues['generalNameBehavior'] != null &&
-                                        $targetValues['presenceFeature'] != null) {
-                                        // Формирование факта одного признака общего поведения для текущего кадра
-                                        $generalBehaviorFeatureFact = array();
-                                        $generalBehaviorFeatureFact['NameOfTemplate'] = 'T2046';
-                                        $generalBehaviorFeatureFact['s908'] = $targetValues['generalNameBehavior'];
-                                        $generalBehaviorFeatureFact['s909'] = $j;
-                                        $generalBehaviorFeatureFact['s910'] = $j; //count($frames);
-                                        $generalBehaviorFeatureFact['s911'] = $j;
-                                        $generalBehaviorFeatureFact['s912'] = $targetValues['targetFacePart'];
-                                        // Добавление факта одного признака общего поведения для текущего кадра в набор фактов
-                                        array_push($frameFacts, $generalBehaviorFeatureFact);
-                                    }
-                                }
-                            }
-            }
-            if ($i == 1 && $questionTime != null) {
-                // Декодирование цифровой маски из json-формата
-                $faceData = json_decode($faceData, true);
-                // Если существует ключ (индекс) - FPS
-                if (isset($faceData['fps'])) {
-                    // Определение времени на вопрос в кадрах
-                    $questionTimeInFrames = round(((float)$faceData['fps'] * ($questionTime / 1000)), 0);
-                    // Формирование факта одного признака для первого кадра
-                    $videoParametersFact['NameOfTemplate'] = 'T2110';
-                    $videoParametersFact['s922'] = $faceData['fps'];
-                    $videoParametersFact['s924'] = $questionTimeInFrames;
-                    // Добавление факта параметра видео для первого кадра в набор фактов
-                    array_push($frameFacts, $videoParametersFact);
-                }
-            }
-            if ($i <= $questionTimeInFrames) {
-                // Формирование факта признака общего поведения (слушание) для текущего кадра
-                $generalBehaviorFeatureFact = array();
-                $generalBehaviorFeatureFact['NameOfTemplate'] = 'T2046';
-                $generalBehaviorFeatureFact['s908'] = 'Слушание';
-                $generalBehaviorFeatureFact['s909'] = $i;
-                $generalBehaviorFeatureFact['s910'] = $i; //$frameNumber;
-                $generalBehaviorFeatureFact['s911'] = $i;
-                $generalBehaviorFeatureFact['s912'] = '';
-                // Добавление факта одного признака общего поведения (слушание) для текущего кадра в набор фактов
-                array_push($frameFacts, $generalBehaviorFeatureFact);
-            }
-            // Добавление набора фактов для текущего кадра в общий массив фактов
-            array_push($facts, $frameFacts);
-        }
-
-        return $facts;
-    }
-
-    /**
-     * Преобразование массива с action units в массив фактов.
-     *
-     * @param stdClass $actionUnits - массив AUs (action units)
-     * @param $frameIndex - номер кадра
-     * @return array - массив факта
-     */
-    public function convertActionUnitsToFacts(stdClass $actionUnits, $frameIndex) {
-        $replacementTable = array_combine(json_decode('["AU00","AU01","AU02","AU04","AU05","AU06","AU07","AU08","AU09","AU10","AU11","AU12","AU13","AU14","AU15","AU16","AU17","AU18","AU19","AU20","AU21","AU22","AU23","AU24","AU25","AU26","AU27","AU28","AU29","AU30","AU31","AU32","AU33","AU34","AU35","AU36","AU37","AU38","AU39","AU41","AU42","AU43","AU44","AU45","AU46","AU51","AU52","AU53","AU54","AU55","AU","AU56","AU","AU57","AU","AU58","AU","AU","AU","AU61","AU","AU62","AU","AU63","AU64","AU65","AU66","AU","AU69","AU","AU70","AU71","AU72","AU73","AU74","AU40","AU50","AU80","AU81","AU82","AU84","AU85"]'),
-            json_decode('["AU0 - Нейтральное лицо","AU1 - Подниматель внутренней части брови","AU2 - Подниматель внешней части брови","AU4 - Опускатель брови","AU5 - Подниматель верхнего века","AU6 - Подниматель щеки","AU7 - Натягиватель века","AU8 - Губы навстречу друг другу","AU9 - Сморщиватель носа","AU10 - Подниматель верхней губы","AU11 - Углубитель носогубной складки","AU12 - Подниматель уголка губы","AU13 - Острый подниматель уголка губы","AU14 - Ямочка","AU15 - Опускатель уголка губы","AU16 - Опускатель нижней губы","AU17 - Подниматель подбородка","AU18 - Сморщиватель губ","AU19 - Показ языка","AU20 - Растягиватель губ","AU21 - Натягиватель шеи","AU22 - Губы воронкой","AU23 - Натягиватель губ","AU24 - Сжиматель губ","AU25 - Губы разведены","AU26 - Челюсть опущена","AU27 - Рот широко открыт","AU28 - Втягивание губ","AU29 - Нижняя челюсть вперёд","AU30 - Челюсть в бок","AU31 - Сжиматель челюстей","AU32 - Покусывание губы","AU33 - Выдувание","AU34 - Раздувание щёк","AU35 - Втягивание щёк","AU36 - Язык высунут","AU37 - Облизывание губ","AU38 - Расширитель ноздрей","AU39 - Суживатель ноздрей","AU41 - Опускатель надпереносья","AU42 - Опускатель внутренней части брови","AU43 - Глаза закрыты","AU44 - Сведение бровей","AU45 - Моргание","AU46 - Подмигивание","AU51 - Поворот головы влево","AU52 - Поворот головы вправо","AU53 - Голова вверх","AU54 - Голова вниз","AU55 - Наклон головы влево","AU M55 - Наклон головы влево","AU56 - Наклон головы вправо","AU M56 - Наклон головы вправо","AU57 - Голова вперёд","AU M57 - Толчок головы вперёд","AU58 - Голова назад","AU M59 - Кивок головой","AU M60 - Голова из стороны в сторону","AU M83 - Голова вверх и в сторону","AU61 - Отведение глаз влево","AU M61 - Глаза влево","AU62 - Отведение глаз вправо","AU M62 - Глаза вправо","AU63 - Глаза вверх","AU64 - Глаза вниз","AU65 - Расходящееся косоглазие","AU66 - Сходящееся косоглазие","AU M68 - Закатывание глаз","AU69 - Глаза на другом человеке","AU M69 - Голова и/или глаза на другом человеке","AU70 - Брови и лоб не видны","AU71 - Глаза не видны","AU72 - Нижняя часть лица не видна","AU73 - Всё лицо не видно","AU74 - Оценивание невозможно","AU40 - Втягивание носом","AU50 - Речь","AU80 - Глотание","AU81 - Жевание","AU82 - Пожатие плечом","AU84 - Движение головой назад и вперёд","AU85 - Кивок головой вверх и вниз"]'));
-        $result = array();
-        foreach ($actionUnits as $name => $actionUnit) {
-            if ($actionUnit -> presence === 1) {
-                $fact = new stdClass;
-                // Имя шаблона: Признаки эмоций (Action units)
-                $fact -> {'NameOfTemplate'} = 'T2045';
-                // Имя слота: "Название" Описание слота: "Название action unit'а"
-                $fact -> {'s900'} = $replacementTable[$name];
-                // [Нет данных - пропускаем] Имя слота: "Проявление" Описание слота: "Описание проявления action unit'а:
-                // левая часть лица, правая или обе стороны"
-                // $fact -> {'s901'} = Null;
-                // [+ Преобразование в %] Имя слота: "Интенсивность" Описание слота: ""
-                $fact -> {'s902'} = $actionUnit -> intensity * 20;
-                // Имя слота: "Номер кадра" Описание слота: ""
-                $fact -> {'s903'} = $frameIndex;
-                $result[] = $fact;
-            };
-        }
-
-        return $result;
-    }
 }
