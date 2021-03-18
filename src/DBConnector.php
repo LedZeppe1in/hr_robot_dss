@@ -15,7 +15,7 @@ class DBConnector
     /**
      * Подключение к БД.
      *
-     * @return bool
+     * @return bool - успешность подключения
      */
     public function connect()
     {
@@ -204,7 +204,7 @@ class DBConnector
      *
      * @param $connection - соединение с БД
      * @param $id - идентификатор итогового заключения по видео-интервью (PK)
-     * @param $conclusionText - текст с итоговым заключением по видео-интервью,
+     * @param $conclusionText - текст с итоговым заключением по видео-интервью
      * @return resource - результат запроса
      */
     public function updateFinalConclusion($connection, $id, $conclusionText)

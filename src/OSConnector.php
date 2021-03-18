@@ -49,10 +49,10 @@ class OSConnector
     /**
      * Сохранение объекта файла в Object Storage на Yandex.Cloud.
      *
-     * @param $bucketName - название бакета (videointerviews, landmarks, detectionresults или interpretationresults)
+     * @param $bucketName - название бакета
      * @param $path - название папки в бакете (соответствует id записи из БД)
      * @param $fileName - имя файла с расширением без пути
-     * @param $file - файл
+     * @param $file - содержимое файла
      */
     public function saveFileToObjectStorage($bucketName, $path, $fileName, $file)
     {
@@ -63,9 +63,11 @@ class OSConnector
             // Если пришел массив
             if (is_array($file))
                 $content = json_encode($file, JSON_UNESCAPED_UNICODE);
-//            // Если пришел не json-текст (файл)
-//            if (is_string($file) && !is_array(json_decode($file, true)))
-//                $content = fopen($file, 'r');
+            // Если пришел не json-текст, а файл
+            //if (is_string($file) && !is_array(json_decode($file, true)))
+            else
+                if (file_exists($file))
+                    $content = fopen($file, 'r');
             $s3Client->putObject([
                 'Bucket' => $bucketName,
                 'Key' => ($path != null) ? $path . '/' . $fileName : $fileName,
@@ -79,7 +81,7 @@ class OSConnector
     /**
      * Удаление объекта файла из Object Storage на Yandex.Cloud.
      *
-     * @param $bucketName - название бакета (videointerviews, landmarks, detectionresults или interpretationresults)
+     * @param $bucketName - название бакета
      * @param $path - название папки в бакете (соответствует id записи из БД)
      * @param $fileName - имя файла с расширением без пути
      */
@@ -100,7 +102,7 @@ class OSConnector
     /**
      * Получение содержимого объекта файла из Object Storage на Yandex.Cloud.
      *
-     * @param $bucketName - название бакета (videointerviews, landmarks, detectionresults или interpretationresults)
+     * @param $bucketName - название бакета
      * @param $path - название папки в бакете (соответствует id записи из БД)
      * @param $fileName - имя файла с расширением без пути
      * @return bool|mixed - содержимое объекта файла
@@ -127,7 +129,7 @@ class OSConnector
     /**
      * Скачивание объекта файла из Object Storage на Yandex.Cloud.
      *
-     * @param $bucketName - название бакета (videointerviews, landmarks, detectionresults или interpretationresults)
+     * @param $bucketName - название бакета
      * @param $path - название папки в бакете (соответствует id записи из БД)
      * @param $fileName - имя файла с расширением без пути
      * @return mixed - файл с Object Storage
@@ -161,7 +163,7 @@ class OSConnector
     /**
      * Сохранение объекта файла из Object Storage на сервер Yandex.Cloud.
      *
-     * @param $bucketName - название бакета (videointerviews, landmarks, detectionresults или interpretationresults)
+     * @param $bucketName - название бакета
      * @param $path - название папки в бакете (соответствует id записи из БД)
      * @param $fileName - имя файла с расширением без пути
      * @param $serverPath - название папки на сервере
