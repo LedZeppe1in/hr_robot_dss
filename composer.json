@@ -1,0 +1,13 @@
+{
+    "name": "ledzeppe1in/hr_robot_dss",
+    "description": "PHP-based decision-support system - HR Robot",
+    "type": "library",
+    "authors": [
+        {
+            "name": "HR Robot Team",
+            "email": "tualatin32@mail.ru"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
