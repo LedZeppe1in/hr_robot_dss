@@ -2,9 +2,6 @@
 
 namespace app\components\TextDetection;
 
-use app\components\TextDetection\TextFrequencyDetector;
-
-
 //include_once('../TextDetection/TextFrequencyDetector.php');
 
 class PhraseDetector
